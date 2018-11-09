@@ -4,6 +4,7 @@ import os
 import shutil
 
 from task import Task
+from batch import Batch
 from . import Workflow
 from dockercontainer.docker_client import DockerClient
 from dockercontainer.container import Container
@@ -12,7 +13,7 @@ from communication.data_transfer import DataTransfer
 from communication.data_transfer import GlobusManager
 from communication.data_transfer import SCPManager
 
-class LocalDockerTask(Task):
+class LocalDockerTask(Batch):
 
     #Params:
     # 1) name: task name
@@ -20,7 +21,7 @@ class LocalDockerTask(Task):
     # 3) image: docker image which the container is going to be created
     # 4) host: URL of the host, by default use the unix local host
     def __init__(self, name, command, containerID=None, working_dir=None, image=None,endpoint=None):
-        Task.__init__(self,name)
+        Batch.__init__(self,name, command, working_dir=working_dir)
         self.command = command
         self.containerID = containerID
         self.working_dir = working_dir

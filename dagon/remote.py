@@ -3,6 +3,7 @@ import os
 import re
 
 from task import Task
+from batch import Batch
 from dagon import Workflow
 from docker_task import LocalDockerTask
 from dockercontainer.container import Container
@@ -14,10 +15,10 @@ from communication.data_transfer import DataTransfer
 from communication.data_transfer import GlobusManager
 from communication.data_transfer import SCPManager
 
-class RemoteTask(Task):
+class RemoteTask(Batch):
 
     def __init__(self, name, ssh_username, keypath, command, ip=None, working_dir=None, local_working_dir=None, endpoint=None):
-        Task.__init__(self,name)
+        Batch.__init__(self,name, command, working_dir=working_dir)
         self.ip = ip
         self.keypath = keypath
         self.command = command
@@ -116,7 +117,6 @@ class DockerRemoteTask(LocalDockerTask,RemoteTask):
 class CloudTask(RemoteTask):
     def __init__(self, name, command, provider, ssh_username, keyparams=None, create_instance=True, flavour=None, working_dir=None, local_working_dir=None,instance_name=None, id=None, endpoint=None):
         RemoteTask.__init__(self,name=name, ssh_username=ssh_username, keypath=keyparams['keypath'], command=command, working_dir=working_dir, local_working_dir=local_working_dir, endpoint=endpoint)
-        print provider
         self.node = CloudManager.getInstance(id=id,keyparams=keyparams,flavour=flavour,
                    provider=provider,create_instance=create_instance,name=instance_name)
         self.setIp(self.node.public_ips[0])

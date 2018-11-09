@@ -2,6 +2,7 @@ import json
 import logging
 import logging.config
 from logging.config import fileConfig
+from graphviz import Digraph 
 from enum import Enum
 
 class Status(Enum):
@@ -23,7 +24,6 @@ class Workflow(object):
 
     self.name=name
     self.cfg=cfg
-    print self.cfg
     self.tasks=[]
 
   def get_scratch_dir_base(self):
@@ -59,14 +59,25 @@ class Workflow(object):
     return jsonWorkflow
 
   def run(self):
-
     self.logger.debug("Running workflow: %s",self.name)
     for task in self.tasks:
       task.start()
+
+  def draw(self):
+    g = Digraph(self.name)
+    g.node_attr.update(color='lightblue2', style='filled')
+    #g.edge("x","z")
+    #g.edge("x", "y")
+    #g.view()
+    for task in self.tasks:
+      g.node(task.name, task.name)
+      for child in task.nexts:
+        g.edge(task.name, child.name)
+      #g.edge(task.name,)
+    g.view()
 
 def readConfig(section):
   import configparser
   config = configparser.ConfigParser()
   config.read('dagon.ini')
-  print dict(config.items(section))
   return dict(config.items(section))
