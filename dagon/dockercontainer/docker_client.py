@@ -8,9 +8,9 @@ class DockerClient(object):
         ):
             res = local(command,capture=True)
             if not res.failed:
-                return res.stdout
+                return {"code":0, "output":res.stdout, "error":res.stderr} 
             else:
-                raise Exception(res.stdout)
+                return {"code":1, "output":res.stdout, "error":res.stderr} 
 
 class DockerRemoteClient(DockerClient):
 
@@ -22,9 +22,5 @@ class DockerRemoteClient(DockerClient):
             hide('warnings', 'running', 'stdout', 'stderr'),
             warn_only=True
         ):
-            stdout, stderr = self.ssh.executeCommand(command)
-            print stdout, stderr
-            if len(stderr) == 0:
-                return stdout
-            else:
-                raise Exception(stderr)
+            result = self.ssh.executeCommand(command)
+            return result
