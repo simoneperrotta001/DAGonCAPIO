@@ -50,6 +50,8 @@ class SCPManager:
     def copyData(self, ori, dest, intermedary):
         if self._to is None:
             self.getDataFromRemote(self._from, ori, intermedary)
+        elif self._from is None:
+            self.putDataInRemote(self._to, ori, dest)
         else:
             self.getDataFromRemote(self._from, ori, intermedary)
             self.putDataInRemote(self._to, intermedary, dest)
@@ -57,7 +59,7 @@ class SCPManager:
 
 class GlobusManager:
 
-    TRANSFER_TOKEN = "AgK5pqpamdmwvwjN7GpYqonNMa0pk6Pn9yeYXeXGQvYqNGXvb8CeCWVd63NMlE4mDPjMnyDP5764wDc1mm2Yxu3bE1"
+    TRANSFER_TOKEN = "Agd9dmJPwEb48QjOPPq0PQGGJ16xVp3EO10jnKB6or01pwDdzgFXCjwXkJG47mQbJ4gGo254nQkrQcgVxrdyCPXxv"
 
     def __init__(self, _from, _to):
         self._from = _from

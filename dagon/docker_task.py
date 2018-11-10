@@ -35,9 +35,14 @@ class LocalDockerTask(Batch):
     def getTransferType(self):
         return self.transfer
 
+    def getSSHClient(self):
+        return None
+
+    def isTaskRemote(self):
+        return False
+
     #Create a Docker container
     def createContainer(self):
-        print self.image
         command = self.strRunCont(image=self.image, detach=True, 
                            volume={"host":self.workflow.get_scratch_dir_base(),
                             "container":self.workflow.get_scratch_dir_base()})
@@ -115,27 +120,27 @@ class LocalDockerTask(Batch):
             
             # The task name is the first element
             task_name=elements[0]
-
+            
             # Extract the task
             task=self.workflow.find_task_by_name(task_name)
             if task is not None:
-                
-                inputF=re.split("> |>>", elements[1])[0].strip()
+                inputF = "/".join(elements[1:])
+                inputF=re.split("> |>>", inputF)[0].strip()
                 inputF=re.split(" ",inputF)[0].strip()
+                leaf=SCPManager.path_leaf(inputF)
                 if task.isTaskRemote():
                     if task.getTransferType() == DataTransfer.GLOBUS and self.getTransferType() == DataTransfer.GLOBUS:
                         gm = GlobusManager(task.getEndpoint(), self.getEndpoint())
                         gm.copyData(task.working_dir+"/"+inputF, self.working_dir+"/"+inputF)
                     else:
                         scpM = SCPManager(task.getSSHClient(), self.ssh_connection)
-                        scpM.copyData(task.working_dir+"/"+inputF, self.working_dir+"/"+inputF, self.local_working_dir+"/"+inputF)
+                        scpM.copyData(task.working_dir+"/"+inputF, self.working_dir+"/"+leaf, self.local_working_dir+"/"+leaf)
                     command=command.replace(Workflow.SCHEMA+task.name,self.working_dir)
                 else:
                     command=command.replace(Workflow.SCHEMA+task.name,task.working_dir)
                     
         # Apply some command post processing
         command=self.post_process_command(command)
-        
         # Execute the bash command
         self.result=self.container.exec_in_cont("sh -c \'"+command+"\'")
 
