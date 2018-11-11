@@ -30,22 +30,19 @@ if __name__ == '__main__':
                     "cloudargs":{"name":"dagonDOkey","public_key":keysDO[1],"private_key":keysDO[0]}}
   # Create the orchestration workflow
   workflow=Workflow("DataFlow-Demo-Cloud",config)
-  print workflow.name
+
   # The task a
-  taskA= CloudTask("A", "mkdir output;echo Soy A > output/f1.txt", Provider.EC2,"ubuntu",create_instance=False,id="i-021d09715bc0b877c", keyparams=keysshparams3,endpoint="6c24aea0-e208-11e8-8c92-0a1d4c5c824a",flavour=defaultflavour, instance_name="dagon")
+  taskA= CloudTask("A", "mkdir output;echo I'm A > output/f1.txt", Provider.EC2,"ubuntu",create_instance=False,id="i-021d09715bc0b877c", keyparams=keysshparams3,endpoint="6c24aea0-e208-11e8-8c92-0a1d4c5c824a",flavour=defaultflavour, instance_name="dagon")
 
-  taskB= CloudTask("B", "echo Soy B > f2.txt; cat workflow://A/output/f1.txt >> f2.txt", Provider.EC2,"ubuntu",create_instance=False,id="i-03d1c4f2b326ed016", keyparams=keysshparams3,endpoint="fc4e86e0-e203-11e8-8c92-0a1d4c5c824a",flavour=defaultflavour, instance_name="B")
+  taskB= CloudTask("B", "echo I'm B > f2.txt; cat workflow://A/output/f1.txt >> f2.txt", Provider.EC2,"ubuntu",create_instance=False,id="i-03d1c4f2b326ed016", keyparams=keysshparams3,endpoint="fc4e86e0-e203-11e8-8c92-0a1d4c5c824a",flavour=defaultflavour, instance_name="B")
 
-  #taskC= CloudTask("C", "echo $RANDOM > f2.txt; cat workflow://A/f1.txt >> f2.txt", Provider.DIGITAL_OCEAN,"root",create_instance=False, keyparams=keysshparams2,endpoint="6c424fc8-e203-11e8-8c92-0a1d4c5c824a",flavour=digitalOceanFlavour, instance_name="C")
+  taskC=DockerTask("C","mkdir output;ls > output/f4.txt;echo I'm C > f3.txt; cat workflow://A/output/f1.txt >> f3.txt", image="ubuntu:18.04")
 
-  #taskB=DockerRemoteTask("B","echo Soy B > f2.txt; cat workflow://A/f1.txt >> f2.txt", containerID="ad16ce696d9a",ip="18.236.141.12", ssh_username="ubuntu", keypath="test-key.pem", endpoint="aa44a782-dcf2-11e8-8c8d-0a1d4c5c824a")
+  taskF=DockerTask("F","echo I'm F > f7.txt; cat workflow://C/f3.txt >> f7.txt; cat workflow://C/output/f4.txt >> f7.txt ", image="ubuntu:18.04")
 
-  taskC=DockerTask("C","mkdir output;ls > output/f4.txt;echo Soy C > f3.txt; cat workflow://A/output/f1.txt >> f3.txt", image="ubuntu:18.04")
-  taskF=DockerTask("F","echo Soy F > f7.txt; cat workflow://C/f3.txt >> f7.txt; cat workflow://C/output/f4.txt >> f7.txt ", image="ubuntu:18.04")
+  taskD= CloudTask("D", "echo I'm D > f1.txt", Provider.EC2,"ubuntu",create_instance=False,id="i-021d09715bc0b877c", keyparams=keysshparams3,endpoint="6c24aea0-e208-11e8-8c92-0a1d4c5c824a",flavour=defaultflavour, instance_name="dagon")
 
-  taskD= CloudTask("D", "echo Soy D > f1.txt", Provider.EC2,"ubuntu",create_instance=False,id="i-021d09715bc0b877c", keyparams=keysshparams3,endpoint="6c24aea0-e208-11e8-8c92-0a1d4c5c824a",flavour=defaultflavour, instance_name="dagon")
-
-  taskE= CloudTask("E", "echo Soy E > f4.txt; cat workflow://D/f1.txt >> f4.txt; cat workflow://C/f3.txt >> f4.txt", Provider.EC2,"ubuntu",create_instance=False,id="i-021d09715bc0b877c", keyparams=keysshparams3,endpoint="6c24aea0-e208-11e8-8c92-0a1d4c5c824a",flavour=defaultflavour, instance_name="dagon")
+  taskE= CloudTask("E", "echo I'm E > f4.txt; cat workflow://D/f1.txt >> f4.txt; cat workflow://C/f3.txt >> f4.txt", Provider.EC2,"ubuntu",create_instance=False,id="i-021d09715bc0b877c", keyparams=keysshparams3,endpoint="6c24aea0-e208-11e8-8c92-0a1d4c5c824a",flavour=defaultflavour, instance_name="dagon")
   #taskC=dt.Docker("C","echo $RANDOM > f2.txt; cat workflow://A/f1.txt >> f2.txt", image="ubuntu:18.04")
   
 
@@ -53,7 +50,6 @@ if __name__ == '__main__':
   #workflow.add_task(taskA)
   workflow.add_task(taskA)
   workflow.add_task(taskB)
-  #workflow.add_task(taskB)
   workflow.add_task(taskC)
   workflow.add_task(taskD)
   workflow.add_task(taskE)
