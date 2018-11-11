@@ -1,6 +1,6 @@
 from dagon import Workflow
 from dagon import batch
-from dagon import docker_task as dt
+from dagon.docker_task import DockerTask
 import json
 import sys
 import datetime
@@ -18,21 +18,18 @@ if __name__ == '__main__':
   workflow=Workflow("DataFlow-Demo",config)
   
   # The task a
-  taskA=dt.Docker("Tokio","echo Soy Tokio > f1.txt", 
-                  "ubuntu", "saturn.uniparthenope.it", "2375",
-                  ssh_username="dante")
+  taskA=DockerTask("Tokio","echo Soy Tokio > f1.txt", "ubuntu")
   
   # The task b
-  taskB=dt.Docker("Berlin","echo Soy Berlin > f2.txt; cat workflow://Tokio/f1.txt >> f2.txt", 
+  taskB=DockerTask("Berlin","echo Soy Berlin > f2.txt; cat workflow://Tokio/f1.txt >> f2.txt", 
                     "ubuntu")
   
   # The task c
-  taskC=dt.Docker("Nairobi","echo Soy Nairobi > f2.txt; cat workflow://Tokio/f1.txt >> f2.txt", 
-                  "ubuntu", "saturn.uniparthenope.it", "2375",
-                  ssh_username="dante")
+  taskC=DockerTask("Nairobi","echo Soy Nairobi > f2.txt; cat workflow://Tokio/f1.txt >> f2.txt", 
+                  "ubuntu")
   
   # The task d
-  taskD=dt.Docker("Mosco","cat workflow://Berlin/f2.txt workflow://Nairobi/f2.txt > f3.txt", "ubuntu")
+  taskD=DockerTask("Mosco","cat workflow://Berlin/f2.txt workflow://Nairobi/f2.txt > f3.txt", "ubuntu")
   
   # add tasks to the workflow
   workflow.add_task(taskA)
