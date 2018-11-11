@@ -12,7 +12,7 @@ from paramiko import SSHClient
 from communication.scp import SCPClient
 
 from task import Task
-from . import Workflow
+from dagon import Workflow
 
 class Batch(Task):
 

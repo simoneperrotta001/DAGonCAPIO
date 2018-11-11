@@ -1,10 +1,13 @@
-from dagon import Workflow
-from dagon import batch
-from dagon.docker_task import DockerTask
-import json
+
 import sys
-import datetime
+import json
 import os.path
+import datetime
+
+from dagon import batch
+from dagon import Workflow
+from dagon.docker_task import DockerTask
+
 
 # Check if this is the main
 if __name__ == '__main__':
@@ -15,14 +18,15 @@ if __name__ == '__main__':
   }
 
   # Create the orchestration workflow
-  workflow=Workflow("DataFlow-Demo",config)
+  workflow=Workflow("DataFlow-Demo-Docker",config)
   
   # The task a
-  taskA=DockerTask("Tokio","echo Soy Tokio > f1.txt", "ubuntu")
+  taskA=DockerTask("A","echo I am A > f1.txt", image="ubuntu:18.04")
+  #taskA=DockerTask("Tokio","echo Soy Tokio > f1.txt", "ubuntu")
   
   # The task b
   taskB=DockerTask("Berlin","echo Soy Berlin > f2.txt; cat workflow://Tokio/f1.txt >> f2.txt", 
-                    "ubuntu")
+                   "ubuntu")
   
   # The task c
   taskC=DockerTask("Nairobi","echo Soy Nairobi > f2.txt; cat workflow://Tokio/f1.txt >> f2.txt", 

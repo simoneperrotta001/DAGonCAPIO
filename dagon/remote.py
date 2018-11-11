@@ -5,7 +5,8 @@ import re
 from task import Task
 from batch import Batch
 from dagon import Workflow
-from docker_task import LocalDockerTask
+import dagon.docker_task
+from dagon.docker_task import LocalDockerTask
 from dockercontainer.container import Container
 from communication.ssh import SSHManager
 from dockercontainer.docker_client import DockerRemoteClient
@@ -162,7 +163,6 @@ class CloudTask(RemoteTask):
                     
         # Apply some command post processing
         command=self.post_process_command(command)
-        
         # Execute the bash command
        
         self.result=SSHManager.executeCommand(self.ssh_connection, command)

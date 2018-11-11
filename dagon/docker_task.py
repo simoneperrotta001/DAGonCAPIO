@@ -3,12 +3,13 @@ import re
 import os
 import shutil
 
+import dagon
 from task import Task
 from batch import Batch
 from . import Workflow
 from dockercontainer.docker_client import DockerClient
 from dockercontainer.container import Container
-import remote
+#import remote
 from communication.data_transfer import DataTransfer
 from communication.data_transfer import GlobusManager
 from communication.data_transfer import SCPManager
@@ -176,7 +177,7 @@ class DockerTask(Task):
     def __new__(cls,name,command,image=None, containerID=None,ip=None,port=None,ssh_username=None, keypath=None,working_dir=None,local_working_dir=None,endpoint=None):
         isRemote = not ip == None
         if isRemote:
-            return remote.DockerRemoteTask(name,command,image=image,containerID=containerID,ip=ip,ssh_username=ssh_username,working_dir=working_dir,local_working_dir=local_working_dir,endpoint=endpoint,keypath=keypath)
+            return dagon.remote.DockerRemoteTask(name,command,image=image,containerID=containerID,ip=ip,ssh_username=ssh_username,working_dir=working_dir,local_working_dir=local_working_dir,endpoint=endpoint,keypath=keypath)
         else:
             return LocalDockerTask(name, command,containerID=containerID,working_dir=working_dir, image=image)
         
