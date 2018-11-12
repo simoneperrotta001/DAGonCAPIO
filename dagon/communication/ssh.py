@@ -30,7 +30,6 @@ class SSHManager:
     def getSSHConnection(self):
         #SSHManager.addToKnowHosts(self.host) #add to know hosts
         ssh = SSHClient()
-        ssh.load_system_host_keys()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         while not Connection.isPortOpen(self.host, 22):
             continue

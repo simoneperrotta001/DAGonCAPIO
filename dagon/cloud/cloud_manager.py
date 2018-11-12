@@ -19,7 +19,11 @@ class CloudManager(object):
     @staticmethod
     def getInstance(keyparams, provider, name=None, create_instance=True, flavour=None, id=None):
         driver = get_driver(provider)
-        conn = driver(**readConfig(provider))
+        conf = readConfig(provider)
+        if provider == Provider.GCE:
+            conn = driver(conf['key'],conf['secret'],project=conf['project'])
+        else:
+            conn = driver(**conf)
         manager = globals()[provider.upper()]
         node = manager.createInstance(conn, name, flavour, keyparams) if create_instance else CloudManager.getExistingInstance(conn, id=id, name=name)
         node =CloudManager.waitUntilRunning(conn, node)
@@ -95,8 +99,15 @@ class KeyPair(object):
         return private_key, public_key
 
     @staticmethod
-    def createPairKey(conn,filename,args):
+    def writeKey(privateKey, filename):
         from os import chmod
+        with open(filename, 'w') as content_file:
+            chmod(filename, 0600)
+            content_file.write(privateKey)
+
+    @staticmethod
+    def createPairKey(conn,filename,args):
+        
         from inspect import getargspec
 
         ###CHECK FOR THE PARAMS OF THE FUNCTION
@@ -113,9 +124,7 @@ class KeyPair(object):
         privateKey = key_pair.private_key
         if privateKey is None:
             privateKey = args['private_key']
-        with open(filename, 'w') as content_file:
-            chmod(filename, 0600)
-            content_file.write(privateKey)
+        KeyPair.writeKey(privateKey, filename)
         return key_pair
     
     @staticmethod
@@ -177,4 +186,17 @@ class DIGITALOCEAN(object):
         node = conn.create_node(name=name, image=image, size=size, location=location,
                           ex_create_attr={"ssh_keys":[key.fingerprint]})
         return node
-    
+
+class GCE(object):
+    @staticmethod
+    def createInstance(conn, name, flavour, keyparams):
+        if(flavour is None):
+            raise Exception('The characteristics of the image has not been specified')
+        image = flavour['image']
+        location = flavour['location']
+        size = flavour['size']
+        metadata = {"items": [{"value": "%s: %s %s"%(keyparams['username'],keyparams['public_key'],keyparams['username']), "key": "ssh-keys"}]}
+        KeyPair.writeKey(keyparams["private_key"],keyparams['keypath'])
+        node = conn.create_node(name=name, image=image, size=size, location=location, ex_metadata=metadata)
+
+        return node
