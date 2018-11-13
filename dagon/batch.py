@@ -22,6 +22,7 @@ class Batch(Task):
     Task.__init__(self,name)
     self.command=command
     self.working_dir=working_dir
+    self.ip = "127.0.0.1" #by default runs on localhost
 
   def asJson(self):
     jsonTask=Task.asJson(self)
@@ -118,8 +119,8 @@ class Batch(Task):
       if task is not None:
         # Substitute the reference by the actual working dir
         command=command.replace(Workflow.SCHEMA+task.name,task.working_dir)
-
-    # Apply some command post processing
+    #print command
+    # Apply some command post processing  
     command=self.post_process_command(command)
 
     # Execute the bash command

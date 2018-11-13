@@ -33,7 +33,10 @@ class SSHManager:
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         while not Connection.isPortOpen(self.host, 22):
             continue
-        ssh.connect(self.host, username=self.username, key_filename=self.keypath)
+        if self.keypath is None:
+            ssh.connect(self.host, username=self.username)
+        else:
+            ssh.connect(self.host, username=self.username, key_filename=self.keypath)
         return ssh
 
     #execute command in remothe machine over SSH

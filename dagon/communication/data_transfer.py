@@ -59,7 +59,7 @@ class SCPManager:
 
 class GlobusManager:
 
-    TRANSFER_TOKEN = "Agd9dmJPwEb48QjOPPq0PQGGJ16xVp3EO10jnKB6or01pwDdzgFXCjwXkJG47mQbJ4gGo254nQkrQcgVxrdyCPXxv"
+    TRANSFER_TOKEN = "AgjQG9kKWjqVMwoejbjBK4X9OQP9EYqrqXY4BqBjwYa0MW1VdnS9CQbJP0lP2oagd9D060J6nDaNoEFpEQakysz1pr"
 
     def __init__(self, _from, _to):
         self._from = _from

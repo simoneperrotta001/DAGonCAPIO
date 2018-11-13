@@ -129,7 +129,7 @@ class LocalDockerTask(Batch):
                 inputF=re.split("> |>>", inputF)[0].strip()
                 inputF=re.split(" ",inputF)[0].strip()
                 leaf=SCPManager.path_leaf(inputF)
-                if task.isTaskRemote():
+                if task.isInOtherMachine(self.ip):
                     if task.getTransferType() == DataTransfer.GLOBUS and self.getTransferType() == DataTransfer.GLOBUS:
                         gm = GlobusManager(task.getEndpoint(), self.getEndpoint())
                         gm.copyData(task.working_dir+"/"+inputF, self.working_dir+"/"+inputF)

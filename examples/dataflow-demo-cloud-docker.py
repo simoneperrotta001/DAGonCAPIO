@@ -42,7 +42,7 @@ if __name__ == '__main__':
   taskA= CloudTask("A", "mkdir output;echo I am A > output/f1.txt", Provider.EC2,"ubuntu",create_instance=False,id="i-021d09715bc0b877c", keyparams=keysshparams3,endpoint="6c24aea0-e208-11e8-8c92-0a1d4c5c824a",flavour=defaultflavour, instance_name="dagon")
 
   # The task B: another EC2 instance
-  taskB= CloudTask("B", "echo I am B > f2.txt; cat workflow://A/output/f1.txt >> f2.txt", Provider.EC2,"ubuntu",create_instance=False,id="i-03d1c4f2b326ed016", keyparams=keysshparams3,endpoint="fc4e86e0-e203-11e8-8c92-0a1d4c5c824a",flavour=defaultflavour, instance_name="B")
+  taskB= CloudTask("B", "echo I am B > f2.txt; cat workflow://A/output/f1.txt >> f2.txt", Provider.EC2,"ubuntu",create_instance=False,id="i-03d1c4f2b326ed016", keyparams=keysshparams3,flavour=defaultflavour, instance_name="B")
 
   # The task C: a Docker local container 
   taskC=DockerTask("C","mkdir output;ls > output/f4.txt;echo I am C > f3.txt; cat workflow://A/output/f1.txt >> f3.txt", image="ubuntu:18.04")
@@ -57,19 +57,19 @@ if __name__ == '__main__':
   taskF=DockerTask("F","echo I am F > f7.txt; cat workflow://C/f3.txt >> f7.txt; cat workflow://C/output/f4.txt >> f7.txt ", image="ubuntu:18.04")
 
   # Task G: A Google Compute instance
-  taskG = CloudTask("G", "ls", Provider.GCE, "dagon", create_instance=True, keyparams=googleKeyParams,flavour=googleFlavour, instance_name="dagontest2")
+  #taskG = CloudTask("G", "I am on Google > f8.txt; cat workflow://F/f7.txt >> f8.txt;", Provider.GCE, "dagon", create_instance=False, keyparams=googleKeyParams,flavour=googleFlavour, instance_name="dagontest2")
   
 
   # add tasks to the workflow
-  """workflow.add_task(taskA)
+  workflow.add_task(taskA)
   workflow.add_task(taskB)
   workflow.add_task(taskC)
   workflow.add_task(taskD)
   workflow.add_task(taskE)
-  workflow.add_task(taskF)"""
-  workflow.add_task(taskG)
+  workflow.add_task(taskF)
+  #workflow.add_task(taskG)
   workflow.make_dependencies()
-  workflow.draw()
+  #workflow.draw()
   jsonWorkflow=workflow.asJson()
 
   with open('dataflow-demo-docker.json', 'w') as outfile:

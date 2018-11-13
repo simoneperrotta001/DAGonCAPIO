@@ -117,7 +117,10 @@ class DockerRemoteTask(LocalDockerTask,RemoteTask):
 
 class CloudTask(RemoteTask):
     def __init__(self, name, command, provider, ssh_username, keyparams=None, create_instance=True, flavour=None, working_dir=None, local_working_dir=None,instance_name=None, id=None, endpoint=None):
-        RemoteTask.__init__(self,name=name, ssh_username=ssh_username, keypath=keyparams['keypath'], command=command, working_dir=working_dir, local_working_dir=local_working_dir, endpoint=endpoint)
+        if keyparams != None:
+            RemoteTask.__init__(self,name=name, ssh_username=ssh_username, keypath=keyparams['keypath'], command=command, working_dir=working_dir, local_working_dir=local_working_dir, endpoint=endpoint)
+        else:
+            RemoteTask.__init__(self,name=name, ssh_username=ssh_username, keypath=None, command=command, working_dir=working_dir, local_working_dir=local_working_dir, endpoint=endpoint)
         self.node = CloudManager.getInstance(id=id,keyparams=keyparams,flavour=flavour,
                    provider=provider,create_instance=create_instance,name=instance_name)
         self.setIp(self.node.public_ips[0])
@@ -133,7 +136,7 @@ class CloudTask(RemoteTask):
         #os.chdir(self.working_dir)
 
         # Applay some command pre processing
-        command=self.pre_process_command(self.command)
+        command = self.pre_process_command(self.command)
         #command = self.command
         
         # Get the arguments splitted by the schema
@@ -151,20 +154,20 @@ class CloudTask(RemoteTask):
                 inputF=re.split("> |>>", inputF)[0].strip()
                 inputF=re.split(" ",inputF)[0].strip()
                 leaf=SCPManager.path_leaf(inputF)
-                #the elementos before the task name are the file name
-
-                if task.getTransferType() == DataTransfer.GLOBUS and self.getTransferType() == DataTransfer.GLOBUS:
-                    gm = GlobusManager(task.getEndpoint(), self.getEndpoint())
-                    gm.copyData(task.working_dir+"/"+inputF, self.working_dir+"/"+inputF)
+                if task.isInOtherMachine(self.ip):
+                    if task.getTransferType() == DataTransfer.GLOBUS and self.getTransferType() == DataTransfer.GLOBUS:
+                        gm = GlobusManager(task.getEndpoint(), self.getEndpoint())
+                        gm.copyData(task.working_dir+"/"+inputF, self.working_dir+"/"+inputF)
+                    else:
+                        scpM = SCPManager(task.getSSHClient(), self.ssh_connection)
+                        scpM.copyData(task.working_dir+"/"+inputF, self.working_dir+"/"+leaf, self.local_working_dir+"/"+leaf)
+                    command=command.replace(Workflow.SCHEMA+task.name,self.working_dir)
                 else:
-                    scpM = SCPManager(task.getSSHClient(), self.ssh_connection)
-                    scpM.copyData(task.working_dir+"/"+inputF, self.working_dir+"/"+leaf, self.local_working_dir+"/"+leaf)
-                command=command.replace(Workflow.SCHEMA+task.name,self.working_dir)
-                    
+                    command=command.replace(Workflow.SCHEMA+task.name,task.working_dir)
+                
         # Apply some command post processing
         command=self.post_process_command(command)
         # Execute the bash command
-       
         self.result=SSHManager.executeCommand(self.ssh_connection, command)
         if self.result["code"] == 1:
             raise Exception(self.result["error"].rstrip())
