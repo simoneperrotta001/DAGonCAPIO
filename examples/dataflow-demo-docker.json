@@ -1,20 +1,16 @@
 {
   "tasks": [
     {
-      "command": "ls > f1.txt", 
-      "name": "Tokio"
+      "command": "mkdir output;echo I am A > output/f1.txt", 
+      "name": "A"
     }, 
     {
-      "command": "echo Soy Berlin > f2.txt; cat workflow://Tokio/f1.txt >> f2.txt", 
-      "name": "Berlin"
+      "command": "echo I am B > f2.txt; cat workflow://A/output/f1.txt >> f2.txt", 
+      "name": "B"
     }, 
     {
-      "command": "echo $RANDOM > f2.txt; cat workflow://Tokio/f1.txt >> f2.txt", 
-      "name": "Nairobi"
-    }, 
-    {
-      "command": "cat workflow://Berlin/f2.txt workflow://Nairobi/f2.txt > f3.txt", 
-      "name": "Mosco"
+      "command": "mkdir output;ls > output/f4.txt;echo I am C > f3.txt; cat workflow://A/output/f1.txt >> f3.txt", 
+      "name": "C"
     }
   ]
 }

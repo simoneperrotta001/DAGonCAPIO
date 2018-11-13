@@ -44,6 +44,13 @@ class Task(Thread):
   def add_dependency_to(self,task):
     task.nexts.append(self)
     self.prevs.append(task)
+
+  #By default asumes that is a local task
+  def isTaskRemote(self):
+      return False
+
+  def isInOtherMachine(self, ip):
+    return self.ip != ip
   
   # Increment the reference count
   def increment_reference_count(self):
@@ -110,15 +117,18 @@ class Task(Thread):
 
       # Change the status
       self.set_status(Status.RUNNING)
-
+      self.workflow.logger.debug("%s: Executing...",self.name)
+      self.execute()  
       # Execute the task Job   
-      try:
+      """"try:
         self.workflow.logger.debug("%s: Executing...",self.name)
         self.execute()
       except Exception, e:
-        self.workflow.logger.error("%s: Except: %s",self.name,str(e))
+        print str(e)
+        print self.name
+        #self.workflow.logger.error("%s: Except: %s",self.name,str(e))
         self.set_status(Status.FAILED)
-        return
+        return"""
 
       # Start all next task
       for task in self.nexts:
