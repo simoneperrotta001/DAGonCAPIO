@@ -7,3 +7,4 @@ globus_sdk==1.5.0
 docker==3.5.0
 apache-libcloud==2.3.0
 flask-socketio
+configparser==3.5.0
