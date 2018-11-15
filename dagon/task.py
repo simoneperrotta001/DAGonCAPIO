@@ -20,6 +20,12 @@ class Task(Thread):
         self.running = False
         self.workflow = None
         self.set_status(Status.READY)
+        self.working_dir=None
+
+    def get_scratch_dir(self):
+        while (self.working_dir==None):
+            Thread.sleep(1)
+        return self.working_dir
 
     def get_scratch_name(self):
         # return datetime.datetime.now().strftime("%Y%m%d%H%M%S")+"-"+self.name
@@ -74,7 +80,6 @@ class Task(Thread):
     # Post process the command
     def post_process_command(self, command):
         return command + "|tee ./" + self.name + "_output.txt"
-
     # Method overrided
     def pre_run(self):
         # For each workflow:// in the command string
@@ -129,6 +134,7 @@ class Task(Thread):
                 self.workflow.logger.error("%s: Except: %s", self.name, str(e))
                 self.set_status(Status.FAILED)
                 return
+            #self.execute()
 
             # Start all next task
             for task in self.nexts:
