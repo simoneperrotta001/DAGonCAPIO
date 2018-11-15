@@ -46,8 +46,10 @@ class Batch(Task):
         if self.reference_count==0 and self.remove_scratch_dir is True:
             # Remove the scratch directory
             #shutil.rmtree(self.working_dir)
+
             shutil.move(self.working_dir,self.working_dir+"-removed")
             self.workflow.logger.debug("Removed %s",self.working_dir)
+            #pass
 
     # Method overrided
     def pre_run(self):
@@ -78,7 +80,7 @@ class Batch(Task):
     def pre_process_command(self,command):
 
         # Create the header
-        header="cd "+self.working_dir+";"
+        header="cd "+self.working_dir+";mkdir .dagon;"
 
         # Create the body
         body=command
@@ -134,9 +136,14 @@ class Batch(Task):
 
             # Check if the refernced task is consistent
             if task is not None:
-                target_path = self.workflow.get_scratch_dir_base()+"/"+self.get_scratch_name()+"/.dagon/inputs/" + workflow_name + "/" + task_name
-                target = target_path + "/" + local_path
-                header = header + "mkdir -p "+ target_path + ";"
+
+                # Evaluate the destiation path
+                dst_path="${PWD}/.dagon/inputs/" + workflow_name + "/" + task_name
+                
+                # Create the destination directory
+                header = header + "mkdir -p "+ dst_path + "/" + os.path.dirname(local_path) + ";"
+
+                
 
                 # ToDo: here the stager have to make the magic stuff
                 #
@@ -151,11 +158,18 @@ class Batch(Task):
                 #
                 # and so on
                 #
-                header = header + "ln -sf " + self.workflow.get_scratch_dir_base() + "/" + task.get_scratch_name() + "/" + local_path + " "+ target + ";"
+                #
 
+                # Evaluate the source path
+                #src_path=task.workflow.get_scratch_dir_base()+"/"+task.get_scratch_dir()
+
+
+
+                # Add the link command
+                header = header + "ln -sf " + task.get_scratch_dir() +"/"+local_path + " "+ dst_path+"/"+local_path + ";"
 
                 # Change the body of the command
-                body=body.replace(Workflow.SCHEMA+arg,target);
+                body=body.replace(Workflow.SCHEMA+arg, dst_path+"/"+local_path);
 
             pos=pos2
         return header + body
