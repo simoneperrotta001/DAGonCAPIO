@@ -7,138 +7,138 @@ from logging.config import fileConfig
 
 from dagon import Status
 
+
 class Task(Thread):
 
-  def __init__(self,name):
-    Thread.__init__(self)
-    self.name=name
-    self.nexts=[]
-    self.prevs=[]
-    self.reference_count=0
+    def __init__(self, name):
+        Thread.__init__(self)
+        self.name = name
+        self.nexts = []
+        self.prevs = []
+        self.reference_count = 0
 
-    self.running = False
-    self.workflow = None 
-    self.set_status(Status.READY)
+        self.running = False
+        self.workflow = None
+        self.set_status(Status.READY)
 
-  def get_scratch_name(self):
-    #return datetime.datetime.now().strftime("%Y%m%d%H%M%S")+"-"+self.name
-    millis = int(round(time.time() * 1000))
-    return str(millis)+"-"+self.name
+    def get_scratch_name(self):
+        # return datetime.datetime.now().strftime("%Y%m%d%H%M%S")+"-"+self.name
+        millis = int(round(time.time() * 1000))
+        return str(millis) + "-" + self.name
 
-  # asJson
-  def asJson(self):
-    jsonTask={ "name": self.name }
-    return jsonTask
+    # asJson
+    def asJson(self):
+        jsonTask = {"name": self.name, "status": self.status.name,
+                    "working_dir": self.working_dir}
+        return jsonTask
 
-  # Set the workflow
-  def set_workflow(self,workflow):
-    self.workflow=workflow
+    # Set the workflow
+    def set_workflow(self, workflow):
+        self.workflow = workflow
 
-  # Set the current status
-  def set_status(self,status):
-    self.status=status
-    if self.workflow is not None:
-      self.workflow.logger.debug("%s: %s",self.name,self.status)    
+    # Set the current status
+    def set_status(self, status):
+        self.status = status
+        if self.workflow is not None:
+            self.workflow.logger.debug("%s: %s", self.name, self.status)
+            if self.workflow.regist_on_api:
+                self.workflow.api.update_task_status(self.workflow.id, self.name, status.name)
 
-  # Add the dependency to a task
-  def add_dependency_to(self,task):
-    task.nexts.append(self)
-    self.prevs.append(task)
+    # Add the dependency to a task
+    def add_dependency_to(self, task):
+        task.nexts.append(self)
+        self.prevs.append(task)
 
-  #By default asumes that is a local task
-  def isTaskRemote(self):
-      return False
+    # By default asumes that is a local task
+    def isTaskRemote(self):
+        return False
 
-  def isInOtherMachine(self, ip):
-    return self.ip != ip
-  
-  # Increment the reference count
-  def increment_reference_count(self):
-      self.reference_count=self.reference_count+1
+    def isInOtherMachine(self, ip):
+        return self.ip != ip
 
-  # Decremet the reference count 
-  def decrement_reference_count(self):
-      self.reference_count=self.reference_count-1
+    # Increment the reference count
+    def increment_reference_count(self):
+        self.reference_count = self.reference_count + 1
 
-      # Remove the scratch directory
-      self.remove_scratch()
+    # Decremet the reference count
+    def decrement_reference_count(self):
+        self.reference_count = self.reference_count - 1
 
-  # Pre process command
-  def pre_process_command(self,command):
-      return "cd "+self.working_dir+";"+command
+        # Remove the scratch directory
+        self.remove_scratch()
 
-  # Post process the command
-  def post_process_command(self,command):
-      return command+"|tee ./"+self.name+"_output.txt"
+    # Pre process command
+    def pre_process_command(self, command):
+        return "cd " + self.working_dir + ";" + command
 
-  # Method overrided
-  def pre_run(self):
-    # For each workflow:// in the command string
-    ### Extract the referenced task
-    ### Add a reference in the referenced task
+    # Post process the command
+    def post_process_command(self, command):
+        return command + "|tee ./" + self.name + "_output.txt"
 
-    # Get the arguments splitted by the schema
-    args=self.command.split(Workflow.SCHEMA)
-    for i in range(1,len(args)):
-        # Split each argument in elements by the slash
-        elements=args[i].split("/")
+    # Method overrided
+    def pre_run(self):
+        # For each workflow:// in the command string
+        ### Extract the referenced task
+        ### Add a reference in the referenced task
 
-        # The task name is the first element
-        task_name=elements[0]
+        # Get the arguments splitted by the schema
+        args = self.command.split(Workflow.SCHEMA)
+        for i in range(1, len(args)):
+            # Split each argument in elements by the slash
+            elements = args[i].split("/")
 
-        # Extract the task
-        task=self.workflow.find_task_by_name(task_name)
-        if task is not None:
+            # The task name is the first element
+            task_name = elements[0]
 
-            # Add the dependency to the task
-            self.add_dependency_to(task)
+            # Extract the task
+            task = self.workflow.find_task_by_name(task_name)
+            if task is not None:
+                # Add the dependency to the task
+                self.add_dependency_to(task)
 
-            # Add the reference from the task
-            task.increment_reference_count()
- 
-  # Method to be overrided 
-  def execute(self):
-    pass
+                # Add the reference from the task
+                task.increment_reference_count()
 
-  def run(self):
-    if self.workflow is not None:
-      # Change the status
-      self.set_status(Status.WAITING)
+    # Method to be overrided
+    def execute(self):
+        pass
 
-      # Wait for each previous tasks
-      for task in self.prevs:
-        task.join()
+    def run(self):
+        if self.workflow is not None:
+            # Change the status
+            self.set_status(Status.WAITING)
 
-      # Check if one of the previous tasks crashed
-      for task in self.prevs:
-        if (task.status==Status.FAILED):
-          self.set_status(Status.FAILED)
-          return
+            # Wait for each previous tasks
+            for task in self.prevs:
+                task.join()
 
-      # Change the status
-      self.set_status(Status.RUNNING)
-      self.workflow.logger.debug("%s: Executing...",self.name)
-      self.execute()  
-      # Execute the task Job   
-      """"try:
-        self.workflow.logger.debug("%s: Executing...",self.name)
-        self.execute()
-      except Exception, e:
-        print str(e)
-        print self.name
-        #self.workflow.logger.error("%s: Except: %s",self.name,str(e))
-        self.set_status(Status.FAILED)
-        return"""
+            # Check if one of the previous tasks crashed
+            for task in self.prevs:
+                if (task.status == Status.FAILED):
+                    self.set_status(Status.FAILED)
+                    return
 
-      # Start all next task
-      for task in self.nexts:
-        if (task.status==Status.READY):
-          self.workflow.logger.debug("%s: Starting task: %s",self.name,task.name)
-          try:
-            task.start()
-          except:
-            self.workflow.logger.warn("%s: Task %s already started.",self.name, task.name)
+            # Change the status
+            self.set_status(Status.RUNNING)
 
-      # Change the status
-      self.set_status(Status.FINISHED)
-      return
+            # Execute the task Job
+            try:
+                self.workflow.logger.debug("%s: Executing...", self.name)
+                self.execute()
+            except Exception, e:
+                self.workflow.logger.error("%s: Except: %s", self.name, str(e))
+                self.set_status(Status.FAILED)
+                return
+
+            # Start all next task
+            for task in self.nexts:
+                if (task.status == Status.READY):
+                    self.workflow.logger.debug("%s: Starting task: %s", self.name, task.name)
+                    try:
+                        task.start()
+                    except:
+                        self.workflow.logger.warn("%s: Task %s already started.", self.name, task.name)
+
+            # Change the status
+            self.set_status(Status.FINISHED)
+            return

@@ -181,7 +181,11 @@ class Batch(Task):
             self.remove_scratch_dir=False
 
         self.workflow.logger.debug("%s: Scratch directory: %s",self.name,self.working_dir)
-
+        if self.workflow.regist_on_api: #change scratch directory on server
+            try:
+                self.workflow.api.update_task(self.workflow.id, self.name,"working_dir", self.working_dir)
+            except Exception, e:
+                self.workflow.logger.error("%s: Error updating scratch directory on server %s", self.name, e)
         # Change to the scratch directory
         #os.chdir(self.working_dir)
 

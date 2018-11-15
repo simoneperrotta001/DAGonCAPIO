@@ -12,14 +12,14 @@ from libcloud.compute.types import NodeState
 from libcloud.compute.providers import get_driver
 
 import cloud_manager
-from dagon import readConfig
+from dagon import read_config
 
 class CloudManager(object):
 
     @staticmethod
     def getInstance(keyparams, provider, name=None, create_instance=True, flavour=None, id=None):
         driver = get_driver(provider)
-        conf = readConfig(provider)
+        conf = read_config(provider)
         if provider == Provider.GCE:
             conn = driver(conf['key'],conf['secret'],project=conf['project'])
         else:
