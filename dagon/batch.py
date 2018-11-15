@@ -37,19 +37,19 @@ class Batch(Task):
     def decrement_reference_count(self):
         self.reference_count=self.reference_count-1
 
-        # Remove the scratch directory
-        self.remove_scratch()
-
-    # # Remove the scratch directory if needed
-    def remove_scratch(self):
+#        # Remove the scratch directory
+#        self.remove_scratch()
+#
+#    # # Remove the scratch directory if needed
+#    def remove_scratch(self):
         # Check if the scratch directory must be removed
         if self.reference_count==0 and self.remove_scratch_dir is True:
             # Remove the scratch directory
             #shutil.rmtree(self.working_dir)
-
             shutil.move(self.working_dir,self.working_dir+"-removed")
+
+            # Perform some logging
             self.workflow.logger.debug("Removed %s",self.working_dir)
-            #pass
 
     # Method overrided
     def pre_run(self):
@@ -273,7 +273,7 @@ class Batch(Task):
             pos = pos2
 
         # Remove the scratch directory
-        self.remove_scratch()
+        #self.remove_scratch()
 
 class Slurm(Batch):
 
