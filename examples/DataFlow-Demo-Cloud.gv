@@ -1,4 +1,0 @@
-digraph "DataFlow-Demo-Cloud" {
-	node [color=lightblue2 style=filled]
-	G [label=G]
-}
