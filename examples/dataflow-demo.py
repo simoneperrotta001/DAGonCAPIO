@@ -26,7 +26,7 @@ if __name__ == '__main__':
   taskC=batch.Batch("Nairobi","echo $RANDOM > f2.txt; cat workflow:///Tokio/output/f1.txt >> f2.txt")
   
   # The task d
-  taskD=batch.Batch("Mosco","cat workflow:///Berlin/f2.txt workflow:///Nairobi/f2.txt > f3.txt")
+  taskD=batch.Batch("Mosco","cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt")
   
   # add tasks to the workflow
   workflow.add_task(taskA)
