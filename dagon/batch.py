@@ -37,16 +37,13 @@ class Batch(Task):
     def decrement_reference_count(self):
         self.reference_count=self.reference_count-1
 
-        # Remove the scratch directory
-        self.remove_scratch()
-
-    # # Remove the scratch directory if needed
-    def remove_scratch(self):
         # Check if the scratch directory must be removed
         if self.reference_count==0 and self.remove_scratch_dir is True:
             # Remove the scratch directory
             #shutil.rmtree(self.working_dir)
             shutil.move(self.working_dir,self.working_dir+"-removed")
+
+            # Perform some logging
             self.workflow.logger.debug("Removed %s",self.working_dir)
 
     # Method overrided
@@ -55,17 +52,52 @@ class Batch(Task):
         ### Extract the referenced task
         ### Add a reference in the referenced task
 
-        # Get the arguments splitted by the schema
-        args=self.command.split(Workflow.SCHEMA)
-        for i in range(1,len(args)):
+        # Index of the starting position
+        pos = 0
+
+        # Forever unless no anymore Workflow.SCHEMA are present
+        while True:
+            # Get the position of the next Workflow.SCHEMA
+            pos1 = self.command.find(Workflow.SCHEMA, pos)
+
+            # Check if there is no Workflow.SCHEMA
+            if pos1 == -1:
+                # Exit the forever cycle
+                break
+
+            # Find the first occurrent of a whitespace (or if no occurrence means the end of the string)
+            pos2 = self.command.find(" ", pos1)
+
+            # Check if this is the last referenced argument
+            if pos2 == -1:
+                pos2 = len(self.command)
+
+            # Extract the parameter string
+            arg = self.command[pos1:pos2]
+
+            # Remove the Workflow.SCHEMA label
+            arg = arg.replace(Workflow.SCHEMA, "")
+
             # Split each argument in elements by the slash
-            elements=args[i].split("/")
+            elements = arg.split("/")
+
+            # Extract the referenced task's workflow name
+            workflow_name = elements[0]
 
             # The task name is the first element
-            task_name=elements[0]
+            task_name = elements[1]
 
-            # Extract the task
-            task=self.workflow.find_task_by_name(task_name)
+            # Set the default workflow name if needed
+            if workflow_name is None or workflow_name == "":
+                workflow_name = self.workflow.name
+
+            # Extract the reference task object
+            # ToDo: manage the different workflow issue. Now it is not considered
+            # change to something like
+            #  task = self.workflow.find_task_by_name(workflow_name, task_name)
+            task = self.workflow.find_task_by_name(task_name)
+
+            # Check if the refernced task is consistent
             if task is not None:
 
                 # Add the dependency to the task
@@ -74,11 +106,14 @@ class Batch(Task):
                 # Add the reference from the task
                 task.increment_reference_count()
 
+            # Go to the next element
+            pos = pos2
+
     # Pre process command
     def pre_process_command(self,command):
 
         # Create the header
-        header="cd "+self.working_dir+";"
+        header="cd "+self.working_dir+";mkdir .dagon;"
 
         # Create the body
         body=command
@@ -134,9 +169,14 @@ class Batch(Task):
 
             # Check if the refernced task is consistent
             if task is not None:
-                target_path = self.workflow.get_scratch_dir_base()+"/"+self.get_scratch_name()+"/.dagon/inputs/" + workflow_name + "/" + task_name
-                target = target_path + "/" + local_path
-                header = header + "mkdir -p "+ target_path + ";"
+
+                # Evaluate the destiation path
+                dst_path="${PWD}/.dagon/inputs/" + workflow_name + "/" + task_name
+                
+                # Create the destination directory
+                header = header + "mkdir -p "+ dst_path + "/" + os.path.dirname(local_path) + ";"
+
+                
 
                 # ToDo: here the stager have to make the magic stuff
                 #
@@ -151,11 +191,18 @@ class Batch(Task):
                 #
                 # and so on
                 #
-                header = header + "ln -sf " + self.workflow.get_scratch_dir_base() + "/" + task.get_scratch_name() + "/" + local_path + " "+ target + ";"
+                #
 
+                # Evaluate the source path
+                #src_path=task.workflow.get_scratch_dir_base()+"/"+task.get_scratch_dir()
+
+
+
+                # Add the link command
+                header = header + "ln -sf " + task.get_scratch_dir() +"/"+local_path + " "+ dst_path+"/"+local_path + ";"
 
                 # Change the body of the command
-                body=body.replace(Workflow.SCHEMA+arg,target);
+                body=body.replace(Workflow.SCHEMA+arg, dst_path+"/"+local_path);
 
             pos=pos2
         return header + body
@@ -211,7 +258,7 @@ class Batch(Task):
         # Forever unless no anymore Workflow.SCHEMA are present
         while True:
             # Get the position of the next Workflow.SCHEMA
-            pos1 = command.find(Workflow.SCHEMA, pos)
+            pos1 = self.command.find(Workflow.SCHEMA, pos)
 
             # Check if there is no Workflow.SCHEMA
             if pos1 == -1:
@@ -219,14 +266,14 @@ class Batch(Task):
                 break
 
             # Find the first occurrent of a whitespace (or if no occurrence means the end of the string)
-            pos2 = command.find(" ", pos1)
+            pos2 = self.command.find(" ", pos1)
 
             # Check if this is the last referenced argument
             if pos2 == -1:
-              pos2 = len(command)
+              pos2 = len(self.command)
 
             # Extract the parameter string
-            arg = command[pos1:pos2]
+            arg = self.command[pos1:pos2]
 
             # Remove the Workflow.SCHEMA label
             arg = arg.replace(Workflow.SCHEMA, "")
@@ -258,8 +305,7 @@ class Batch(Task):
             # Go to the next element
             pos = pos2
 
-        # Remove the scratch directory
-        self.remove_scratch()
+
 
 class Slurm(Batch):
 
