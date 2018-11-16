@@ -1,9 +1,7 @@
-import datetime
 import time
 from threading import Thread
-import logging
 from dagon import Workflow
-from logging.config import fileConfig
+
 
 from dagon import Status
 
@@ -35,7 +33,11 @@ class Task(Thread):
     # asJson
     def asJson(self):
         jsonTask = {"name": self.name, "status": self.status.name,
-                    "working_dir": self.working_dir}
+                    "working_dir": self.working_dir, "nexts":[], "prevs":[]}
+        for t in self.nexts:
+            jsonTask['nexts'].append(t.name)
+        for t in self.prevs:
+            jsonTask['prevs'].append(t.name)
         return jsonTask
 
     # Set the workflow
@@ -54,6 +56,9 @@ class Task(Thread):
     def add_dependency_to(self, task):
         task.nexts.append(self)
         self.prevs.append(task)
+
+        if self.workflow.regist_on_api: #add in the server
+            self.workflow.api.add_dependency(self.workflow.id, self.name, task.name)
 
     # By default asumes that is a local task
     def isTaskRemote(self):
