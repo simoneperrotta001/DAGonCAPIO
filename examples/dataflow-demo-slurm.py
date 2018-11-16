@@ -17,16 +17,16 @@ if __name__ == '__main__':
   workflow=Workflow("DataFlow-Demo",config)
   
   # The task a
-  taskA=batch.Slurm("A","mkdir output;hostname > output/f1.txt")
+  taskA=batch.Slurm("A","mkdir output;hostname > output/f1.txt","hicpu",1)
   
   # The task b
-  taskB=batch.Slurm("B","echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt")
+  taskB=batch.Slurm("B","echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt","hicpu",1)
   
   # The task c
-  taskC=batch.Slurm("C","echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt")
+  taskC=batch.Slurm("C","echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt","hicpu",1)
   
   # The task d
-  taskD=batch.Slurm("D","cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt")
+  taskD=batch.Slurm("D","cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt","hicpu",1)
   
   # add tasks to the workflow
   workflow.add_task(taskA)
@@ -43,3 +43,12 @@ if __name__ == '__main__':
  
   # run the workflow
   workflow.run()
+
+  # set the result filename
+  result_filename = taskD.get_scratch_dir() + "/f3.txt"
+
+  # get the results
+  with open(result_filename, "r") as infile:
+    result = infile.readlines()
+    print result
+
