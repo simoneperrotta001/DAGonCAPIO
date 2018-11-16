@@ -37,11 +37,6 @@ class Batch(Task):
     def decrement_reference_count(self):
         self.reference_count=self.reference_count-1
 
-#        # Remove the scratch directory
-#        self.remove_scratch()
-#
-#    # # Remove the scratch directory if needed
-#    def remove_scratch(self):
         # Check if the scratch directory must be removed
         if self.reference_count==0 and self.remove_scratch_dir is True:
             # Remove the scratch directory
@@ -57,17 +52,52 @@ class Batch(Task):
         ### Extract the referenced task
         ### Add a reference in the referenced task
 
-        # Get the arguments splitted by the schema
-        args=self.command.split(Workflow.SCHEMA)
-        for i in range(1,len(args)):
+        # Index of the starting position
+        pos = 0
+
+        # Forever unless no anymore Workflow.SCHEMA are present
+        while True:
+            # Get the position of the next Workflow.SCHEMA
+            pos1 = self.command.find(Workflow.SCHEMA, pos)
+
+            # Check if there is no Workflow.SCHEMA
+            if pos1 == -1:
+                # Exit the forever cycle
+                break
+
+            # Find the first occurrent of a whitespace (or if no occurrence means the end of the string)
+            pos2 = self.command.find(" ", pos1)
+
+            # Check if this is the last referenced argument
+            if pos2 == -1:
+                pos2 = len(self.command)
+
+            # Extract the parameter string
+            arg = self.command[pos1:pos2]
+
+            # Remove the Workflow.SCHEMA label
+            arg = arg.replace(Workflow.SCHEMA, "")
+
             # Split each argument in elements by the slash
-            elements=args[i].split("/")
+            elements = arg.split("/")
+
+            # Extract the referenced task's workflow name
+            workflow_name = elements[0]
 
             # The task name is the first element
-            task_name=elements[0]
+            task_name = elements[1]
 
-            # Extract the task
-            task=self.workflow.find_task_by_name(task_name)
+            # Set the default workflow name if needed
+            if workflow_name is None or workflow_name == "":
+                workflow_name = self.workflow.name
+
+            # Extract the reference task object
+            # ToDo: manage the different workflow issue. Now it is not considered
+            # change to something like
+            #  task = self.workflow.find_task_by_name(workflow_name, task_name)
+            task = self.workflow.find_task_by_name(task_name)
+
+            # Check if the refernced task is consistent
             if task is not None:
 
                 # Add the dependency to the task
@@ -75,6 +105,9 @@ class Batch(Task):
 
                 # Add the reference from the task
                 task.increment_reference_count()
+
+            # Go to the next element
+            pos = pos2
 
     # Pre process command
     def pre_process_command(self,command):
@@ -225,7 +258,7 @@ class Batch(Task):
         # Forever unless no anymore Workflow.SCHEMA are present
         while True:
             # Get the position of the next Workflow.SCHEMA
-            pos1 = command.find(Workflow.SCHEMA, pos)
+            pos1 = self.command.find(Workflow.SCHEMA, pos)
 
             # Check if there is no Workflow.SCHEMA
             if pos1 == -1:
@@ -233,14 +266,14 @@ class Batch(Task):
                 break
 
             # Find the first occurrent of a whitespace (or if no occurrence means the end of the string)
-            pos2 = command.find(" ", pos1)
+            pos2 = self.command.find(" ", pos1)
 
             # Check if this is the last referenced argument
             if pos2 == -1:
-              pos2 = len(command)
+              pos2 = len(self.command)
 
             # Extract the parameter string
-            arg = command[pos1:pos2]
+            arg = self.command[pos1:pos2]
 
             # Remove the Workflow.SCHEMA label
             arg = arg.replace(Workflow.SCHEMA, "")
@@ -272,8 +305,7 @@ class Batch(Task):
             # Go to the next element
             pos = pos2
 
-        # Remove the scratch directory
-        #self.remove_scratch()
+
 
 class Slurm(Batch):
 
