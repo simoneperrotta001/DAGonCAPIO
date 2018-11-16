@@ -17,16 +17,16 @@ if __name__ == '__main__':
   workflow=Workflow("DataFlow-Demo",config)
   
   # The task a
-  taskA=batch.Batch("Tokio","mkdir output;ls > output/f1.txt")
+  taskA=batch.Batch("A","mkdir output;hostname > output/f1.txt")
   
   # The task b
-  taskB=batch.Batch("Berlin","echo $RANDOM > f2.txt; cat workflow:///Tokio/output/f1.txt >> f2.txt")
+  taskB=batch.Batch("B","echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt")
   
   # The task c
-  taskC=batch.Batch("Nairobi","echo $RANDOM > f2.txt; cat workflow:///Tokio/output/f1.txt >> f2.txt")
+  taskC=batch.Batch("C","echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt")
   
   # The task d
-  taskD=batch.Batch("Mosco","cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt")
+  taskD=batch.Batch("D","cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt")
   
   # add tasks to the workflow
   workflow.add_task(taskA)
