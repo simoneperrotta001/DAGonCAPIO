@@ -1,8 +1,6 @@
 import logging
 from logging.config import fileConfig
-import errno    
-import os
-import shutil
+import errno
 import tempfile
 from fabric.api import local, env
 from fabric.context_managers import cd
@@ -19,9 +17,7 @@ class Batch(Task):
     env.use_ssh_config = True
 
     def __init__(self,name,command,working_dir=None):
-        Task.__init__(self,name)
-        self.command=command
-        self.working_dir=working_dir
+        Task.__init__(self,name,command,working_dir)
         self.ip = "127.0.0.1" #by default runs on localhost
 
     def asJson(self):
@@ -29,281 +25,10 @@ class Batch(Task):
         jsonTask['command']=self.command
         return jsonTask
 
-    # Increment the reference count
-    def increment_reference_count(self):
-        self.reference_count=self.reference_count+1
-
-    # Decremet the reference count
-    def decrement_reference_count(self):
-        self.reference_count=self.reference_count-1
-
-        # Check if the scratch directory must be removed
-        if self.reference_count==0 and self.remove_scratch_dir is True:
-            # Remove the scratch directory
-            #shutil.rmtree(self.working_dir)
-            shutil.move(self.working_dir,self.working_dir+"-removed")
-
-            # Perform some logging
-            self.workflow.logger.debug("Removed %s",self.working_dir)
-
-    # Method overrided
-    def pre_run(self):
-        # For each workflow:// in the command string
-        ### Extract the referenced task
-        ### Add a reference in the referenced task
-
-        # Index of the starting position
-        pos = 0
-
-        # Forever unless no anymore Workflow.SCHEMA are present
-        while True:
-            # Get the position of the next Workflow.SCHEMA
-            pos1 = self.command.find(Workflow.SCHEMA, pos)
-
-            # Check if there is no Workflow.SCHEMA
-            if pos1 == -1:
-                # Exit the forever cycle
-                break
-
-            # Find the first occurrent of a whitespace (or if no occurrence means the end of the string)
-            pos2 = self.command.find(" ", pos1)
-
-            # Check if this is the last referenced argument
-            if pos2 == -1:
-                pos2 = len(self.command)
-
-            # Extract the parameter string
-            arg = self.command[pos1:pos2]
-
-            # Remove the Workflow.SCHEMA label
-            arg = arg.replace(Workflow.SCHEMA, "")
-
-            # Split each argument in elements by the slash
-            elements = arg.split("/")
-
-            # Extract the referenced task's workflow name
-            workflow_name = elements[0]
-
-            # The task name is the first element
-            task_name = elements[1]
-
-            # Set the default workflow name if needed
-            if workflow_name is None or workflow_name == "":
-                workflow_name = self.workflow.name
-
-            # Extract the reference task object
-            # ToDo: manage the different workflow issue. Now it is not considered
-            # change to something like
-            #  task = self.workflow.find_task_by_name(workflow_name, task_name)
-            task = self.workflow.find_task_by_name(task_name)
-
-            # Check if the refernced task is consistent
-            if task is not None:
-
-                # Add the dependency to the task
-                self.add_dependency_to(task)
-
-                # Add the reference from the task
-                task.increment_reference_count()
-
-            # Go to the next element
-            pos = pos2
-
-    # Pre process command
-    def pre_process_command(self,command):
-
-        # Create the header
-        header="cd "+self.working_dir+";mkdir .dagon;"
-
-        # Create the body
-        body=command
-
-        # Index of the starting position
-        pos=0
-
-        # Forever unless no anymore Workflow.SCHEMA are present
-        while True:
-            # Get the position of the next Workflow.SCHEMA
-            pos1 = command.find(Workflow.SCHEMA, pos)
-
-            # Check if there is no Workflow.SCHEMA
-            if pos1 == -1:
-
-                # Exit the forever cycle
-                break
-
-            # Find the first occurrent of a whitespace (or if no occurrence means the end of the string)
-            pos2=command.find(" ", pos1)
-
-            # Check if this is the last referenced argument
-            if pos2==-1:
-                pos2=len(command)
-
-            # Extract the parameter string
-            arg=command[pos1:pos2]
-
-            # Remove the Workflow.SCHEMA label
-            arg=arg.replace(Workflow.SCHEMA,"")
-
-            # Split each argument in elements by the slash
-            elements = arg.split("/")
-
-            # Extract the referenced task's workflow name
-            workflow_name=elements[0]
-
-            # The task name is the first element
-            task_name = elements[1]
-
-            # Get the rest of the string as local path
-            local_path = arg.replace(workflow_name+"/"+task_name,"")
-
-            # Set the default workflow name if needed
-            if workflow_name is None or workflow_name == "":
-                workflow_name = self.workflow.name
-
-            # Extract the reference task object
-            # ToDo: manage the different workflow issue. Now it is not considered
-            # change to something like
-            #  task = self.workflow.find_task_by_name(workflow_name, task_name)
-            task = self.workflow.find_task_by_name(task_name)
-
-            # Check if the refernced task is consistent
-            if task is not None:
-
-                # Evaluate the destiation path
-                dst_path="${PWD}/.dagon/inputs/" + workflow_name + "/" + task_name
-                
-                # Create the destination directory
-                header = header + "mkdir -p "+ dst_path + "/" + os.path.dirname(local_path) + ";"
-
-                
-
-                # ToDo: here the stager have to make the magic stuff
-                #
-                # if use link:
-                #   create the link command
-                #
-                # if use cp
-                #   ...
-                #
-                # if use_scp
-                #   ...
-                #
-                # and so on
-                #
-                #
-
-                # Evaluate the source path
-                #src_path=task.workflow.get_scratch_dir_base()+"/"+task.get_scratch_dir()
-
-
-
-                # Add the link command
-                header = header + "ln -sf " + task.get_scratch_dir() +"/"+local_path + " "+ dst_path+"/"+local_path + ";"
-
-                # Change the body of the command
-                body=body.replace(Workflow.SCHEMA+arg, dst_path+"/"+local_path);
-
-            pos=pos2
-        return header + body
-
-
-    # Post process the command
-    def post_process_command(self,command):
-        return command+"|tee ./"+self.name+"_output.txt"
-
-    # Method overrided
-    def execute(self):
-        if self.working_dir is None:
-            # Set a scratch directory as working directory
-            self.working_dir = self.workflow.get_scratch_dir_base()+"/"+self.get_scratch_name()
-
-            # Create scratch directory
-            os.makedirs(self.working_dir)
-
-            # Set to remove the scratch directory
-            self.remove_scratch_dir=True
-        else:
-            # Set to NOT remove the scratch directory
-            self.remove_scratch_dir=False
-
-        self.workflow.logger.debug("%s: Scratch directory: %s",self.name,self.working_dir)
-        if self.workflow.regist_on_api: #change scratch directory on server
-            try:
-                self.workflow.api.update_task(self.workflow.id, self.name,"working_dir", self.working_dir)
-            except Exception, e:
-                self.workflow.logger.error("%s: Error updating scratch directory on server %s", self.name, e)
-        # Change to the scratch directory
-        #os.chdir(self.working_dir)
-
-        # Apply some command pre processing
-        command=self.pre_process_command(self.command)
-
-        # Apply some command post processing
-        command=self.post_process_command(command)
-
+    def on_execute(self, command):
         # Execute the bash command
-        self.result=local(command, capture=True)
-
-        # Check if the execution failed
-        if self.result.failed:
-            raise Exception('Executable raised a execption')
-
-        # Remove the reference
-        # For each workflow:// in the command
-
-        # Index of the starting position
-        pos = 0
-
-        # Forever unless no anymore Workflow.SCHEMA are present
-        while True:
-            # Get the position of the next Workflow.SCHEMA
-            pos1 = self.command.find(Workflow.SCHEMA, pos)
-
-            # Check if there is no Workflow.SCHEMA
-            if pos1 == -1:
-                # Exit the forever cycle
-                break
-
-            # Find the first occurrent of a whitespace (or if no occurrence means the end of the string)
-            pos2 = self.command.find(" ", pos1)
-
-            # Check if this is the last referenced argument
-            if pos2 == -1:
-              pos2 = len(self.command)
-
-            # Extract the parameter string
-            arg = self.command[pos1:pos2]
-
-            # Remove the Workflow.SCHEMA label
-            arg = arg.replace(Workflow.SCHEMA, "")
-
-            # Split each argument in elements by the slash
-            elements = arg.split("/")
-
-            # Extract the referenced task's workflow name
-            workflow_name = elements[0]
-
-            # The task name is the first element
-            task_name = elements[1]
-
-            # Set the default workflow name if needed
-            if workflow_name is None or workflow_name == "":
-                workflow_name = self.workflow.name
-
-            # Extract the reference task object
-            # ToDo: manage the different workflow issue. Now it is not considered
-            # change to something like
-            #  task = self.workflow.find_task_by_name(workflow_name, task_name)
-            task = self.workflow.find_task_by_name(task_name)
-
-            # Check if the refernced task is consistent
-            if task is not None:
-                # Remove the reference from the task
-                task.decrement_reference_count()
-
-            # Go to the next element
-            pos = pos2
+        result = local(command, capture=True)
+        return result
 
 
 
@@ -314,24 +39,23 @@ class Slurm(Batch):
         self.partition=partition
         self.ntasks=ntasks
 
-    # Pre process the command
-    def pre_process_command(self,command):
 
-        partition_text=""
+    def on_execute(self, command):
+
+        partition_text = ""
         if self.partition is not None:
-          partition_text="--partition="+self.partition
+            partition_text = "--partition=" + self.partition
 
-        ntasks_text=""
+        ntasks_text = ""
         if self.ntasks is not None:
-          ntasks_text="--ntasks="+self.ntasks
+            ntasks_text = "--ntasks=" + self.ntasks
 
         # Add the slurm batch command
-        command="sbatch "+partition_text+" "+ntasks_text+" --job-name "+self.name+" --chdir "+self.working_dir+" --output="+self.name+"_output.txt --wait "+command
-        return command
+        command = "sbatch " + partition_text + " " + ntasks_text + " --job-name " + self.name + " --chdir " + self.working_dir + " --output=" + self.name + "_output.txt --wait '" + command + "'"
 
-    # Post process the command
-    def post_process_command(self,command):
-        return command
+        # Execute the bash command
+        result = local(command, capture=True)
+        return result
 
 #class AWSEC2(Batch):
 #
