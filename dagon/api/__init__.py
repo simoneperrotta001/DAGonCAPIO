@@ -21,12 +21,14 @@ class API:
         url = self.base_url + service
         data = workflow.asJson()
         res = requests.post(url, json=data)
-
         if res.status_code == 201:  # created
             json_reponse = res.json()
             return json_reponse['id']
         else:
-            raise Exception("Something went wrong %d %s" % (res.status_code, res.reason))
+            if res.status_code == 409:
+                raise Exception("Workflow name already exists %d %s" % (res.status_code, res.reason))
+            else:
+                raise Exception("Workflow error registration %d %s" % (res.status_code, res.reason))
 
     # add task to workflow
     def add_task(self, workflow_id, task):
@@ -60,7 +62,6 @@ class API:
     def update_task(self, workflow_id, task, attribute, value):
         service = "/update/%s/%s/%s?value=%s" % (workflow_id, task, attribute, value)
         url = self.base_url + service
-        print url
         res = requests.put(url)
         if res.status_code != 201 and res.status_code != 200:  # error
             raise Exception("Something went wrong %d %s" % (res.status_code, res.reason))
@@ -69,7 +70,6 @@ class API:
     def add_dependency(self, workflow_id, task, dependency):
         service = "/%s/%s/dependency/%s" % (workflow_id, task, dependency)
         url = self.base_url + service
-        print url
         res = requests.put(url)
         if res.status_code != 201 and res.status_code != 200:  # error
             raise Exception("Something went wrong %d %s" % (res.status_code, res.reason))

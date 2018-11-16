@@ -45,8 +45,9 @@ class Workflow(object):
             try:
                 self.id = self.api.create_workflow(self)
                 self.logger.debug("Workflow registration success id = %s"%self.id)
-            except Exception:
-                self.logger.error("Workflow registration error")
+            except Exception, e:
+                raise Exception(e)
+
 
     def get_scratch_dir_base(self):
         return self.cfg['scratch_dir_base']
