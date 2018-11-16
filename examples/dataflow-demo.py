@@ -17,7 +17,7 @@ if __name__ == '__main__':
   workflow=Workflow("DataFlow-Demo",config)
   
   # The task a
-  taskA=batch.Batch("Tokio","mkdir output;ls > output/f1.txt")
+  taskA=batch.Batch("Tokio","mkdir output;sleep 5;ls > output/f1.txt;")
   
   # The task b
   taskB=batch.Batch("Berlin","echo $RANDOM > f2.txt; cat workflow:///Tokio/output/f1.txt >> f2.txt")
