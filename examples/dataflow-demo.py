@@ -43,3 +43,11 @@ if __name__ == '__main__':
  
   # run the workflow
   workflow.run()
+
+  # set the result filename
+  result_filename=taskD.get_scratch_dir()+"/f3.txt"
+
+  # get the results
+  with open(result_filename,"r") as infile:
+    result=infile.readlines()
+    print result
