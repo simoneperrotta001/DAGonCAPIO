@@ -1,20 +1,30 @@
 {
-  "tasks": [
-    {
-      "command": "mkdir output;ls > output/f1.txt", 
-      "name": "Tokio"
+  "id": "5bed8295c0d8e334f775f540", 
+  "name": "DataFlow-Demo", 
+  "tasks": {
+    "Berlin": {
+      "command": "echo $RANDOM > f2.txt; cat workflow:///Tokio/output/f1.txt >> f2.txt", 
+      "name": "Berlin", 
+      "status": "READY", 
+      "working_dir": null
     }, 
-    {
-      "command": "echo $RANDOM > f2.txt; cat workflow://Tokio/output/f1.txt >> f2.txt", 
-      "name": "Berlin"
+    "Mosco": {
+      "command": "cat workflow:///Berlin/f2.txt workflow:///Nairobi/f2.txt > f3.txt", 
+      "name": "Mosco", 
+      "status": "READY", 
+      "working_dir": null
     }, 
-    {
-      "command": "echo $RANDOM > f2.txt; cat workflow://Tokio/output/f1.txt >> f2.txt", 
-      "name": "Nairobi"
+    "Nairobi": {
+      "command": "echo $RANDOM > f2.txt; cat workflow:///Tokio/output/f1.txt >> f2.txt", 
+      "name": "Nairobi", 
+      "status": "READY", 
+      "working_dir": null
     }, 
-    {
-      "command": "cat workflow://Berlin/f2.txt workflow://Nairobi/f2.txt > f3.txt", 
-      "name": "Mosco"
+    "Tokio": {
+      "command": "mkdir output;sleep 5;ls > output/f1.txt", 
+      "name": "Tokio", 
+      "status": "READY", 
+      "working_dir": null
     }
-  ]
+  }
 }
