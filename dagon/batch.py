@@ -25,9 +25,11 @@ class Batch(Task):
         jsonTask['command']=self.command
         return jsonTask
 
-    def on_execute(self, command):
+    def on_execute(self, launcher_script):
+        # Invoke the base method
+        super(Batch, self).on_execute(launcher_script)
         # Execute the bash command
-        result = local(command, capture=True)
+        result = local(". "+self.working_dir+"/.dagon/launcher.sh", capture=True)
         return result
 
 
