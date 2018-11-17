@@ -1,8 +1,10 @@
 import time
 import os
+import tempfile
 import shutil
 from threading import Thread
 from dagon import Workflow
+from fabric.api import local, env
 
 
 from dagon import Status
@@ -151,8 +153,18 @@ class Task(Thread):
     # Pre process command
     def pre_process_command(self, command):
 
+        # Initialize the script
+        header="#! /bin/bash\n"
+        header=header+"# This is the DagOn launcher script\n\n"
+
         # Create the header
-        header = "cd " + self.working_dir + ";mkdir .dagon;"
+        header = header+"# Change the current directory to the working directory\n"
+        header = header+"cd " + self.working_dir + "\n\n"
+
+        #header = header+"# Create the .dagon directory\n"
+        #header = header+"mkdir .dagon\n\n"
+
+        header = header + "# Start staging in\n\n"
 
         # Create the body
         body = command
@@ -211,7 +223,8 @@ class Task(Thread):
                 dst_path = "${PWD}/.dagon/inputs/" + workflow_name + "/" + task_name
 
                 # Create the destination directory
-                header = header + "mkdir -p " + dst_path + "/" + os.path.dirname(local_path) + ";"
+                header = header + "# Create the destination directory\n"
+                header = header + "mkdir -p " + dst_path + "/" + os.path.dirname(local_path) + "\n\n"
 
                 # ToDo: here the stager have to make the magic stuff
                 #
@@ -232,21 +245,36 @@ class Task(Thread):
                 # src_path=task.workflow.get_scratch_dir_base()+"/"+task.get_scratch_dir()
 
                 # Add the link command
-                header = header + "ln -sf " + task.get_scratch_dir() + "/" + local_path + " " + dst_path + "/" + local_path + ";"
+                header = header + "# Add the link command\n"
+                header = header + "ln -sf " + task.get_scratch_dir() + "/" + local_path + " " + dst_path + "/" + local_path + "\n\n"
 
                 # Change the body of the command
-                body = body.replace(Workflow.SCHEMA + arg, dst_path + "/" + local_path);
+                body = body.replace(Workflow.SCHEMA + arg, dst_path + "/" + local_path)
 
             pos = pos2
-        return header + body
+
+        # Invoke the command
+        header = header + "# Invoke the command\n"
+        header = header + body + " |tee " + self.working_dir + "/.dagon/stdout.txt\n\n"
+        return header
 
     # Post process the command
     def post_process_command(self, command):
-        return command + "|tee ./" + self.name + "_output.txt"
+        footer=command+"\n\n"
+        footer=footer+"# Perform post process\n"
+        return footer
 
     # Method to be overrided
-    def on_execute(self, command):
-        pass
+    def on_execute(self, launcher_script):
+
+        # The launcher script name
+        launcher_script_name=self.working_dir + "/.dagon/launcher.sh"
+
+        # Create a temporary launcher script
+        file = open(launcher_script_name, "w")
+        file.write(launcher_script)
+        file.flush()
+        file.close()
 
     # Method execute
     def execute(self):
@@ -255,7 +283,7 @@ class Task(Thread):
             self.working_dir = self.workflow.get_scratch_dir_base() + "/" + self.get_scratch_name()
 
             # Create scratch directory
-            os.makedirs(self.working_dir)
+            os.makedirs(self.working_dir+"/.dagon")
 
             # Set to remove the scratch directory
             self.remove_scratch_dir = True
@@ -271,13 +299,13 @@ class Task(Thread):
                 self.workflow.logger.error("%s: Error updating scratch directory on server %s", self.name, e)
 
         # Apply some command pre processing
-        command = self.pre_process_command(self.command)
+        launcher_script = self.pre_process_command(self.command)
 
         # Apply some command post processing
-        command = self.post_process_command(command)
+        launcher_script = self.post_process_command(launcher_script)
 
-        # Invoke the actual executer
-        self.result =self.on_execute(command)
+        # Invoke the actual executor
+        self.result =self.on_execute(launcher_script)
 
 
         # Check if the execution failed
