@@ -48,7 +48,7 @@ class Slurm(Batch):
 
         ntasks_text = ""
         if self.ntasks is not None:
-            ntasks_text = "--ntasks=" + self.ntasks
+            ntasks_text = "--ntasks=" + str(self.ntasks)
 
         # Add the slurm batch command
         command = "sbatch " + partition_text + " " + ntasks_text + " --job-name " + self.name + " --chdir " + self.working_dir + " --output=" + self.name + "_output.txt --wait '" + command + "'"
