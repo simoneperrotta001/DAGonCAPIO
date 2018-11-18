@@ -4,6 +4,7 @@ import tempfile
 import shutil
 from threading import Thread
 from dagon import Workflow
+from dagon import Stager
 from fabric.api import local, env
 
 
@@ -152,6 +153,7 @@ class Task(Thread):
 
     # Pre process command
     def pre_process_command(self, command):
+        stager=Stager()
 
         # Initialize the script
         header="#! /bin/bash\n"
@@ -160,9 +162,6 @@ class Task(Thread):
         # Create the header
         header = header+"# Change the current directory to the working directory\n"
         header = header+"cd " + self.working_dir + "\n\n"
-
-        #header = header+"# Create the .dagon directory\n"
-        #header = header+"mkdir .dagon\n\n"
 
         header = header + "# Start staging in\n\n"
 
@@ -220,7 +219,7 @@ class Task(Thread):
             # Check if the refernced task is consistent
             if task is not None:
                 # Evaluate the destiation path
-                dst_path = "${PWD}/.dagon/inputs/" + workflow_name + "/" + task_name
+                dst_path = self.working_dir+"/.dagon/inputs/" + workflow_name + "/" + task_name
 
                 # Create the destination directory
                 header = header + "# Create the destination directory\n"
@@ -241,9 +240,8 @@ class Task(Thread):
                 #
                 #
 
-                # Add the link command
-                header = header + "# Add the link command\n"
-                header = header + "ln -sf " + task.get_scratch_dir() + "/" + local_path + " " + dst_path + "/" + local_path + "\n\n"
+                # Add the move data command
+                header=header+stager.stage_in(self,task,dst_path,local_path)
 
                 # Change the body of the command
                 body = body.replace(Workflow.SCHEMA + arg, dst_path + "/" + local_path)
