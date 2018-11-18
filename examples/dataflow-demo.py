@@ -1,6 +1,7 @@
 from dagon import Workflow
 from dagon import batch
 import json
+import time
 
 # Check if this is the main
 if __name__ == '__main__':
@@ -43,6 +44,8 @@ if __name__ == '__main__':
 
   # set the result filename
   result_filename=taskD.get_scratch_dir()+"/f3.txt"
+  while not os.path.exists(result_filename):
+    time.sleep(1)
 
   # get the results
   with open(result_filename,"r") as infile:
