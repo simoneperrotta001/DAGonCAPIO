@@ -48,6 +48,9 @@ class Workflow(object):
             except Exception, e:
                 raise Exception(e)
 
+    def get_url(self):
+        # ToDo: Add a server and return the best available ip
+        return "http://localhost:3000"
 
     def get_scratch_dir_base(self):
         return self.cfg['scratch_dir_base']
@@ -139,7 +142,7 @@ class Stager(object):
         elif data_mover == DataMover.SECURECOPY:
             # Add the copy command
             command = command + "# Add the secure copy command\n"
-            command = command + "scp -r " + src_task.get_user()+"@"+src_task.get_fqdn()+":"+src_task.get_scratch_dir() + "/" + local_path + " " + dst_path + "/" + local_path + "\n\n"
+            command = command + "scp -r " + src_task.get_user()+"@"+src_task.get_ip()+":"+src_task.get_scratch_dir() + "/" + local_path + " " + dst_path + "/" + local_path + "\n\n"
 
         return command
 
