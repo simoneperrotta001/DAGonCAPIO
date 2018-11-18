@@ -241,9 +241,6 @@ class Task(Thread):
                 #
                 #
 
-                # Evaluate the source path
-                # src_path=task.workflow.get_scratch_dir_base()+"/"+task.get_scratch_dir()
-
                 # Add the link command
                 header = header + "# Add the link command\n"
                 header = header + "ln -sf " + task.get_scratch_dir() + "/" + local_path + " " + dst_path + "/" + local_path + "\n\n"
@@ -275,6 +272,7 @@ class Task(Thread):
         file.write(launcher_script)
         file.flush()
         file.close()
+        os.chmod(launcher_script_name, 0744)
 
     # Method execute
     def execute(self):
