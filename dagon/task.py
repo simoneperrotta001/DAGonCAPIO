@@ -25,6 +25,14 @@ class Task(Thread):
         self.set_status(Status.READY)
         self.working_dir=working_dir
         self.command=command
+        self.fqdn=None
+        self.user=None
+
+    def get_fqdn(self):
+        return self.fqdn
+
+    def get_user(self):
+        return self.user
 
     def get_scratch_dir(self):
         while (self.working_dir==None):
