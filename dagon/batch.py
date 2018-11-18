@@ -42,6 +42,7 @@ class Slurm(Task):
         self.ntasks=ntasks
 
 
+
     def on_execute(self, launcher_script):
         super(Slurm, self).on_execute(launcher_script)
         partition_text = ""
