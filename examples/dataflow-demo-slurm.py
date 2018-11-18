@@ -4,12 +4,13 @@ import json
 import sys
 import datetime
 import os.path
+import time
 
 # Check if this is the main
 if __name__ == '__main__':
 
   config={
-    "scratch_dir_base":"/tmp/test6",
+    "scratch_dir_base":"/home/ccmmma/tmp/test6/",
     "remove_dir":False
   }
 
@@ -46,6 +47,8 @@ if __name__ == '__main__':
 
   # set the result filename
   result_filename = taskD.get_scratch_dir() + "/f3.txt"
+  while not os.path.exists(result_filename):
+    time.sleep(1)
 
   # get the results
   with open(result_filename, "r") as infile:
