@@ -25,14 +25,14 @@ class Task(Thread):
         self.set_status(Status.READY)
         self.working_dir=working_dir
         self.command=command
-        self.fqdn=None
-        self.user=None
+        self.info=None
 
-    def get_fqdn(self):
-        return self.fqdn
+
+    def get_ip(self):
+        return self.info["ip"]
 
     def get_user(self):
-        return self.user
+        return self.info["user"]
 
     def get_scratch_dir(self):
         while (self.working_dir==None):
@@ -166,6 +166,9 @@ class Task(Thread):
         # Initialize the script
         header="#! /bin/bash\n"
         header=header+"# This is the DagOn launcher script\n\n"
+
+        # Add the howim script
+        header=header+self.get_how_im_script()+"\n\n"
 
         # Create the header
         header = header+"# Change the current directory to the working directory\n"
@@ -412,3 +415,74 @@ class Task(Thread):
             # Change the status
             self.set_status(Status.FINISHED)
             return
+
+    def get_how_im_script(self):
+        return """
+        
+# Initialize
+machine_type="none"
+public_id="none"
+user="none"
+status_sshd="none"
+status_ftpd="none"
+
+if [ "$public_ip" == "" ]
+then
+  # Check if an AWS/EC2 machine
+  LOCAL_HOSTNAME=$(hostname -d)
+  if [[ ${LOCAL_HOSTNAME} =~ .*\.amazonaws\.com ]]
+  then
+    aws=`curl -s http://169.254.169.254/latest/meta-data/public-ipv4`
+    if [ "$aws" != "" ]
+    then
+      machine_type="aws-ec2"
+      public_ip=$aws
+    fi
+  fi
+fi
+
+if [ "$public_ip" == "" ]
+then
+  # The machine is a cluster frontend (or a single machine)
+  machine_type="cluster-frontend"
+  public_ip=`ifconfig 2>/dev/null| grep "inet "| grep -v "127.0.0.1"| awk '{print $2}'|grep -v "192.168."|grep -v "172.16."|grep -v "10."|head -n 1`
+fi
+
+if [ "$public_ip" == "" ]
+then
+  # If no public ip is available, then it is a cluster node
+  machine_type="cluster-node"
+  public_ip=`ifconfig 2>/dev/null| grep "inet "| grep -v "127.0.0.1"| awk '{print $2}'|head -n 1`  
+fi
+
+
+# Check if the secure copy is available
+status_sshd=`service sshd status 2>/dev/null|grep "Active"| awk '{print $2}'`
+if [ "$status_sshd" == "" ]
+then
+  status_sshd="none"
+fi
+
+# Check if the ftp is available
+status_ftpd=`service vsftpd status 2>/dev/null|grep "Active"| awk '{print $2}'`
+if [ "$status_ftpd" == "" ]
+then
+  status_ftpd="none"
+fi
+
+# Check if the grid ftp is available
+status_gsiftpd=`service gsiftpd status 2>/dev/null|grep "Active"| awk '{print $2}'`
+if [ "$status_gsiftpd" == "" ]
+then
+  status_gsiftpd="none"
+fi
+
+# Get the user
+user=$USER
+
+# Construct the json
+json="{'type':'$machine_type','ip':'$public_ip','user':'$user','scp':'$status_sshd','ftp':'$status_ftpd','gsiftp':'$status_gsiftpd'}"
+
+# Set the task info
+#curl --header "Content-Type: application/json" --request POST --data "$json" http://"""+self.workflow.get_url()+"""/api/"""+self.name+"""/info
+  """
