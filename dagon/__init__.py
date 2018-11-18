@@ -99,6 +99,46 @@ class Workflow(object):
         #g.view()
 
 
+class DataMover(Enum):
+    DONTMOVE=0
+    LINK = 1
+    COPY = 2
+    SECURECOPY=3
+    HTTP = 4
+    HTTPS = 5
+    FTP = 6
+    SFTP = 7
+    GRIDFTP = 8
+
+
+class Stager(object):
+    def __init__(self):
+        pass
+
+    def stage_in(self,dst_task,src_task,dst_path,local_path):
+        data_mover = DataMover.DONTMOVE
+        command=""
+
+        # ToDo: this have to me make automatic
+        data_mover=DataMover.LINK
+
+
+        # Check if the symbolic link have to be used...
+        if data_mover==DataMover.LINK:
+            # Add the link command
+            command = command + "# Add the link command\n"
+            command = command + "ln -sf " + src_task.get_scratch_dir() + "/" + local_path + " " + dst_path + "/" + local_path + "\n\n"
+
+        # Check if the copy have to be used...
+        elif data_mover==DataMover.COPY:
+            # Add the copy command
+            command = command + "# Add the copy command\n"
+            command = command + "cp -r " + src_task.get_scratch_dir() + "/" + local_path + " " + dst_path + "/" + local_path + "\n\n"
+
+
+        return command
+
+
 def read_config(section):
     import configparser
     config = configparser.ConfigParser()
