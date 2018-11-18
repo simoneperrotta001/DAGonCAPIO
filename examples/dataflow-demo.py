@@ -2,6 +2,7 @@ from dagon import Workflow
 from dagon import batch
 import json
 import time
+import os
 
 # Check if this is the main
 if __name__ == '__main__':
