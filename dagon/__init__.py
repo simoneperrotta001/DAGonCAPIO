@@ -135,6 +135,11 @@ class Stager(object):
             command = command + "# Add the copy command\n"
             command = command + "cp -r " + src_task.get_scratch_dir() + "/" + local_path + " " + dst_path + "/" + local_path + "\n\n"
 
+        # Check if the secure copy have to be used...
+        elif data_mover == DataMover.SECURECOPY:
+            # Add the copy command
+            command = command + "# Add the secure copy command\n"
+            command = command + "scp -r " + src_task.get_user()+"@"+src_task.get_fqdn()+":"+src_task.get_scratch_dir() + "/" + local_path + " " + dst_path + "/" + local_path + "\n\n"
 
         return command
 
