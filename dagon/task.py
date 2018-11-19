@@ -27,6 +27,8 @@ class Task(Thread):
         self.command=command
         self.info=None
 
+    def set_info(self, info):
+        self.info = info
 
     def get_ip(self):
         return self.info["ip"]
@@ -42,6 +44,8 @@ class Task(Thread):
     def get_scratch_name(self):
         millis = int(round(time.time() * 1000))
         return str(millis) + "-" + self.name
+
+    
 
     # asJson
     def asJson(self):
@@ -426,20 +430,7 @@ user="none"
 status_sshd="none"
 status_ftpd="none"
 
-if [ "$public_ip" == "" ]
-then
-  # Check if an AWS/EC2 machine
-  LOCAL_HOSTNAME=$(hostname -d)
-  if [[ ${LOCAL_HOSTNAME} =~ .*\.amazonaws\.com ]]
-  then
-    aws=`curl -s http://169.254.169.254/latest/meta-data/public-ipv4`
-    if [ "$aws" != "" ]
-    then
-      machine_type="aws-ec2"
-      public_ip=$aws
-    fi
-  fi
-fi
+public_ip=`curl -s https://ipinfo.io/ip`
 
 if [ "$public_ip" == "" ]
 then
@@ -481,8 +472,8 @@ fi
 user=$USER
 
 # Construct the json
-json="{'type':'$machine_type','ip':'$public_ip','user':'$user','scp':'$status_sshd','ftp':'$status_ftpd','gsiftp':'$status_gsiftpd'}"
+json="{\\\"type\\\":\\\"$machine_type\\\",\\\"ip\\\":\\\"$public_ip\\\",\\\"user\\\":\\\"$user\\\",\\\"scp\\\":\\\"$status_sshd\\\",\\\"ftp\\\":\\\"$status_ftpd\\\",\\\"gsiftp\\\":\\\"$status_gsiftpd\\\"}"
 
 # Set the task info
-#curl --header "Content-Type: application/json" --request POST --data "$json" http://"""+self.workflow.get_url()+"""/api/"""+self.name+"""/info
+curl --header "Content-Type: application/json" --request POST --data \"$json\" http://"""+self.workflow.get_url()+"""/api/"""+self.name+"""/info
   """

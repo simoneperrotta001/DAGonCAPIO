@@ -13,7 +13,7 @@ if __name__ == '__main__':
   }
 
   # Create the orchestration workflow
-  workflow=Workflow("DataFlow-Demo",config)
+  workflow=Workflow("DataFlow-Demo-Server5",config)
   
   # The task a
   taskA=batch.Batch("A","mkdir output;hostname > output/f1.txt")

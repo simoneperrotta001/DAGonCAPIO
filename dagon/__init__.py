@@ -7,6 +7,8 @@ from requests.exceptions import ConnectionError
 from graphviz import Digraph
 from enum import Enum
 from dagon.api import API
+from dagon.api.server import WorkflowServer
+from dagon.communication.connection import Connection
 
 
 class Status(Enum):
@@ -31,7 +33,8 @@ class Workflow(object):
         self.tasks = []
         self.id = 0
         self.regist_on_api = False
-
+        
+        
         # to regist in the dagon service
         try:
             self.api = API(read_config('dagon_service')['route'])
@@ -47,10 +50,15 @@ class Workflow(object):
                 self.logger.debug("Workflow registration success id = %s"%self.id)
             except Exception, e:
                 raise Exception(e)
+        
+        port = Connection.find_port()
+        self.workflow_server = WorkflowServer(self, port)
+        self.url = "%s:%d" % (Connection.find_ip(), port)
+        self.workflow_server.start() #start workflow server
 
     def get_url(self):
         # ToDo: Add a server and return the best available ip
-        return "http://localhost:3000"
+        return self.url
 
     def get_scratch_dir_base(self):
         return self.cfg['scratch_dir_base']
@@ -92,6 +100,17 @@ class Workflow(object):
         for task in self.tasks:
             task.start()
 
+        for task in self.tasks:
+            task.join()
+
+        try:
+            #ToDo: search a best way to stop ir
+            self.workflow_server.terminate()
+            #self.workflow_server.__stop() #stop server at the end of the execution of all tasks
+            #self.workflow_server.join()
+        except:
+            self.logger.debug("Server stopped %s", self.name)
+
     def draw(self):
         g = Digraph(self.name)
         g.node_attr.update(color='lightblue2', style='filled')
@@ -125,7 +144,6 @@ class Stager(object):
         # ToDo: this have to me make automatic
         data_mover=DataMover.LINK
 
-
         # Check if the symbolic link have to be used...
         if data_mover==DataMover.LINK:
             # Add the link command
@@ -151,4 +169,7 @@ def read_config(section):
     import configparser
     config = configparser.ConfigParser()
     config.read('dagon.ini')
-    return dict(config.items(section))
+    try:
+        return dict(config.items(section))
+    except:
+        return None
