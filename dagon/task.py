@@ -147,10 +147,7 @@ class Task(Thread):
                 workflow_name = self.workflow.name
 
             # Extract the reference task object
-            # ToDo: manage the different workflow issue. Now it is not considered
-            # change to something like
-            #  task = self.workflow.find_task_by_name(workflow_name, task_name)
-            task = self.workflow.find_task_by_name(task_name)
+            task = self.workflow.find_task_by_name(workflow_name, task_name)
 
             # Check if the refernced task is consistent
             if task is not None:
@@ -226,10 +223,7 @@ class Task(Thread):
                 workflow_name = self.workflow.name
 
             # Extract the reference task object
-            # ToDo: manage the different workflow issue. Now it is not considered
-            # change to something like
-            #  task = self.workflow.find_task_by_name(workflow_name, task_name)
-            task = self.workflow.find_task_by_name(task_name)
+            task = self.workflow.find_task_by_name(workflow_name, task_name)
 
             # Check if the refernced task is consistent
             if task is not None:
@@ -239,21 +233,6 @@ class Task(Thread):
                 # Create the destination directory
                 header = header + "# Create the destination directory\n"
                 header = header + "mkdir -p " + dst_path + "/" + os.path.dirname(local_path) + "\n\n"
-
-                # ToDo: here the stager have to make the magic stuff
-                #
-                # if use link:
-                #   create the link command
-                #
-                # if use cp
-                #   ...
-                #
-                # if use_scp
-                #   ...
-                #
-                # and so on
-                #
-                #
 
                 # Add the move data command
                 header=header+stager.stage_in(self,task,dst_path,local_path)
@@ -316,12 +295,15 @@ class Task(Thread):
         # Apply some command post processing
         launcher_script = self.post_process_command(launcher_script)
 
-        # Invoke the actual executor
-        self.result =self.on_execute(launcher_script)
 
-        # Check if the execution failed
-        if self.result['code']:
-            raise Exception('Executable raised a execption ' + self.result['message'])
+        # Execute only if not dry
+        if self.workflow.dry is False:
+            # Invoke the actual executor
+            self.result =self.on_execute(launcher_script)
+
+            # Check if the execution failed
+            if self.result['code']:
+                raise Exception('Executable raised a execption ' + self.result['message'])
 
         # Remove the reference
         # For each workflow:// in the command
@@ -366,10 +348,7 @@ class Task(Thread):
                 workflow_name = self.workflow.name
 
             # Extract the reference task object
-            # ToDo: manage the different workflow issue. Now it is not considered
-            # change to something like
-            #  task = self.workflow.find_task_by_name(workflow_name, task_name)
-            task = self.workflow.find_task_by_name(task_name)
+            task = self.workflow.find_task_by_name(workflow_name, task_name)
 
             # Check if the refernced task is consistent
             if task is not None:
