@@ -30,6 +30,7 @@ class Workflow(object):
 
         self.name = name
         self.cfg = cfg
+        self.dry = False
         self.tasks = []
         self.id = 0
         self.regist_on_api = False
@@ -56,16 +57,32 @@ class Workflow(object):
         self.url = "%s:%d" % (Connection.find_ip(), port)
         self.workflow_server.start() #start workflow server
 
+
+    def get_dry(self):
+        return self.dry
+
+    def set_dry(self,dry):
+        self.dry=dry
+
     def get_url(self):
         return self.url
 
     def get_scratch_dir_base(self):
         return self.cfg['scratch_dir_base']
 
-    def find_task_by_name(self, name):
-        for task in self.tasks:
-            if name in task.name:
-                return task
+    def find_task_by_name(self, workflow_name, task_name):
+        # Check if the workflow is the current one
+        if workflow_name == self.name:
+
+            # For each task in the tasks collection
+            for task in self.tasks:
+
+                # Check the task name
+                if task_name == task.name:
+
+                    # Return the result
+                    return task
+
         return None
 
     def add_task(self, task):
