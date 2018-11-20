@@ -29,10 +29,14 @@ class WorkflowServer(Thread):
             if not request.is_json:
                 return jsonify({"status": "error", "message": "Invalid JSON format"}), status.HTTP_400_BAD_REQUEST
             data = request.json
-            task = self.workflow.find_task_by_name(task)
+            task = self.workflow.find_task_by_name(self.workflow.name,task)
             if task is not None:
                 task.set_info(data)
             return jsonify(data)
+
+        @app.route('/check')
+        def check():
+            return jsonify({"status": "ok"})
 
         ############################################
 

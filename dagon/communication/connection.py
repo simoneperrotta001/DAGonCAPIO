@@ -1,6 +1,9 @@
 import socket
 from urllib2 import urlopen
 import dagon
+import requests
+import socket
+
 
 class Connection:
 
@@ -13,12 +16,20 @@ class Connection:
         return result is 0
 
     @staticmethod
-    def find_ip():
+    def find_ip(port):
         ip = dagon.read_config("dagon_ip")
+
         if ip is None:
             ip = urlopen('http://ip.42.pl/raw').read()
+            try:
+                requests.get("http://%s:%d/check"%(ip,port), timeout=1)
+            except:
+                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                s.connect(("8.8.8.8", 80))
+                ip = s.getsockname()[0]
         else:
             ip = ip['ip']
+        print ip
         return ip
 
     @staticmethod
