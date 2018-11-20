@@ -1,11 +1,9 @@
 import time
 import os
-import tempfile
 import shutil
 from threading import Thread
 from dagon import Workflow
 from dagon import Stager
-from fabric.api import local, env
 
 
 from dagon import Status
@@ -37,7 +35,7 @@ class Task(Thread):
         return self.info["user"]
 
     def get_scratch_dir(self):
-        while (self.working_dir==None):
+        while self.working_dir is None and self.status is not Status.FAILED:
             time.sleep(1)
         return self.working_dir
 
@@ -45,7 +43,6 @@ class Task(Thread):
         millis = int(round(time.time() * 1000))
         return str(millis) + "-" + self.name
 
-    
 
     # asJson
     def asJson(self):
@@ -369,7 +366,7 @@ class Task(Thread):
 
             # Check if one of the previous tasks crashed
             for task in self.prevs:
-                if (task.status == Status.FAILED):
+                if task.status == Status.FAILED:
                     self.set_status(Status.FAILED)
                     return
 
