@@ -1,3 +1,6 @@
+[dagon_service]
+route =
+
 [batch]
 scratch_dir_base=/tmp/
 remove_dir=False
