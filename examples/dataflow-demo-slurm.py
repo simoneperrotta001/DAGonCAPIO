@@ -16,6 +16,9 @@ if __name__ == '__main__':
 
   # Create the orchestration workflow
   workflow=Workflow("DataFlow-Demo",config)
+
+  # Set the dry
+  workflow.set_dry(False)
   
   # The task a
   taskA=batch.Slurm("A","mkdir output;hostname > output/f1.txt","hicpu",1)
@@ -45,13 +48,16 @@ if __name__ == '__main__':
   # run the workflow
   workflow.run()
 
-  # set the result filename
-  result_filename = taskD.get_scratch_dir() + "/f3.txt"
-  while not os.path.exists(result_filename):
-    time.sleep(1)
+  # Check if it is a dry run
+  if workflow.get_dry() is False:
+    # set the result filename
+    result_filename = taskD.get_scratch_dir() + "/f3.txt"
+    while not os.path.exists(result_filename):
+      time.sleep(1)
 
-  # get the results
-  with open(result_filename, "r") as infile:
-    result = infile.readlines()
-    print result
+    # get the results
+    with open(result_filename, "r") as infile:
+      result = infile.readlines()
+      print result
+
 
