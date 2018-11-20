@@ -1,6 +1,7 @@
 import logging
 import logging.config
 from logging.config import fileConfig
+from types import NoneType
 
 from backports.configparser import NoSectionError
 from requests.exceptions import ConnectionError
@@ -37,8 +38,12 @@ class Workflow(object):
         
         # to regist in the dagon service
         try:
-            self.api = API(read_config('dagon_service')['route'])
-            self.regist_on_api = True
+            config = read_config('dagon_service')
+            if config is not None:
+                self.api = API(config['route'])
+                self.regist_on_api = True
+        except NoneType:
+            self.logger.error("No dagon URL in config file")
         except NoSectionError:
             self.logger.error("No dagon URL in config file")
         except ConnectionError, e:
@@ -103,11 +108,9 @@ class Workflow(object):
             task.join()
 
         try:
-            #ToDo: search a best way to stop ir
-            self.workflow_server.terminate()
-            #self.workflow_server.__stop() #stop server at the end of the execution of all tasks
-            #self.workflow_server.join()
-        except:
+            self.workflow_server.shutdown()
+        except Exception, e:
+            print e
             self.logger.debug("Server stopped %s", self.name)
 
     def draw(self):

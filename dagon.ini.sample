@@ -1,3 +1,23 @@
+
+[dagon_service]
+route = http://localhost:57000
+
+[dagon_ip]
+ip = localhost
+
+[ec2]
+key=AKIAJHPEAY3YIIDMG2NQ
+secret=
+region=
+
+[digitalocean]
+key=
+
+[gce]
+key=
+secret=
+project=
+
 [batch]
 scratch_dir_base=/tmp/
 remove_dir=False
