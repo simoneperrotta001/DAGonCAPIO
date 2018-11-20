@@ -272,6 +272,7 @@ class Task(Thread):
     def post_process_command(self, command):
         footer=command+"\n\n"
         footer=footer+"# Perform post process\n"
+        footer+= "echo $?"
         return footer
 
     # Method to be overrided
@@ -318,10 +319,9 @@ class Task(Thread):
         # Invoke the actual executor
         self.result =self.on_execute(launcher_script)
 
-
         # Check if the execution failed
-        if self.result.failed:
-            raise Exception('Executable raised a execption')
+        if self.result['code']:
+            raise Exception('Executable raised a execption ' + self.result['message'])
 
         # Remove the reference
         # For each workflow:// in the command
@@ -475,5 +475,5 @@ user=$USER
 json="{\\\"type\\\":\\\"$machine_type\\\",\\\"ip\\\":\\\"$public_ip\\\",\\\"user\\\":\\\"$user\\\",\\\"scp\\\":\\\"$status_sshd\\\",\\\"ftp\\\":\\\"$status_ftpd\\\",\\\"gsiftp\\\":\\\"$status_gsiftpd\\\"}"
 
 # Set the task info
-curl --header "Content-Type: application/json" --request POST --data \"$json\" http://"""+self.workflow.get_url()+"""/api/"""+self.name+"""/info
+curl -s --header "Content-Type: application/json" --request POST --data \"$json\" http://"""+self.workflow.get_url()+"""/api/"""+self.name+"""/info
   """

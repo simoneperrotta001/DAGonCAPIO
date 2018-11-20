@@ -57,7 +57,6 @@ class Workflow(object):
         self.workflow_server.start() #start workflow server
 
     def get_url(self):
-        # ToDo: Add a server and return the best available ip
         return self.url
 
     def get_scratch_dir_base(self):
