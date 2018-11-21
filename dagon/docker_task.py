@@ -43,8 +43,10 @@ class LocalDockerTask(Batch):
     def on_execute(self, launcher_script, script_name):
         # Invoke the base method
         Task.on_execute(self, launcher_script, script_name)
-        self.container_id = self.create_container() if self.container_id is None else self.container_id
-        self.container = Container(self.container_id, self.docker_client)
+        if self.container is None:
+            self.container_id = self.create_container() if self.container_id is None else self.container_id
+            self.container = Container(self.container_id, self.docker_client)
+
         return self.container.exec_in_cont(self.working_dir + "/.dagon/" + script_name)
         #return self.docker_client.exec_command(self.working_dir + "/.dagon/" + script_name)
 

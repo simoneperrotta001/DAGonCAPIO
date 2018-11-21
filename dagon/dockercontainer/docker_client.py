@@ -8,15 +8,17 @@ class DockerClient(object):
                 warn_only=True
         ):
             res = local(command, capture=True)
-
+            
             if len(res.stderr):
                 return {"code": 1, "message": res.stderr}
+            elif res.return_code != 0:
+                return {"code": 1, "message": res.stdout}
             else:
                 return {"code": 0, "message": res.stdout}
 
     @staticmethod
     def form_string_cont_creation(image, command=None, volume=None, ports=None, detach=False):
-        docker_command = "docker run"
+        docker_command = "docker run --net=\"host\""
 
         if detach:
             docker_command += " -t -d"

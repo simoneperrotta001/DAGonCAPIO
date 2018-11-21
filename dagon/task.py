@@ -165,7 +165,10 @@ class Task(Thread):
         # Add and execute the howim script
         context_script=header+self.get_how_im_script()+"\n\n"
 
-        self.on_execute(context_script, "context.sh") #execute context script
+        result = self.on_execute(context_script, "context.sh") #execute context script
+
+        if result['code']:
+            raise Exception(result['message'])
 
         ### start the creation of the launcher.sh script
 
@@ -388,7 +391,6 @@ class Task(Thread):
                 self.workflow.logger.debug("%s: Executing...", self.name)
                 self.execute()
             except Exception, e:
-                traceback.print_exc(file=sys.stdout)
                 self.workflow.logger.error("%s: Except: %s", self.name, str(e))
                 self.set_status(dagon.Status.FAILED)
                 return
