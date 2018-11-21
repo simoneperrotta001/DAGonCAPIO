@@ -16,20 +16,29 @@ class Connection:
         return result is 0
 
     @staticmethod
-    def find_ip(port):
+    def find_ip_local(port):
         ip = dagon.read_config("dagon_ip")
 
         if ip is None:
-            ip = urlopen('http://ip.42.pl/raw').read()
-            try:
-                requests.get("http://%s:%d/check"%(ip,port), timeout=1)
-            except:
-                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                s.connect(("8.8.8.8", 80))
-                ip = s.getsockname()[0]
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            ip = s.getsockname()
         else:
             ip = ip['ip']
-        print ip
+
+        return ip
+
+    @staticmethod
+    def check_url(url):
+        try:
+            requests.get(url, timeout=2)
+        except:
+            return False
+        return True
+
+    @staticmethod
+    def find_ip_public():
+        ip = urlopen('http://ip.42.pl/raw').read()
         return ip
 
     @staticmethod

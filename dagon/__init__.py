@@ -63,9 +63,12 @@ class Workflow(object):
                 raise Exception(e)
 
         port = Connection.find_port()
-        ip = Connection.find_ip(port)
+        ip = Connection.find_ip_local(port)
         self.workflow_server = WorkflowServer(self, ip, port)
-        self.url = "%s:%d" % (ip, port)
+        self.url = "%s:%d" % (Connection.find_ip_public(), port)
+        if not Connection.check_url(self.url):
+            self.url = "%s:%d" % (ip, port)
+        print self.url
         self.workflow_server.start()  # start workflow server
 
     def get_dry(self):
