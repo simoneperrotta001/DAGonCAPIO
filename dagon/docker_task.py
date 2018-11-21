@@ -66,6 +66,8 @@ class DockerRemoteTask(LocalDockerTask, RemoteTask):
         RemoteTask.on_execute(self, launcher_script, script_name)
         self.container_id = self.create_container().rstrip() if self.container_id is None else self.container_id
         self.container = Container(self.container_id, self.docker_client)
+        if script_name == "context.sh":
+            return self.ssh_connection.execute_command("bash " + self.working_dir + "/.dagon/" + script_name)
         return self.container.exec_in_cont(self.working_dir + "/.dagon/" + script_name)
 
 class DockerTask(Task):
