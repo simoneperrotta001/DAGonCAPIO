@@ -7,9 +7,10 @@ from werkzeug.serving import make_server
 
 class WorkflowServer(Thread):
 
-    def __init__(self, workflow, port):
+    def __init__(self, workflow, ip, port):
         Thread.__init__(self)
         self.workflow = workflow
+        self.ip = ip
         self.port = port
         self.configure_server()
 
@@ -40,6 +41,6 @@ class WorkflowServer(Thread):
 
         ############################################
 
-        self.srv = make_server('127.0.0.1', self.port, app)
+        self.srv = make_server(self.ip, self.port, app)
         self.ctx = app.app_context()
         self.ctx.push()
