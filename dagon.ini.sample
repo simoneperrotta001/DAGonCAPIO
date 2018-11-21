@@ -1,3 +1,9 @@
+[dagon_service]
+route = http://localhost:57000
+
+[dagon_ip]
+ip = localhost
+
 [batch]
 scratch_dir_base=/tmp/
 remove_dir=False
@@ -5,15 +11,18 @@ remove_dir=False
 [sulrm]
 partition=
 
-[aws]
-ACCESS_ID=
-ACCESS_KEY=
-region_name=
-instance_type=
-image_id=
-key_name=
-security_group=
-username=
+[ec2]
+key=AKIAJHPEAY3YIIDMG2NQ
+secret=
+region=
+
+[digitalocean]
+key=
+
+[gce]
+key=
+secret=
+project=
 
 [loggers]
 keys=root
