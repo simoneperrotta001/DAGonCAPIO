@@ -12,7 +12,7 @@ from libcloud.compute.types import NodeState
 from libcloud.compute.providers import get_driver
 
 import cloud_manager
-from dagon import read_config
+from dagon.config import read_config
 
 class CloudManager(object):
 

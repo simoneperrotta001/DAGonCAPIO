@@ -1,7 +1,6 @@
-from fabric.api import local, env, run, settings, hide
 
 class Container(object):
-    
+
     def __init__(self, key, client):
         self.key = key
         self.client = client
@@ -18,7 +17,7 @@ class Container(object):
 
     def rm(self, force=False):
         band = "-f" if force else ""
-        command = "docker rm %s %s" % (band,self.key)
+        command = "docker rm %s %s" % (band, self.key)
         try:
             self.client.exec_command(command)
         except Exception, e:
@@ -27,7 +26,7 @@ class Container(object):
         return True
 
     def stop(self):
-        command = "docker stop %s" % (self.key)
+        command = "docker stop %s" % self.key
         try:
             self.client.exec_command(command)
         except Exception, e:
@@ -43,4 +42,3 @@ class Container(object):
             print e
             return False
         return True
-    

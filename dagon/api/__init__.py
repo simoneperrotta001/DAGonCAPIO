@@ -19,7 +19,7 @@ class API:
     def create_workflow(self, workflow):
         service = "/create"
         url = self.base_url + service
-        data = workflow.asJson()
+        data = workflow.as_json()
         res = requests.post(url, json=data)
         if res.status_code == 201:  # created
             json_reponse = res.json()
@@ -34,7 +34,7 @@ class API:
     def add_task(self, workflow_id, task):
         service = "/add_task/%s" % workflow_id
         url = self.base_url + service
-        data = task.asJson()
+        data = task.as_json()
         res = requests.post(url, json=data)
         if res.status_code != 201 and res.status_code != 200:  # error
             raise Exception("Something went wrong %d %s" % (res.status_code, res.reason))

@@ -11,6 +11,12 @@ from dagon.api import API
 from dagon.api.server import WorkflowServer
 from dagon.communication.connection import Connection
 
+from dagon.batch import Batch
+from dagon.batch import Slurm
+from dagon.docker_task import DockerRemoteTask
+
+from config import read_config
+
 
 class Status(Enum):
     READY = "READY"
@@ -35,8 +41,7 @@ class Workflow(object):
         self.tasks = []
         self.id = 0
         self.regist_on_api = False
-        
-        
+
         # to regist in the dagon service
         try:
             config = read_config('dagon_service')
@@ -53,21 +58,20 @@ class Workflow(object):
         if self.regist_on_api:
             try:
                 self.id = self.api.create_workflow(self)
-                self.logger.debug("Workflow registration success id = %s"%self.id)
+                self.logger.debug("Workflow registration success id = %s" % self.id)
             except Exception, e:
                 raise Exception(e)
-        
+
         port = Connection.find_port()
         self.workflow_server = WorkflowServer(self, port)
         self.url = "%s:%d" % (Connection.find_ip(port), port)
-        self.workflow_server.start() #start workflow server
-
+        self.workflow_server.start()  # start workflow server
 
     def get_dry(self):
         return self.dry
 
-    def set_dry(self,dry):
-        self.dry=dry
+    def set_dry(self, dry):
+        self.dry = dry
 
     def get_url(self):
         return self.url
@@ -84,7 +88,6 @@ class Workflow(object):
 
                 # Check the task name
                 if task_name == task.name:
-
                     # Return the result
                     return task
 
@@ -95,7 +98,6 @@ class Workflow(object):
         task.set_workflow(self)
         if self.regist_on_api:
             self.api.add_task(self.id, task)
-
 
     def make_dependencies(self):
         # Clean all dependencies
@@ -113,7 +115,7 @@ class Workflow(object):
     def asJson(self):
         jsonWorkflow = {"tasks": {}, "name": self.name, "id": self.id}
         for task in self.tasks:
-            jsonWorkflow['tasks'][task.name] = task.asJson()
+            jsonWorkflow['tasks'][task.name] = task.as_json()
         return jsonWorkflow
 
     def run(self):
@@ -137,14 +139,14 @@ class Workflow(object):
             g.node(task.name, task.name)
             for child in task.nexts:
                 g.edge(task.name, child.name)
-        #g.view()
+        # g.view()
 
 
 class DataMover(Enum):
-    DONTMOVE=0
+    DONTMOVE = 0
     LINK = 1
     COPY = 2
-    SECURECOPY=3
+    SCP = 3
     HTTP = 4
     HTTPS = 5
     FTP = 6
@@ -152,43 +154,58 @@ class DataMover(Enum):
     GRIDFTP = 8
 
 
+class ProtocolStatus(Enum):
+    ACTIVE = "active"
+    DISACTIVE = "none"
+
+
 class Stager(object):
     def __init__(self):
         pass
 
-    def stage_in(self,dst_task,src_task,dst_path,local_path):
+    def stage_in(self, dst_task, src_task, dst_path, local_path):
         data_mover = DataMover.DONTMOVE
-        command=""
+        command = ""
 
-        # ToDo: this have to me make automatic
-        data_mover=DataMover.LINK
+        # ToDo: this have to be make automatic
+        # get tasks info and select transference protocol
+        dst_task_info = dst_task.get_info()
+        src_task_info = src_task.get_info()
+        if ((src_task.__class__ is Slurm or src_task.__class__ is Batch) and
+            (dst_task.__class__ is Batch or dst_task.__class__ is Slurm)):
+            data_mover = DataMover.LINK
+        elif dst_task_info is not None and src_task_info is not None:  # check transference protocols and remote machine info if is availabel
+            if dst_task_info['ip'] == src_task_info['ip']:
+                data_mover = DataMover.LINK
+            else:
+                protocols = ["GRIDFTP", "SCP", "FTP"]
+                for p in protocols:
+                    if ProtocolStatus(src_task_info[p]) is ProtocolStatus.ACTIVE and \
+                            ProtocolStatus(dst_task_info[p]) is ProtocolStatus.ACTIVE:
+                        data_mover = DataMover[p]
+                        break
+        else: #best effort (SCP)
+            data_mover = DataMover.SCP
+
 
         # Check if the symbolic link have to be used...
-        if data_mover==DataMover.LINK:
+        if data_mover == DataMover.LINK:
             # Add the link command
             command = command + "# Add the link command\n"
             command = command + "ln -sf " + src_task.get_scratch_dir() + "/" + local_path + " " + dst_path + "/" + local_path + "\n\n"
 
         # Check if the copy have to be used...
-        elif data_mover==DataMover.COPY:
+        elif data_mover == DataMover.COPY:
             # Add the copy command
             command = command + "# Add the copy command\n"
             command = command + "cp -r " + src_task.get_scratch_dir() + "/" + local_path + " " + dst_path + "/" + local_path + "\n\n"
 
         # Check if the secure copy have to be used...
-        elif data_mover == DataMover.SECURECOPY:
+        elif data_mover == DataMover.SCP:
             # Add the copy command
             command = command + "# Add the secure copy command\n"
-            command = command + "scp -r " + src_task.get_user()+"@"+src_task.get_ip()+":"+src_task.get_scratch_dir() + "/" + local_path + " " + dst_path + "/" + local_path + "\n\n"
+            command = command + "scp -r " + src_task.get_user() + "@" + src_task.get_ip() + ":" + src_task.get_scratch_dir() + "/" + local_path + " " + dst_path + "/" + local_path + "\n\n"
 
         return command
 
 
-def read_config(section):
-    import configparser
-    config = configparser.ConfigParser()
-    config.read('dagon.ini')
-    try:
-        return dict(config.items(section))
-    except:
-        return None
