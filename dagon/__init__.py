@@ -171,6 +171,7 @@ class Stager(object):
         # get tasks info and select transference protocol
         dst_task_info = dst_task.get_info()
         src_task_info = src_task.get_info()
+
         if ((src_task.__class__ is Slurm or src_task.__class__ is Batch) and
             (dst_task.__class__ is Batch or dst_task.__class__ is Slurm)):
             data_mover = DataMover.LINK

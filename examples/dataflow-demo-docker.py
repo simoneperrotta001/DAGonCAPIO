@@ -17,18 +17,16 @@ if __name__ == '__main__':
     workflow = Workflow("DataFlow-Demo-Docker", config)
 
     # The task a
-    taskA = DockerTask("A", "mkdir output;hostname > output/f1.txt", image="ubuntu:18.04")
+    taskA = DockerTask("A", "mkdir output;hostname > output/f1.txt", image="ubuntu_curl")
 
     # The task b
-    taskB = DockerTask("B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt",
-                       "ubuntu")
+    taskB = DockerTask("B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", "ubuntu_curl")
 
     # The task c
-    taskC = DockerTask("C", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt",
-                       "ubuntu")
+    taskC = DockerTask("C", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", "ubuntu_curl")
 
     # The task d
-    taskD = DockerTask("D", "cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt", "ubuntu")
+    taskD = DockerTask("D", "cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt", "ubuntu_curl")
 
     # add tasks to the workflow
     workflow.add_task(taskA)

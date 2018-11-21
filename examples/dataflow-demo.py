@@ -3,7 +3,6 @@ from dagon import batch
 import json
 import time
 import os
-from dagon import Status
 
 # Check if this is the main
 if __name__ == '__main__':
