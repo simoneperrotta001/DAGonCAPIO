@@ -1,12 +1,11 @@
-import time
 import os
 import shutil
+import sys
+import time
+import traceback
 from threading import Thread
-from dagon import Workflow
-from dagon import Stager
-
-
-from dagon import Status
+from os import makedirs
+import dagon
 
 
 class Task(Thread):
@@ -17,10 +16,10 @@ class Task(Thread):
         self.nexts = []
         self.prevs = []
         self.reference_count = 0
-
+        self.remove_scratch_dir = False
         self.running = False
         self.workflow = None
-        self.set_status(Status.READY)
+        self.set_status(dagon.Status.READY)
         self.working_dir=working_dir
         self.command=command
         self.info=None
@@ -31,11 +30,14 @@ class Task(Thread):
     def get_ip(self):
         return self.info["ip"]
 
+    def get_info(self):
+        return self.info
+
     def get_user(self):
         return self.info["user"]
 
     def get_scratch_dir(self):
-        while self.working_dir is None and self.status is not Status.FAILED:
+        while self.working_dir is None and self.status is not dagon.Status.FAILED:
             time.sleep(1)
         return self.working_dir
 
@@ -43,16 +45,15 @@ class Task(Thread):
         millis = int(round(time.time() * 1000))
         return str(millis) + "-" + self.name
 
-
     # asJson
-    def asJson(self):
-        jsonTask = {"name": self.name, "status": self.status.name,
+    def as_json(self):
+        json_task = {"name": self.name, "status": self.status.name,
                     "working_dir": self.working_dir, "nexts":[], "prevs":[]}
         for t in self.nexts:
-            jsonTask['nexts'].append(t.name)
+            json_task['nexts'].append(t.name)
         for t in self.prevs:
-            jsonTask['prevs'].append(t.name)
-        return jsonTask
+            json_task['prevs'].append(t.name)
+        return json_task
 
     # Set the workflow
     def set_workflow(self, workflow):
@@ -74,16 +75,13 @@ class Task(Thread):
         if self.workflow.regist_on_api: #add in the server
             self.workflow.api.add_dependency(self.workflow.id, self.name, task.name)
 
-    # By default asumes that is a local task
-    def isTaskRemote(self):
-        return False
-
-    def isInOtherMachine(self, ip):
-        return self.ip != ip
-
     # Increment the reference count
     def increment_reference_count(self):
         self.reference_count = self.reference_count + 1
+
+    #remove scratch directory
+    def rm_scratch_directory(self):
+        shutil.move(self.working_dir, self.working_dir + "-removed")
 
     # Decremet the reference count
     def decrement_reference_count(self):
@@ -92,8 +90,7 @@ class Task(Thread):
         # Check if the scratch directory must be removed
         if self.reference_count == 0 and self.remove_scratch_dir is True:
             # Remove the scratch directory
-            # shutil.rmtree(self.working_dir)
-            shutil.move(self.working_dir, self.working_dir + "-removed")
+            self.rm_scratch_directory()
 
             # Perform some logging
             self.workflow.logger.debug("Removed %s", self.working_dir)
@@ -110,7 +107,7 @@ class Task(Thread):
         # Forever unless no anymore Workflow.SCHEMA are present
         while True:
             # Get the position of the next Workflow.SCHEMA
-            pos1 = self.command.find(Workflow.SCHEMA, pos)
+            pos1 = self.command.find(dagon.Workflow.SCHEMA, pos)
 
             # Check if there is no Workflow.SCHEMA
             if pos1 == -1:
@@ -128,7 +125,7 @@ class Task(Thread):
             arg = self.command[pos1:pos2]
 
             # Remove the Workflow.SCHEMA label
-            arg = arg.replace(Workflow.SCHEMA, "")
+            arg = arg.replace(dagon.Workflow.SCHEMA, "")
 
             # Split each argument in elements by the slash
             elements = arg.split("/")
@@ -159,14 +156,18 @@ class Task(Thread):
 
     # Pre process command
     def pre_process_command(self, command):
-        stager=Stager()
+        stager=dagon.Stager()
 
         # Initialize the script
         header="#! /bin/bash\n"
         header=header+"# This is the DagOn launcher script\n\n"
 
-        # Add the howim script
-        header=header+self.get_how_im_script()+"\n\n"
+        # Add and execute the howim script
+        context_script=header+self.get_how_im_script()+"\n\n"
+
+        self.on_execute(context_script, "context.sh") #execute context script
+
+        ### start the creation of the launcher.sh script
 
         # Create the header
         header = header+"# Change the current directory to the working directory\n"
@@ -183,7 +184,7 @@ class Task(Thread):
         # Forever unless no anymore Workflow.SCHEMA are present
         while True:
             # Get the position of the next Workflow.SCHEMA
-            pos1 = command.find(Workflow.SCHEMA, pos)
+            pos1 = command.find(dagon.Workflow.SCHEMA, pos)
 
             # Check if there is no Workflow.SCHEMA
             if pos1 == -1:
@@ -201,7 +202,7 @@ class Task(Thread):
             arg = command[pos1:pos2]
 
             # Remove the Workflow.SCHEMA label
-            arg = arg.replace(Workflow.SCHEMA, "")
+            arg = arg.replace(dagon.Workflow.SCHEMA, "")
 
             # Split each argument in elements by the slash
             elements = arg.split("/")
@@ -235,7 +236,7 @@ class Task(Thread):
                 header=header+stager.stage_in(self,task,dst_path,local_path)
 
                 # Change the body of the command
-                body = body.replace(Workflow.SCHEMA + arg, dst_path + "/" + local_path)
+                body = body.replace(dagon.Workflow.SCHEMA + arg, dst_path + "/" + local_path)
 
             pos = pos2
 
@@ -252,32 +253,32 @@ class Task(Thread):
         return footer
 
     # Method to be overrided
-    def on_execute(self, launcher_script):
+    def on_execute(self, script, script_name):
 
         # The launcher script name
-        launcher_script_name=self.working_dir + "/.dagon/launcher.sh"
+        script_name = self.working_dir + "/.dagon/" + script_name
 
         # Create a temporary launcher script
-        file = open(launcher_script_name, "w")
-        file.write(launcher_script)
+        file = open(script_name, "w")
+        file.write(script)
         file.flush()
         file.close()
-        os.chmod(launcher_script_name, 0744)
+        os.chmod(script_name, 0744)
 
-    # Method execute
-    def execute(self):
+    # create path using mkdirs
+    def mkdir_working_dir(self, path):
+        makedirs(path)
+
+    def create_working_dir(self):
         if self.working_dir is None:
             # Set a scratch directory as working directory
             self.working_dir = self.workflow.get_scratch_dir_base() + "/" + self.get_scratch_name()
 
             # Create scratch directory
-            os.makedirs(self.working_dir+"/.dagon")
+            self.mkdir_working_dir(self.working_dir+"/.dagon")
 
             # Set to remove the scratch directory
             self.remove_scratch_dir = True
-        else:
-            # Set to NOT remove the scratch directory
-            self.remove_scratch_dir = False
 
         self.workflow.logger.debug("%s: Scratch directory: %s", self.name, self.working_dir)
         if self.workflow.regist_on_api:  # change scratch directory on server
@@ -286,22 +287,8 @@ class Task(Thread):
             except Exception, e:
                 self.workflow.logger.error("%s: Error updating scratch directory on server %s", self.name, e)
 
-        # Apply some command pre processing
-        launcher_script = self.pre_process_command(self.command)
 
-        # Apply some command post processing
-        launcher_script = self.post_process_command(launcher_script)
-
-
-        # Execute only if not dry
-        if self.workflow.dry is False:
-            # Invoke the actual executor
-            self.result =self.on_execute(launcher_script)
-
-            # Check if the execution failed
-            if self.result['code']:
-                raise Exception('Executable raised a execption ' + self.result['message'])
-
+    def remove_reference_workflow(self):
         # Remove the reference
         # For each workflow:// in the command
 
@@ -311,7 +298,7 @@ class Task(Thread):
         # Forever unless no anymore Workflow.SCHEMA are present
         while True:
             # Get the position of the next Workflow.SCHEMA
-            pos1 = self.command.find(Workflow.SCHEMA, pos)
+            pos1 = self.command.find(dagon.Workflow.SCHEMA, pos)
 
             # Check if there is no Workflow.SCHEMA
             if pos1 == -1:
@@ -329,7 +316,7 @@ class Task(Thread):
             arg = self.command[pos1:pos2]
 
             # Remove the Workflow.SCHEMA label
-            arg = arg.replace(Workflow.SCHEMA, "")
+            arg = arg.replace(dagon.Workflow.SCHEMA, "")
 
             # Split each argument in elements by the slash
             elements = arg.split("/")
@@ -355,10 +342,33 @@ class Task(Thread):
             # Go to the next element
             pos = pos2
 
+
+
+    # Method execute
+    def execute(self):
+        self.create_working_dir()
+
+        # Apply some command pre processing
+        launcher_script = self.pre_process_command(self.command)
+
+        # Apply some command post processing
+        launcher_script = self.post_process_command(launcher_script)
+
+        # Execute only if not dry
+        if self.workflow.dry is False:
+            # Invoke the actual executor
+            self.result =self.on_execute(launcher_script, "launcher.sh")
+
+            # Check if the execution failed
+            if self.result['code']:
+                raise Exception('Executable raised a execption ' + self.result['message'])
+
+        self.remove_reference_workflow()
+
     def run(self):
         if self.workflow is not None:
             # Change the status
-            self.set_status(Status.WAITING)
+            self.set_status(dagon.Status.WAITING)
 
             # Wait for each previous tasks
             for task in self.prevs:
@@ -366,26 +376,27 @@ class Task(Thread):
 
             # Check if one of the previous tasks crashed
             for task in self.prevs:
-                if task.status == Status.FAILED:
-                    self.set_status(Status.FAILED)
+                if task.status == dagon.Status.FAILED:
+                    self.set_status(dagon.Status.FAILED)
                     return
 
             # Change the status
-            self.set_status(Status.RUNNING)
+            self.set_status(dagon.Status.RUNNING)
 
             # Execute the task Job
             try:
                 self.workflow.logger.debug("%s: Executing...", self.name)
                 self.execute()
             except Exception, e:
+                traceback.print_exc(file=sys.stdout)
                 self.workflow.logger.error("%s: Except: %s", self.name, str(e))
-                self.set_status(Status.FAILED)
+                self.set_status(dagon.Status.FAILED)
                 return
             #self.execute()
 
             # Start all next task
             for task in self.nexts:
-                if (task.status == Status.READY):
+                if task.status == dagon.Status.READY:
                     self.workflow.logger.debug("%s: Starting task: %s", self.name, task.name)
                     try:
                         task.start()
@@ -393,7 +404,7 @@ class Task(Thread):
                         self.workflow.logger.warn("%s: Task %s already started.", self.name, task.name)
 
             # Change the status
-            self.set_status(Status.FINISHED)
+            self.set_status(dagon.Status.FINISHED)
             return
 
     def get_how_im_script(self):
@@ -448,7 +459,7 @@ fi
 user=$USER
 
 # Construct the json
-json="{\\\"type\\\":\\\"$machine_type\\\",\\\"ip\\\":\\\"$public_ip\\\",\\\"user\\\":\\\"$user\\\",\\\"scp\\\":\\\"$status_sshd\\\",\\\"ftp\\\":\\\"$status_ftpd\\\",\\\"gsiftp\\\":\\\"$status_gsiftpd\\\"}"
+json="{\\\"type\\\":\\\"$machine_type\\\",\\\"ip\\\":\\\"$public_ip\\\",\\\"user\\\":\\\"$user\\\",\\\"SCP\\\":\\\"$status_sshd\\\",\\\"FTP\\\":\\\"$status_ftpd\\\",\\\"GRIDFTP\\\":\\\"$status_gsiftpd\\\"}"
 
 # Set the task info
 curl -s --header "Content-Type: application/json" --request POST --data \"$json\" http://"""+self.workflow.get_url()+"""/api/"""+self.name+"""/info
