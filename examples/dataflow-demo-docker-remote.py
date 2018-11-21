@@ -18,11 +18,11 @@ if __name__ == '__main__':
 
     # The task a
     taskA = DockerTask("A", "mkdir output;hostname > output/f1.txt", image="ubuntu_curl",
-                       ip="saturn.uniparthenope.it", ssh_username="dante")
+                       ip="ec2-34-219-189-203.us-west-2.compute.amazonaws.com", ssh_username="ubuntu",keypath="dagon_services.pem")
 
     # The task b
     taskB = DockerTask("B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt",
-                       "ubuntu_curl", ip="saturn.uniparthenope.it", ssh_username="dante")
+                       "ubuntu_curl", ip="ec2-34-219-189-203.us-west-2.compute.amazonaws.com", ssh_username="ubuntu",keypath="dagon_services.pem")
 
     # The task c
     taskC = DockerTask("C", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt",
