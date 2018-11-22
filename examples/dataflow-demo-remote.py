@@ -46,7 +46,7 @@ if __name__ == '__main__':
     # run the workflow
     workflow.run()
 
-    if workflow.get_dry() is False:
+    """if workflow.get_dry() is False:
         # set the result filename
         result_filename = taskD.get_scratch_dir() + "/f3.txt"
         while not os.path.exists(result_filename):
@@ -55,4 +55,4 @@ if __name__ == '__main__':
         # get the results
         with open(result_filename, "r") as infile:
             result = infile.readlines()
-            print result
+            print result"""
