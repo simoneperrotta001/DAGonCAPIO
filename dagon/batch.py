@@ -50,19 +50,22 @@ class RemoteBatch(RemoteTask):
         return result
 
 
-class Slurm(Task):
+class Slurm:
+
+    def __new__(cls, name, command, partition=None, ntasks=None, working_dir=None, ssh_username=None, keypath=None, ip=None):
+        if ip is None:
+            return LocalSlurm(name, command, partition, ntasks, working_dir)
+        else:
+            return RemoteSlurm(name, command, partition=partition, ntasks=ntasks, working_dir=working_dir,
+                               ssh_username=ssh_username, ip=ip, keypath=keypath)
+
+
+class LocalSlurm(Task):
 
     def __init__(self, name, command, partition=None, ntasks=None, working_dir=None, ssh_username=None, keypath=None, ip=None):
         Task.__init__(self, name, command, working_dir)
         self.partition = partition
         self.ntasks = ntasks
-
-    def __new__(cls, name, command, partition=None, ntasks=None, working_dir=None, ssh_username=None, keypath=None, ip=None):
-        if ip is None:
-            return super(Slurm, cls).__new__(cls)
-        else:
-            return RemoteSlurm(name, command, partition=partition, ntasks=ntasks, working_dir=working_dir,
-                               ssh_username=ssh_username, ip=ip, keypath=keypath)
 
     def generate_command(self, script_name):
         partition_text = ""
@@ -92,9 +95,9 @@ class Slurm(Task):
         return result
 
 
-class RemoteSlurm(RemoteTask, Slurm):
+class RemoteSlurm(RemoteTask, LocalSlurm):
     def __init__(self, name, command, partition=None, ntasks=None, working_dir=None, ssh_username=None, keypath=None, ip=None):
-        Slurm.__init__(self, name, command, working_dir=working_dir, partition=partition, ntasks=ntasks)
+        LocalSlurm.__init__(self, name, command, working_dir=working_dir, partition=partition, ntasks=ntasks)
         RemoteTask.__init__(self, name, ssh_username,keypath, command, ip, working_dir)
 
     def on_execute(self, launcher_script, script_name):
