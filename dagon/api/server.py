@@ -39,6 +39,10 @@ class WorkflowServer(Thread):
         def check():
             return jsonify({"status": "ok"})
 
+        @app.route('/')
+        def index():
+            return "Hello world"
+
         ############################################
 
         self.srv = make_server(self.ip, self.port, app)

@@ -14,7 +14,7 @@ class DataTransfer(Enum):
     #Infer the data transportation method (default SCP)
     @staticmethod
     def inferDataTransportation(ip, endpoint):
-        if endpoint is not None and Connection.isPortOpen(ip,2811) and Connection.isPortOpen(ip,7512):
+        if endpoint is not None and Connection.is_port_open(ip, 2811) and Connection.is_port_open(ip, 7512):
             return DataTransfer.GLOBUS
         else:
             return DataTransfer.SCP

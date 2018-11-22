@@ -1,18 +1,19 @@
-import socket
 from urllib2 import urlopen
 import dagon
-import requests
+import time
 import socket
-
+from dagon.api import API
+import httplib
+from socket import gaierror
 
 class Connection:
 
-    #check if a port is open
+    # check if a port is open
     @staticmethod
-    def isPortOpen(host, port, timeout=5):
+    def is_port_open(host, port, timeout=5):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(timeout)
-        result = sock.connect_ex((host,port))
+        result = sock.connect_ex((host, port))
         return result is 0
 
     @staticmethod
@@ -30,12 +31,30 @@ class Connection:
 
     @staticmethod
     def check_url(url):
+        url = "http://" + url
+
         try:
-            requests.get("http://" + url + "/check")
-        except Exception, e:
-	    print e
+            conn = httplib.HTTPConnection(url)
+            conn.request("HEAD", "/")
+            r1 = conn.getresponse()
+            print r1.status, r1.reason
+            return True
+        except gaierror:
             return False
-        return True
+
+        """try:
+            response = API.requests_retry_session().get(
+                url, timeout=2
+            )
+        except Exception as x:
+            print('It failed :(', x.__class__.__name__)
+            return False
+        else:
+            print('It eventually worked', response.status_code)
+        finally:
+            t1 = time.time()
+            print('Took', t1 - t0, 'seconds')
+        return True"""
 
     @staticmethod
     def find_ip_public():
@@ -44,7 +63,7 @@ class Connection:
 
     @staticmethod
     def find_port():
-        PORTS = range(30000,30500)
-        for i in PORTS:
-            if not Connection.isPortOpen("localhost", i, timeout=1):
+        ports = range(30000, 30500)
+        for i in ports:
+            if not Connection.is_port_open("localhost", i, timeout=1):
                 return i

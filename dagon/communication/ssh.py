@@ -37,7 +37,7 @@ class SSHManager:
         # SSHManager.addToKnowHosts(self.host) #add to know hosts
         ssh = SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        while not Connection.isPortOpen(self.host, 22):
+        while not Connection.is_port_open(self.host, 22):
             continue
         if self.keypath is None:
             ssh.connect(self.host, username=self.username)
