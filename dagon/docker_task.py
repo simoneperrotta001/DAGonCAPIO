@@ -80,6 +80,9 @@ class DockerRemoteTask(LocalDockerTask, RemoteTask):
             return self.ssh_connection.execute_command("bash " + self.working_dir + "/.dagon/" + script_name)
         return self.container.exec_in_cont(self.working_dir + "/.dagon/" + script_name)
 
+    def on_garbage(self):
+        RemoteTask.on_garbage(self)
+        self.remove_container()
 
 class DockerTask(Task):
 

@@ -34,7 +34,7 @@ class RemoteTask(Batch):
             raise Exception('Cannot create scratch directory on remote')
 
     # remove scratch directory
-    def rm_scratch_directory(self):
+    def on_garbage(self):
         SSHManager.execute_command(self.ssh_connection,
                                   'mv {0} {1}'.format(self.working_dir, self.working_dir + "-removed"))
 
