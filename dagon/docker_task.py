@@ -15,12 +15,13 @@ class LocalDockerTask(Batch):
     # 2) command: command to be executed
     # 3) image: docker image which the container is going to be created
     # 4) host: URL of the host, by default use the unix local host
-    def __init__(self, name, command, container_id=None, working_dir=None, image=None, endpoint=None):
+    def __init__(self, name, command, container_id=None, working_dir=None, image=None, endpoint=None, remove=True):
         Batch.__init__(self, name, command, working_dir=working_dir)
         self.command = command
         self.container_id = container_id
         self.working_dir = working_dir
         self.container = None
+        self.remove = remove
         self.image = image
         self.endpoint = endpoint
         self.docker_client = DockerClient()
@@ -40,6 +41,11 @@ class LocalDockerTask(Batch):
             raise Exception(self.result["message"].rstrip())
         return result['message']
 
+    def remove_container(self):
+        self.container.stop()
+        if self.remove:
+            self.container.rm()
+
     def on_execute(self, launcher_script, script_name):
         # Invoke the base method
         Task.on_execute(self, launcher_script, script_name)
@@ -48,13 +54,17 @@ class LocalDockerTask(Batch):
             self.container = Container(self.container_id, self.docker_client)
 
         return self.container.exec_in_cont(self.working_dir + "/.dagon/" + script_name)
-        #return self.docker_client.exec_command(self.working_dir + "/.dagon/" + script_name)
+        # return self.docker_client.exec_command(self.working_dir + "/.dagon/" + script_name)
 
+    def on_garbage(self):
+        super(LocalDockerTask, self).on_garbage()
+        self.remove_container()
 
 class DockerRemoteTask(LocalDockerTask, RemoteTask):
     def __init__(self, name, command, image=None, container_id=None, ip=None, ssh_username=None, keypath=None,
-                 working_dir=None):
-        LocalDockerTask.__init__(self, name, command, container_id=container_id, working_dir=working_dir, image=image)
+                 working_dir=None, remove=True):
+        LocalDockerTask.__init__(self, name, command, container_id=container_id, working_dir=working_dir, image=image,
+                                 remove=remove)
         RemoteTask.__init__(self, name=name, ssh_username=ssh_username, keypath=keypath, command=command, ip=ip,
                             working_dir=working_dir)
 
@@ -70,19 +80,22 @@ class DockerRemoteTask(LocalDockerTask, RemoteTask):
             return self.ssh_connection.execute_command("bash " + self.working_dir + "/.dagon/" + script_name)
         return self.container.exec_in_cont(self.working_dir + "/.dagon/" + script_name)
 
+
 class DockerTask(Task):
 
-    def __init__(self, name, command, image=None, container_id=None, ip=None, port=None, ssh_username=None, keypath=None,
-                 working_dir=None, endpoint=None):
+    def __init__(self, name, command, image=None, container_id=None, ip=None, port=None, ssh_username=None,
+                 keypath=None,
+                 working_dir=None, remove=True):
         Task.__init__(self, name)
 
     def __new__(cls, name, command, image=None, container_id=None, ip=None, port=None, ssh_username=None, keypath=None,
-                working_dir=None, local_working_dir=None, endpoint=None):
+                working_dir=None, local_working_dir=None, endpoint=None, remove=True):
         is_remote = ip is not None
         if is_remote:
             pass
             return DockerRemoteTask(name, command, image=image, container_id=container_id, ip=ip,
                                     ssh_username=ssh_username, working_dir=working_dir,
-                                    keypath=keypath)
+                                    keypath=keypath, remove=remove)
         else:
-            return LocalDockerTask(name, command, container_id=container_id, working_dir=working_dir, image=image)
+            return LocalDockerTask(name, command, container_id=container_id, working_dir=working_dir, image=image,
+                                   remove=remove)

@@ -79,8 +79,9 @@ class Task(Thread):
     def increment_reference_count(self):
         self.reference_count = self.reference_count + 1
 
-    #remove scratch directory
-    def rm_scratch_directory(self):
+    #Call garbage collector (remove scratch directory, container, cloud instace, etc)
+    #implemented by each task class
+    def on_garbage(self):
         shutil.move(self.working_dir, self.working_dir + "-removed")
 
     # Decremet the reference count
@@ -89,9 +90,8 @@ class Task(Thread):
 
         # Check if the scratch directory must be removed
         if self.reference_count == 0 and self.remove_scratch_dir is True:
-            # Remove the scratch directory
-            self.rm_scratch_directory()
-
+            # Call garbage collector (remove scratch directory, container, cloud instace, etc)
+            self.on_garbage()
             # Perform some logging
             self.workflow.logger.debug("Removed %s", self.working_dir)
 
