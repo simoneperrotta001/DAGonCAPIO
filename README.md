@@ -23,7 +23,7 @@ cd examples
 
 Edit the ini file matching your system configuration.
 
-## Task oriented workflow.
+#### Task oriented workflow.
 
 The workflow is defined as tasks and their explicit dependencies.
 
@@ -31,7 +31,7 @@ The workflow is defined as tasks and their explicit dependencies.
 python taskflow-demo.py
 ```
 
-## Data oriented workflow.
+#### Data oriented workflow.
 
 The workflow is defined by data dependencies (task dependencies are automatically resolved)
 
@@ -40,7 +40,7 @@ python dataflow-demo.py
 ```
 
 
-### Batch Task Flow
+#### Batch Task Flow
 ```python
     # Create the orchestration workflow
       workflow=Workflow("Taskflow-Demo",config)
@@ -63,7 +63,7 @@ python dataflow-demo.py
       workflow.run()
 ```
 
-### Batch Data Flow
+#### Batch Data Flow
 ```python
     from dagon import Workflow
     from dagon import batch
