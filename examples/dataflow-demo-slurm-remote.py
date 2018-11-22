@@ -1,5 +1,5 @@
 from dagon import Workflow
-from dagon import batch
+from dagon.batch import Slurm
 import json
 import sys
 import datetime
@@ -21,16 +21,16 @@ if __name__ == '__main__':
     workflow.set_dry(False)
 
     # The task a
-    taskA = batch.Slurm("A", "mkdir output;hostname > output/f1.txt", "hicpu", 1, ip="159.89.8.253", ssh_username="batman")
+    taskA = Slurm("A", "mkdir output;hostname > output/f1.txt", "hicpu", 1, ip="159.89.8.253", ssh_username="batman")
 
     # The task b
-    taskB = batch.Slurm("B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", "hicpu", 1, ip="159.89.8.253", ssh_username="batman")
+    taskB = Slurm("B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", "hicpu", 1, ip="159.89.8.253", ssh_username="batman")
 
     # The task c
-    taskC = batch.Slurm("C", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", "hicpu", 1, ip="159.89.8.253", ssh_username="batman")
+    taskC = Slurm("C", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", "hicpu", 1, ip="159.89.8.253", ssh_username="batman")
 
     # The task d
-    taskD = batch.Slurm("D", "cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt", "hicpu", 1, ip="159.89.8.253", ssh_username="batman")
+    taskD = Slurm("D", "cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt", "hicpu", 1, ip="159.89.8.253", ssh_username="batman")
 
     # add tasks to the workflow
     workflow.add_task(taskA)
