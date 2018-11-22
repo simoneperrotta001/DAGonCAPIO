@@ -1,12 +1,20 @@
 from fabric.api import local, env
 from task import Task
+from dagon.remote import RemoteTask
 
 
 class Batch(Task):
     env.use_ssh_config = True
 
-    def __init__(self, name, command, working_dir=None):
+    def __init__(self, name, command, working_dir=None, ssh_username=None, keypath=None, ip=None):
         Task.__init__(self, name, command, working_dir)
+
+    def __new__(cls, name, command, ssh_username=None, keypath=None, ip=None, working_dir=None):
+        if ip is None: #decide which type of batch task is it
+            return super(Batch, cls).__new__(cls) #return regular batch instance
+        else:  #return remote batch instance
+            return RemoteBatch(name=name, command=command, ssh_username=ssh_username, ip=ip, working_dir=working_dir,
+                               keypath=keypath)
 
     def as_json(self):
         json_task = Task.as_json(self)
@@ -29,6 +37,18 @@ class Batch(Task):
         super(Batch, self).on_execute(launcher_script, script_name)
         return Batch.execute_command(self.working_dir + "/.dagon/" + script_name)
 
+
+class RemoteBatch(RemoteTask):
+
+    def __init__(self, name, ssh_username, keypath, command, ip=None, working_dir=None):
+        RemoteTask.__init__(self, name, ssh_username, keypath, command, ip=ip, working_dir=working_dir)
+
+    def on_execute(self, launcher_script, script_name):
+        # Invoke the base method
+        RemoteTask.on_execute(self, launcher_script, script_name)
+        result = self.ssh_connection.execute_command("bash " + self.working_dir + "/.dagon/" + script_name)
+        print result
+        return result
 
 class Slurm(Task):
 

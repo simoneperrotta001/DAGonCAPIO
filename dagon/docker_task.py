@@ -60,6 +60,7 @@ class LocalDockerTask(Batch):
         super(LocalDockerTask, self).on_garbage()
         self.remove_container()
 
+
 class DockerRemoteTask(LocalDockerTask, RemoteTask):
     def __init__(self, name, command, image=None, container_id=None, ip=None, ssh_username=None, keypath=None,
                  working_dir=None, remove=True):
@@ -68,7 +69,6 @@ class DockerRemoteTask(LocalDockerTask, RemoteTask):
         RemoteTask.__init__(self, name=name, ssh_username=ssh_username, keypath=keypath, command=command, ip=ip,
                             working_dir=working_dir)
 
-        self.ssh_connection = SSHManager(self.ssh_username, self.ip, self.keypath)
         self.docker_client = DockerRemoteClient(self.ssh_connection)
 
     def on_execute(self, launcher_script, script_name):
@@ -83,6 +83,7 @@ class DockerRemoteTask(LocalDockerTask, RemoteTask):
     def on_garbage(self):
         RemoteTask.on_garbage(self)
         self.remove_container()
+
 
 class DockerTask(Task):
 

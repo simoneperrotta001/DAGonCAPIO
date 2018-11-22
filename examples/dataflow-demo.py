@@ -20,7 +20,7 @@ if __name__ == '__main__':
   
   # The task a
   taskA=batch.Batch("A","mkdir output;hostname > output/f1.txt")
-  
+
   # The task b
   taskB=batch.Batch("B","echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt")
   

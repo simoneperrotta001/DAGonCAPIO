@@ -2,22 +2,22 @@ import os
 import re
 import shutil
 
-from batch import Batch
+from task import Task
 from communication.ssh import SSHManager
 
 
-class RemoteTask(Batch):
+class RemoteTask(Task):
 
     def __init__(self, name, ssh_username, keypath, command, ip=None, working_dir=None):
-        Batch.__init__(self, name, command, working_dir=working_dir)
+        Task.__init__(self, name, command, working_dir=working_dir)
 
         self.transfer = None
         self.ip = ip
         self.keypath = keypath
-        self.command = command
-        self.working_dir = working_dir
         self.ssh_username = ssh_username
         self.ssh_connection = None
+        if self.ip is not None and self.ssh_username is not None:
+            self.ssh_connection = SSHManager(self.ssh_username, self.ip, self.keypath)
 
     def on_execute(self, launcher_script, script_name):
         # The launcher script name

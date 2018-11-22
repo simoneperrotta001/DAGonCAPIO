@@ -51,7 +51,6 @@ class SSHManager:
         code = stdout.channel.recv_exit_status()
         stdout = "\n".join(stdout.readlines())
         stderr = "\n".join(stderr.readlines())
-
         if len(stderr):
             return {"code": 1, "message": stderr}
         elif code > 0:
