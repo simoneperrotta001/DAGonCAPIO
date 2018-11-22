@@ -64,12 +64,15 @@ class Workflow(object):
 
         port = Connection.find_port()
         ip = Connection.find_ip_local(port)
+	print ip
         self.workflow_server = WorkflowServer(self, ip, port)
-        self.url = "%s:%d" % (Connection.find_ip_public(), port)
+        self.workflow_server.start()  # start workflow server
+	self.url = "%s:%d" % (Connection.find_ip_public(), port)
+	print self.url
         if not Connection.check_url(self.url):
             self.url = "%s:%d" % (ip, port)
         print self.url
-        self.workflow_server.start()  # start workflow server
+        #elf.workflow_server.start()  # start workflow server
 
     def get_dry(self):
         return self.dry

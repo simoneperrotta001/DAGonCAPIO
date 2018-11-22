@@ -22,7 +22,7 @@ class Connection:
         if ip is None:
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.connect(("8.8.8.8", 80))
-            ip = s.getsockname()
+            ip = s.getsockname()[0]
         else:
             ip = ip['ip']
 
@@ -31,8 +31,9 @@ class Connection:
     @staticmethod
     def check_url(url):
         try:
-            requests.get(url, timeout=2)
-        except:
+            requests.get("http://" + url + "/check")
+        except Exception, e:
+	    print e
             return False
         return True
 
