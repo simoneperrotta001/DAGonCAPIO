@@ -83,7 +83,7 @@ class LocalSlurm(Task):
         return command
 
     def on_execute(self, launcher_script, script_name):
-        super(Slurm, self).on_execute(launcher_script, script_name)
+        super(LocalSlurm, self).on_execute(launcher_script, script_name)
 
         if script_name == "context.sh":
             return Batch.execute_command(script_name)
