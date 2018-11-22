@@ -34,35 +34,13 @@ class Connection:
     def check_url(url):
         url = "http://" + url
 
-	response = requests.head(url)
-	
-	if response.status_code/100 > 2:
-		return False;   
-	return True;
-        """try:
-            conn = httplib.HTTPConnection(url)
-            conn.request("HEAD", "/")
-            r1 = conn.getresponse()
-            print r1.status, r1.reason
+        try:
+            response = requests.head(url, timeout=3)
+            if response.status_code / 100 > 2:
+                return False
             return True
-        except gaierror, e:
-	    print e
-	    print url
-            return False"""
-
-        """try:
-            response = API.requests_retry_session().get(
-                url, timeout=2
-            )
-        except Exception as x:
-            print('It failed :(', x.__class__.__name__)
+        except requests.exceptions.ConnectTimeout:
             return False
-        else:
-            print('It eventually worked', response.status_code)
-        finally:
-            t1 = time.time()
-            print('Took', t1 - t0, 'seconds')
-        return True"""
 
     @staticmethod
     def find_ip_public():
