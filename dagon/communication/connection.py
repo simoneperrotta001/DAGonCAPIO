@@ -1,4 +1,5 @@
 from urllib2 import urlopen
+import requests
 import dagon
 import time
 import socket
@@ -33,14 +34,21 @@ class Connection:
     def check_url(url):
         url = "http://" + url
 
-        try:
+	response = requests.head(url)
+	
+	if response.status_code/100 > 2:
+		return False;   
+	return True;
+        """try:
             conn = httplib.HTTPConnection(url)
             conn.request("HEAD", "/")
             r1 = conn.getresponse()
             print r1.status, r1.reason
             return True
-        except gaierror:
-            return False
+        except gaierror, e:
+	    print e
+	    print url
+            return False"""
 
         """try:
             response = API.requests_retry_session().get(
