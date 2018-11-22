@@ -52,10 +52,17 @@ class RemoteBatch(RemoteTask):
 
 class Slurm(Task):
 
-    def __init__(self, name, command, partition=None, ntasks=None, working_dir=None):
+    def __init__(self, name, command, partition=None, ntasks=None, working_dir=None, ssh_username=None, keypath=None, ip=None):
         Task.__init__(self, name, command, working_dir)
         self.partition = partition
         self.ntasks = ntasks
+
+    def __new__(cls, name, command, partition=None, ntasks=None, working_dir=None, ssh_username=None, keypath=None, ip=None):
+        if ip is None:
+            return super(Slurm, cls).__new__(cls)
+        else:
+            return RemoteSlurm(name, command, partition=partition, ntasks=ntasks, working_dir=working_dir,
+                               ssh_username=ssh_username, ip=ip, keypath=keypath)
 
     def generate_command(self, script_name):
         partition_text = ""
