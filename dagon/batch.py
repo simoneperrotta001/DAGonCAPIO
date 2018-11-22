@@ -50,7 +50,10 @@ class RemoteBatch(RemoteTask):
         return result
 
 
-class Slurm:
+class Slurm(Task):
+
+    def __init__(self, name, command, partition=None, ntasks=None, working_dir=None, ssh_username=None, keypath=None, ip=None):
+        Task.__init__(self, name)
 
     def __new__(cls, name, command, partition=None, ntasks=None, working_dir=None, ssh_username=None, keypath=None, ip=None):
         if ip is None:
