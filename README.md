@@ -31,7 +31,7 @@ The workflow is defined by data dependencies (task dependencies are automaticall
 	pyrhon dataflow-demo.py
 
 *** Batch Task Flow
-```
+```python
     # Create the orchestration workflow
       workflow=Workflow("Taskflow-Demo",config)
     
@@ -54,7 +54,7 @@ The workflow is defined by data dependencies (task dependencies are automaticall
 ```
 
 *** Batch Data Flow
-
+```python
     from dagon import Workflow
     from dagon import batch
     import json
@@ -100,6 +100,6 @@ The workflow is defined by data dependencies (task dependencies are automaticall
      
       # run the workflow
       workflow.run()
-
+```
   
  --
