@@ -111,7 +111,7 @@ class Slurm(Batch):
         # Add the slurm batch command
         # command = "sbatch " + partition_text + " " + ntasks_text + " --job-name=" + self.name + " --chdir=" + self.working_dir + " --output=" + self.working_dir + "/.dagon/stdout.txt --wait " + self.working_dir+"/.dagon/launcher.sh"
         command = "sbatch " + partition_text + " " + ntasks_text + " --job-name=" + self.name + " --chdir=" \
-                  + self.working_dir + " --wait " + self.working_dir + "/.dagon/ " + script_name
+                  + self.working_dir + " --wait " + self.working_dir + "/.dagon/" + script_name
         return command
 
     def on_execute(self, launcher_script, script_name):
