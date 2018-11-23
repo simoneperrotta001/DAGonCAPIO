@@ -110,8 +110,8 @@ class Slurm(Batch):
 
         # Add the slurm batch command
         # command = "sbatch " + partition_text + " " + ntasks_text + " --job-name=" + self.name + " --chdir=" + self.working_dir + " --output=" + self.working_dir + "/.dagon/stdout.txt --wait " + self.working_dir+"/.dagon/launcher.sh"
-        command = "sbatch " + partition_text + " " + ntasks_text + " --job-name=" + self.name + " --chdir=" \
-                  + self.working_dir + " --wait " + self.working_dir + "/.dagon/" + script_name
+        command = "sbatch " + partition_text + " " + ntasks_text + " -J " + self.name + " -D " \
+                  + self.working_dir + " -W " + self.working_dir + "/.dagon/" + script_name
         return command
 
     def on_execute(self, launcher_script, script_name):
@@ -140,6 +140,7 @@ class RemoteSlurm(RemoteTask, Slurm):
             return self.ssh_connection.execute_command("bash " + self.working_dir + "/.dagon/" + script_name)
 
         command = self.generate_command(script_name)
+        print command
         # Execute the bash command
         result = self.ssh_connection.execute_command(command)
         return result

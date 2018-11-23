@@ -10,7 +10,7 @@ import time
 if __name__ == '__main__':
 
     config = {
-        "scratch_dir_base": "/home/ccmmma/tmp/test6/",
+        "scratch_dir_base": "/tmp/test6/",
         "remove_dir": False
     }
 
@@ -21,16 +21,16 @@ if __name__ == '__main__':
     workflow.set_dry(False)
 
     # The task a
-    taskA = Slurm("A", "mkdir output;hostname > output/f1.txt", "hicpu", 1, ip="159.89.8.253", ssh_username="batman")
+    taskA = Slurm("A", "mkdir output;hostname > output/f1.txt", "testing", 1, ip="159.89.8.253", ssh_username="batman")
 
     # The task b
-    taskB = Slurm("B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", "hicpu", 1, ip="159.89.8.253", ssh_username="batman")
+    taskB = Slurm("B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", "testing", 1, ip="159.89.8.253", ssh_username="batman")
 
     # The task c
-    taskC = Slurm("C", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", "hicpu", 1, ip="159.89.8.253", ssh_username="batman")
+    taskC = Slurm("C", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", "testing", 1, ip="159.89.8.253", ssh_username="batman")
 
     # The task d
-    taskD = Slurm("D", "cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt", "hicpu", 1, ip="159.89.8.253", ssh_username="batman")
+    taskD = Slurm("D", "cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt", "testing", 1, ip="159.89.8.253", ssh_username="batman")
 
     # add tasks to the workflow
     workflow.add_task(taskA)

@@ -21,16 +21,16 @@ if __name__ == '__main__':
   workflow.set_dry(False)
   
   # The task a
-  taskA=batch.Slurm("A","mkdir output;hostname > output/f1.txt","hicpu",1)
+  taskA=batch.Slurm("A","mkdir output;hostname > output/f1.txt","testing",1)
   
   # The task b
-  taskB=batch.Slurm("B","echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt","hicpu",1)
+  taskB=batch.Slurm("B","echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt","testing",1)
   
   # The task c
-  taskC=batch.Slurm("C","echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt","hicpu",1)
+  taskC=batch.Slurm("C","echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt","testing",1)
   
   # The task d
-  taskD=batch.Slurm("D","cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt","hicpu",1)
+  taskD=batch.Slurm("D","cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt","testing",1)
 
   # add tasks to the workflow
   workflow.add_task(taskA)

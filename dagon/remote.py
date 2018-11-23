@@ -28,8 +28,10 @@ class RemoteTask(Task):
     # make dir
     def mkdir_working_dir(self, path):
         res = SSHManager.execute_command(self.ssh_connection, "mkdir -p " + self.working_dir + "/.dagon")
-        if res['code']:
-            self.workflow.logger.error("%s: Error creating scratch directory on server %s", self.name)
+        print res
+	print self.name
+	if res['code']:
+            self.workflow.logger.error("%s: Error creating scratch directory on server %s", self.name, res['message'])
             raise Exception('Cannot create scratch directory on remote')
 
     # remove scratch directory
