@@ -7,9 +7,26 @@ class Batch(Task):
     env.use_ssh_config = True
 
     def __init__(self, name, command, working_dir=None):
+        """Create an Local Batch class
+
+           Keyword arguments:
+           name -- task name
+           command -- command to be executed
+           working_dir -- directory where the outputs will be placed
+        """
         Task.__init__(self, name, command, working_dir)
 
     def __new__(cls, *args, **kwargs):
+        """Create an Batch task local or remote
+
+           Keyword arguments:
+           name -- task name
+           command -- command to be executed
+           working_dir -- directory where the outputs will be placed
+           ip -- hostname or ip of the machine where the task will be executed
+           ssh_username -- username in remote machine
+           keypath -- path to the private keypath
+        """
         if "ip" in kwargs:
             return super(Batch, cls).__new__(RemoteBatch)
         else:
@@ -40,6 +57,16 @@ class Batch(Task):
 class RemoteBatch(RemoteTask, Batch):
 
     def __init__(self, name, command, ssh_username=None, keypath=None, ip=None, working_dir=None):
+        """Create an Batch task remote
+
+           Keyword arguments:
+           name -- task name
+           command -- command to be executed
+           working_dir -- directory where the outputs will be placed
+           ip -- hostname or ip of the machine where the task will be executed
+           ssh_username -- username in remote machine
+           keypath -- path to the private keypath
+        """
         RemoteTask.__init__(self, name, ssh_username, keypath, command, ip=ip, working_dir=working_dir)
 
     def on_execute(self, launcher_script, script_name):
@@ -52,14 +79,22 @@ class RemoteBatch(RemoteTask, Batch):
 class Slurm(Batch):
 
     def __init__(self,name, command, partition=None, ntasks=None, working_dir=None):
-        Task.__init__(self, name, command, working_dir)
+        Batch.__init__(self, name, command, working_dir)
         self.partition = partition
         self.ntasks = ntasks
 
     def __new__(cls, *args, **kwargs):
+        """Create an Slurm task local or remote
 
+           Keyword arguments:
+           name -- task name
+           command -- command to be executed
+           partition -- partition where the task is going to be executed
+           ntasks -- number of tasks to execute
+           working_dir -- directory where the outputs will be placed
+        """
         if "ip" in kwargs:
-            return super(Slurm, cls).__new__(RemoteSlurm)
+            return super(Task, cls).__new__(RemoteSlurm)
         else:
             return super(Slurm, cls).__new__(cls)
 
