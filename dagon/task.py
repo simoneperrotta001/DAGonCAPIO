@@ -463,6 +463,17 @@ user=$USER
 # Construct the json
 json="{\\\"type\\\":\\\"$machine_type\\\",\\\"ip\\\":\\\"$public_ip\\\",\\\"user\\\":\\\"$user\\\",\\\"SCP\\\":\\\"$status_sshd\\\",\\\"FTP\\\":\\\"$status_ftpd\\\",\\\"GRIDFTP\\\":\\\"$status_gsiftpd\\\"}"
 
+#get http communication protocol
+curl_or_wget=$(if hash curl 2>/dev/null; then echo "curl"; elif hash wget 2>/dev/null; then echo "wget"; fi);
+
+if [ -z "$curl_or_wget" ]; then
+        echo "Neither curl nor wget found. Cannot use http method." >&2
+        exit 1
+fi
 # Set the task info
-curl -s --header "Content-Type: application/json" --request POST --data \"$json\" http://"""+self.workflow.get_url()+"""/api/"""+self.name+"""/info
+if [ $curl_or_wget = "wget" ]; then
+   wget -O- --post-data=$json --header=Content-Type:application/json "http://"""+self.workflow.get_url()+"""/api/"""+self.name+"""/info"
+else
+   curl -s --header "Content-Type: application/json" --request POST --data \"$json\" http://"""+self.workflow.get_url()+"""/api/"""+self.name+"""/info
+fi
   """
