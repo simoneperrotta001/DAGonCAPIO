@@ -1,6 +1,3 @@
-from batch import Batch
-from communication.data_transfer import DataTransfer
-from dagon.communication.ssh import SSHManager
 from dagon.remote import RemoteTask
 from dockercontainer.container import Container
 from dockercontainer.docker_client import DockerClient
@@ -8,15 +5,15 @@ from dockercontainer.docker_client import DockerRemoteClient
 from task import Task
 
 
-class LocalDockerTask(Batch):
+class LocalDockerTask(Task):
 
     # Params:
     # 1) name: task name
     # 2) command: command to be executed
     # 3) image: docker image which the container is going to be created
     # 4) host: URL of the host, by default use the unix local host
-    def __init__(self, name, command, container_id=None, working_dir=None, image=None, endpoint=None, remove=True):
-        Batch.__init__(self, name, command, working_dir=working_dir)
+    def __init__(self, name, command, image, container_id=None, working_dir=None, endpoint=None, remove=True):
+        Task.__init__(self, name, command, working_dir=working_dir)
         self.command = command
         self.container_id = container_id
         self.working_dir = working_dir
@@ -87,19 +84,17 @@ class DockerRemoteTask(LocalDockerTask, RemoteTask):
 
 class DockerTask(Task):
 
-    def __init__(self, name, command, image=None, container_id=None, ip=None, port=None, ssh_username=None,
-                 keypath=None,
-                 working_dir=None, remove=True):
+    def __init__(self, name, command, image,  container_id=None, ip=None, port=None, ssh_username=None, keypath=None,
+                working_dir=None, local_working_dir=None, endpoint=None, remove=True):
         Task.__init__(self, name)
 
-    def __new__(cls, name, command, image=None, container_id=None, ip=None, port=None, ssh_username=None, keypath=None,
+    def __new__(cls, name, command, image,  container_id=None, ip=None, port=None, ssh_username=None, keypath=None,
                 working_dir=None, local_working_dir=None, endpoint=None, remove=True):
+        print image
         is_remote = ip is not None
         if is_remote:
-            pass
             return DockerRemoteTask(name, command, image=image, container_id=container_id, ip=ip,
-                                    ssh_username=ssh_username, working_dir=working_dir,
-                                    keypath=keypath, remove=remove)
+                                    ssh_username=ssh_username, working_dir=working_dir, keypath=keypath, remove=remove)
         else:
-            return LocalDockerTask(name, command, container_id=container_id, working_dir=working_dir, image=image,
+            return LocalDockerTask(name, command, image, container_id=container_id, working_dir=working_dir,
                                    remove=remove)

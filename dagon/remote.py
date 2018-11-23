@@ -10,7 +10,6 @@ class RemoteTask(Task):
 
     def __init__(self, name, ssh_username, keypath, command, ip=None, working_dir=None):
         Task.__init__(self, name, command, working_dir=working_dir)
-
         self.transfer = None
         self.ip = ip
         self.keypath = keypath

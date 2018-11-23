@@ -39,7 +39,8 @@ class Connection:
             if response.status_code / 100 > 2:
                 return False
             return True
-        except requests.exceptions.ConnectTimeout:
+        except (requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError):
+            print "entro"
             return False
 
     @staticmethod

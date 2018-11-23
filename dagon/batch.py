@@ -6,6 +6,39 @@ from dagon.remote import RemoteTask
 class Batch(Task):
     env.use_ssh_config = True
 
+    def __init__(self, *args, **kwargs):
+        Task.__init__(self, *args, **kwargs)
+
+    def __new__(cls, *args, **kwargs):
+        if "ip" in kwargs:
+            return super(Batch, cls).__new__(RemoteBatch)
+        else:
+            return super(Batch, cls).__new__(cls)
+
+    def as_json(self):
+        json_task = Task.as_json(self)
+        json_task['command'] = self.command
+        return json_task
+
+    @staticmethod
+    def execute_command(command):
+        # Execute the bash command
+        result = local(command, capture=True)
+        # check for an error
+        code, message = 0, ""
+        if len(result.stderr):
+            code, message = 1, result.stderr
+
+        return {"code": code, "message": message}
+
+    def on_execute(self, launcher_script, script_name):
+        # Invoke the base method
+        super(Batch, self).on_execute(launcher_script, script_name)
+        return Batch.execute_command(self.working_dir + "/.dagon/" + script_name)
+
+"""class Batch(Task):
+    env.use_ssh_config = True
+
     def __init__(self, name, command, working_dir=None, ssh_username=None, keypath=None, ip=None):
         Task.__init__(self, name, command, working_dir)
 
@@ -35,10 +68,10 @@ class Batch(Task):
     def on_execute(self, launcher_script, script_name):
         # Invoke the base method
         super(Batch, self).on_execute(launcher_script, script_name)
-        return Batch.execute_command(self.working_dir + "/.dagon/" + script_name)
+        return Batch.execute_command(self.working_dir + "/.dagon/" + script_name)"""
 
 
-class RemoteBatch(RemoteTask):
+class RemoteBatch(RemoteTask, Batch):
 
     def __init__(self, name, command, ssh_username=None, keypath=None, ip=None, working_dir=None):
         RemoteTask.__init__(self, name, ssh_username, keypath, command, ip=ip, working_dir=working_dir)
@@ -52,10 +85,12 @@ class RemoteBatch(RemoteTask):
 
 class Slurm(Task):
 
-    def __init__(self, name, command, partition=None, ntasks=None, working_dir=None, ssh_username=None, keypath=None, ip=None):
+    def __init__(self, name, command, partition=None, ntasks=None, working_dir=None, ssh_username=None, keypath=None,
+                 ip=None):
         Task.__init__(self, name)
 
-    def __new__(cls, name, command, partition=None, ntasks=None, working_dir=None, ssh_username=None, keypath=None, ip=None):
+    def __new__(cls, name, command, partition=None, ntasks=None, working_dir=None, ssh_username=None, keypath=None,
+                ip=None):
         if ip is None:
             return LocalSlurm(name, command, partition, ntasks, working_dir)
         else:
@@ -65,7 +100,8 @@ class Slurm(Task):
 
 class LocalSlurm(Task):
 
-    def __init__(self, name, command, partition=None, ntasks=None, working_dir=None, ssh_username=None, keypath=None, ip=None):
+    def __init__(self, name, command, partition=None, ntasks=None, working_dir=None, ssh_username=None, keypath=None,
+                 ip=None):
         Task.__init__(self, name, command, working_dir)
         self.partition = partition
         self.ntasks = ntasks
@@ -99,9 +135,10 @@ class LocalSlurm(Task):
 
 
 class RemoteSlurm(RemoteTask, LocalSlurm):
-    def __init__(self, name, command, partition=None, ntasks=None, working_dir=None, ssh_username=None, keypath=None, ip=None):
+    def __init__(self, name, command, partition=None, ntasks=None, working_dir=None, ssh_username=None, keypath=None,
+                 ip=None):
         LocalSlurm.__init__(self, name, command, working_dir=working_dir, partition=partition, ntasks=ntasks)
-        RemoteTask.__init__(self, name, ssh_username,keypath, command, ip, working_dir)
+        RemoteTask.__init__(self, name, ssh_username, keypath, command, ip, working_dir)
 
     def on_execute(self, launcher_script, script_name):
         RemoteTask.on_execute(self, launcher_script, script_name)
@@ -111,7 +148,7 @@ class RemoteSlurm(RemoteTask, LocalSlurm):
 
         command = self.generate_command(script_name)
         # Execute the bash command
-        result =  self.ssh_connection.execute_command(command)
+        result = self.ssh_connection.execute_command(command)
         return result
 
 # class AWSEC2(Batch):
