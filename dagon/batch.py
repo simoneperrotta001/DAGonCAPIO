@@ -118,7 +118,7 @@ class Slurm(Batch):
         super(Batch, self).on_execute(launcher_script, script_name)
 
         if script_name == "context.sh":
-            return Batch.execute_command(script_name)
+            return Batch.execute_command(self.working_dir + "/.dagon/" + script_name)
 
         command = self.generate_command(script_name)
 
