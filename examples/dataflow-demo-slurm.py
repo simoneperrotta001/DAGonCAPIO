@@ -10,7 +10,7 @@ import time
 if __name__ == '__main__':
 
   config={
-    "scratch_dir_base":"/home/tmp/test6/",
+    "scratch_dir_base":"/tmp/test6/",
     "remove_dir":False
   }
 
