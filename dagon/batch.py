@@ -40,6 +40,7 @@ class Batch(Task):
     @staticmethod
     def execute_command(command):
         # Execute the bash command
+	print command
         result = local(command, capture=True)
         # check for an error
         code, message = 0, ""
