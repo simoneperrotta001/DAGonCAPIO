@@ -15,25 +15,27 @@ if __name__ == '__main__':
   }
 
   # Create the orchestration workflow
-  workflow=Workflow("DataFlow-Demo",config)
+  #workflow=Workflow("DataFlow-Demo",config)
 
   # Set the dry
-  workflow.set_dry(False)
+  #workflow.set_dry(False)
   
   # The task a
-  taskA=batch.Slurm("A","mkdir output;hostname > output/f1.txt","hicpu",1)
+  taskA=batch.Slurm("A",command="mkdir output;hostname > output/f1.txt",partition="hicpu", ntasks=1)
   
   # The task b
-  taskB=batch.Slurm("B","echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt","hicpu",1)
+  taskB=batch.Slurm("B",command="echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt",partition="hicpu",ntasks=1)
   
   # The task c
-  taskC=batch.Slurm("C","echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt","hicpu",1)
+  taskC=batch.Slurm("C",command="echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt",partition="hicpu",ntasks=1)
   
   # The task d
-  taskD=batch.Slurm("D","cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt","hicpu",1)
-  
+  taskD=batch.Slurm("D",command="cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt",partition="hicpu",ntasks=1)
+
+  print taskA, taskD, taskC, taskB
+
   # add tasks to the workflow
-  workflow.add_task(taskA)
+  """workflow.add_task(taskA)
   workflow.add_task(taskB)
   workflow.add_task(taskC)
   workflow.add_task(taskD)
@@ -58,6 +60,6 @@ if __name__ == '__main__':
     # get the results
     with open(result_filename, "r") as infile:
       result = infile.readlines()
-      print result
+      print result"""
 
 
