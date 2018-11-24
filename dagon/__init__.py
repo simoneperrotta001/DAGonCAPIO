@@ -1,6 +1,7 @@
 import logging
 import logging.config
 from logging.config import fileConfig
+from logging.config import dictConfig
 from types import NoneType
 
 from backports.configparser import NoSectionError
@@ -27,16 +28,25 @@ class Status(Enum):
 
 
 class Workflow(object):
+
     SCHEMA = "workflow://"
 
-    def __init__(self, name, cfg):
-        fileConfig('dagon.ini')
+    def __init__(self, name, config=None, config_file=None):
+
+        if config is None and config_file is None:
+            self.cfg = read_config('dagon.ini')
+            fileConfig('dagon.ini')
+        elif config is not None:
+            self.cfg = config
+        elif config_file is not None:
+            self.cfg = read_config('dagon.ini')
+            fileConfig(config_file)
+
         logging.getLogger("paramiko").setLevel(logging.WARNING)
         logging.getLogger("globus_sdk").setLevel(logging.WARNING)
         self.logger = logging.getLogger()
 
         self.name = name
-        self.cfg = cfg
         self.dry = False
         self.tasks = []
         self.id = 0
@@ -44,10 +54,8 @@ class Workflow(object):
 
         # to regist in the dagon service
         try:
-            config = read_config('dagon_service')
-            if config is not None:
-                self.api = API(config['route'])
-                self.regist_on_api = True
+            self.api = API(self.cfg['dagon_service']['route'])
+            self.regist_on_api = True
         except NoneType:
             self.logger.error("No dagon URL in config file")
         except NoSectionError:
@@ -63,7 +71,10 @@ class Workflow(object):
                 raise Exception(e)
 
         port = Connection.find_port()
-        ip = Connection.find_ip_local(port)
+        config_ip = None
+        if "dagon_ip" in self.cfg and "ip" in self.cfg['dagon_ip']:
+            config_ip = self.cfg['dagon_ip']['ip']
+        ip = Connection.find_ip_local(config_ip)
 
         self.workflow_server = WorkflowServer(self, ip, port)
         self.workflow_server.start()  # start workflow server
@@ -82,7 +93,7 @@ class Workflow(object):
         return self.url
 
     def get_scratch_dir_base(self):
-        return self.cfg['scratch_dir_base']
+        return self.cfg['batch']['scratch_dir_base']
 
     def find_task_by_name(self, workflow_name, task_name):
         # Check if the workflow is the current one

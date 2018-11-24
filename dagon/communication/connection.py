@@ -18,15 +18,12 @@ class Connection:
         return result is 0
 
     @staticmethod
-    def find_ip_local(port):
-        ip = dagon.read_config("dagon_ip")
-
+    def find_ip_local(config_ip):
+        ip = config_ip
         if ip is None:
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.connect(("8.8.8.8", 80))
             ip = s.getsockname()[0]
-        else:
-            ip = ip['ip']
 
         return ip
 

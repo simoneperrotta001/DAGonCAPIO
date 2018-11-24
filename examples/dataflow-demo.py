@@ -13,7 +13,7 @@ if __name__ == '__main__':
   }
 
   # Create the orchestration workflow
-  workflow=Workflow("DataFlow-Demo-Server",config)
+  workflow=Workflow("DataFlow-Demo-Server")
 
   # Set the dry
   workflow.set_dry(False)
