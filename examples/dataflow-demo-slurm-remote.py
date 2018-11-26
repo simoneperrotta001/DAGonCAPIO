@@ -9,28 +9,23 @@ import time
 # Check if this is the main
 if __name__ == '__main__':
 
-    config = {
-        "scratch_dir_base": "/tmp/test6/",
-        "remove_dir": False
-    }
-
     # Create the orchestration workflow
-    workflow = Workflow("DataFlow-Demo", config)
+    workflow = Workflow("DataFlow-Demo")
 
     # Set the dry
     workflow.set_dry(False)
 
     # The task a
-    taskA = Slurm("A", "mkdir output;hostname > output/f1.txt", "testing", 1, ip="159.89.8.253", ssh_username="batman")
+    taskA = Slurm("A", "mkdir output;hostname > output/f1.txt", "hicpu", 1, ip="193.205.230.5", ssh_username="diluccio")
 
     # The task b
-    taskB = Slurm("B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", "testing", 1, ip="159.89.8.253", ssh_username="batman")
+    taskB = Slurm("B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", "hicpu", 1, ip="193.205.230.5", ssh_username="diluccio")
 
     # The task c
-    taskC = Slurm("C", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", "testing", 1, ip="159.89.8.253", ssh_username="batman")
+    taskC = Slurm("C", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", "hicpu", 1, ip="193.205.230.5", ssh_username="diluccio")
 
     # The task d
-    taskD = Slurm("D", "cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt", "testing", 1, ip="159.89.8.253", ssh_username="batman")
+    taskD = Slurm("D", "cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt", "hicpu", 1, ip="193.205.230.5", ssh_username="diluccio")
 
     # add tasks to the workflow
     workflow.add_task(taskA)
@@ -40,7 +35,7 @@ if __name__ == '__main__':
 
     workflow.make_dependencies()
 
-    jsonWorkflow = workflow.asJson()
+    jsonWorkflow = workflow.as_json()
     with open('dataflow-demo-slurm.json', 'w') as outfile:
         stringWorkflow = json.dumps(jsonWorkflow, sort_keys=True, indent=2)
         outfile.write(stringWorkflow)
@@ -49,7 +44,7 @@ if __name__ == '__main__':
     workflow.run()
 
     # Check if it is a dry run
-    if workflow.get_dry() is False:
+    """if workflow.get_dry() is False:
         # set the result filename
         result_filename = taskD.get_scratch_dir() + "/f3.txt"
         while not os.path.exists(result_filename):
@@ -59,5 +54,5 @@ if __name__ == '__main__':
         with open(result_filename, "r") as infile:
             result = infile.readlines()
             print result
-
+    """
 

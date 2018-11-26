@@ -1,4 +1,3 @@
-
 import os
 import time
 import socket
@@ -14,20 +13,21 @@ from libcloud.compute.providers import get_driver
 import cloud_manager
 from dagon.config import read_config
 
+
 class CloudManager(object):
 
     @staticmethod
-    def getInstance(keyparams, provider, name=None, create_instance=True, flavour=None, id=None):
+    def getInstance(keyparams, provider, name=None, create_instance=True, flavour=None, instance_id=None):
         driver = get_driver(provider)
-        conf = read_config(provider)
+        conf = read_config(section=provider)
         if provider == Provider.GCE:
-            conn = driver(conf['key'],conf['secret'],project=conf['project'])
+            conn = driver(conf['key'], conf['secret'], project=conf['project'])
         else:
             conn = driver(**conf)
         manager = globals()[provider.upper()]
-        node = manager.createInstance(conn, name, flavour, keyparams) if create_instance else CloudManager.getExistingInstance(conn, id=id, name=name)
-        node =CloudManager.waitUntilRunning(conn, node)
-        #node = conn.wait_until_running([node])
+        node = manager.createInstance(conn, name, flavour, keyparams) if flavour is not None else CloudManager.getExistingInstance(conn, id=instance_id, name=name)
+        node = CloudManager.waitUntilRunning(conn, node)
+        # node = conn.wait_until_running([node])
         return node
 
     @staticmethod
@@ -40,30 +40,28 @@ class CloudManager(object):
             time.sleep(1)
         return node
 
-
     @staticmethod
     def createInstance(conn, name, flavour, keyparams):
-        if(flavour is None):
+        if (flavour is None):
             raise Exception('The characteristics of the image has not been specified')
         sizes = conn.list_sizes()
         size = [s for s in sizes if s.id == flavour['size']]
         image = conn.get_image(flavour['image'])
-        size = size[0] if len(size) > 0  else None
+        size = size[0] if len(size) > 0 else None
         if image is None or size is None:
             raise Exception('Size or image doesn\'t exists')
         if keyparams['option'] == KeyOptions.CREATE:
-            key = KeyPair.createPairKey(conn,keyparams['keypath'],keyparams['cloudargs'])
+            key = KeyPair.createPairKey(conn, keyparams['keypath'], keyparams['cloudargs'])
         elif keyparams['option'] == KeyOptions.GET:
-            key = KeyPair.getExistingPairKey(conn,keyparams['keyname'])
+            key = KeyPair.getExistingPairKey(conn, keyparams['keyname'])
         elif keyparams['option'] == KeyOptions.IMPORT:
-            key = KeyPair.importKey(conn, keyparams['keyname'],keyparams['keypath'])
+            key = KeyPair.importKey(conn, keyparams['keyname'], keyparams['keypath'])
         node = conn.create_node(name=name, image=image, size=size,
-                          ex_keyname=key.name)
+                                ex_keyname=key.name)
         return node
 
-
     @staticmethod
-    def getExistingInstance(conn, id=None,name=None, uuid=None):
+    def getExistingInstance(conn, id=None, name=None, uuid=None):
         if id is None and name is None and uuid is None:
             raise Exception('Must specified an intance\'s id or name')
         nodes = conn.list_nodes()
@@ -78,10 +76,12 @@ class CloudManager(object):
             raise Exception('Instance doesn\'t exists')
         return node[0]
 
+
 class KeyOptions(Enum):
     CREATE = "CREATE"
     IMPORT = "IMPORT"
     GET = "GET"
+
 
 class KeyPair(object):
 
@@ -92,10 +92,10 @@ class KeyPair(object):
         param: bits The key length in bits
         Return private key and public key
         '''
-        from Crypto.PublicKey import RSA 
-        new_key = RSA.generate(bits, e=65537) 
-        public_key = new_key.publickey().exportKey("OpenSSH") 
-        private_key = new_key.exportKey("PEM") 
+        from Crypto.PublicKey import RSA
+        new_key = RSA.generate(bits, e=65537)
+        public_key = new_key.publickey().exportKey("OpenSSH")
+        private_key = new_key.exportKey("PEM")
         return private_key, public_key
 
     @staticmethod
@@ -106,8 +106,8 @@ class KeyPair(object):
             content_file.write(privateKey)
 
     @staticmethod
-    def createPairKey(conn,filename,args):
-        
+    def createPairKey(conn, filename, args):
+
         from inspect import getargspec
 
         ###CHECK FOR THE PARAMS OF THE FUNCTION
@@ -126,77 +126,82 @@ class KeyPair(object):
             privateKey = args['private_key']
         KeyPair.writeKey(privateKey, filename)
         return key_pair
-    
+
     @staticmethod
-    def getExistingPairKey(conn,keyname):
+    def getExistingPairKey(conn, keyname):
         keys = conn.list_key_pairs()
         key_pair = [key for key in keys if key.name == keyname]
         key_pair = key_pair[0] if len(key_pair) > 0 else None
         return key_pair
-    
+
     @staticmethod
     def importKey(conn, keyname, key_path):
         key_file_path = os.path.expanduser(key_path)
         key_pair = conn.import_key_pair_from_file(name=key_path,
-                                          key_file_path=key_file_path)
+                                                  key_file_path=key_file_path)
         return key_pair
 
 
 class EC2(object):
     @staticmethod
     def createInstance(conn, name, flavour, keyparams):
-        if(flavour is None):
+        if (flavour is None):
             raise Exception('The characteristics of the image has not been specified')
         sizes = conn.list_sizes()
         size = [s for s in sizes if s.id == flavour['size']]
         image = conn.get_image(flavour['image'])
-        size = size[0] if len(size) > 0  else None
+        size = size[0] if len(size) > 0 else None
         if image is None or size is None:
             raise Exception('Size or image doesn\'t exists')
         if keyparams['option'] == KeyOptions.CREATE:
-            key = KeyPair.createPairKey(conn,keyparams['keypath'],keyparams['cloudargs'])
+            key = KeyPair.createPairKey(conn, keyparams['key_path'], keyparams['cloud_args'])
         elif keyparams['option'] == KeyOptions.GET:
-            key = KeyPair.getExistingPairKey(conn,keyparams['keyname'])
+            key = KeyPair.getExistingPairKey(conn, keyparams['cloud_args']['name'])
         elif keyparams['option'] == KeyOptions.IMPORT:
-            key = KeyPair.importKey(conn, keyparams['keyname'],keyparams['keypath'])
+            key = KeyPair.importKey(conn, keyparams['key_name'], keyparams['key_path'])
         node = conn.create_node(name=name, image=image, size=size,
-                          ex_keyname=key.name)
+                                ex_keyname=key.name)
         return node
-    
+
+
 class DIGITALOCEAN(object):
     @staticmethod
     def createInstance(conn, name, flavour, keyparams):
-        if(flavour is None):
+        if (flavour is None):
             raise Exception('The characteristics of the image has not been specified')
         sizes = conn.list_sizes()
         size = [s for s in sizes if s.id == flavour['size']]
         image = conn.get_image(flavour['image'])
-        size = size[0] if len(size) > 0  else None
+        size = size[0] if len(size) > 0 else None
         locations = conn.list_locations()
         location = [l for l in locations if l.id == flavour['location']]
         location = location[0] if len(location) > 0 else None
         if image is None or size is None or location is None:
             raise Exception('Size, location or image doesn\'t exists')
         if keyparams['option'] == KeyOptions.CREATE:
-            key = KeyPair.createPairKey(conn,keyparams['keypath'],keyparams['cloudargs'])
+            key = KeyPair.createPairKey(conn, keyparams['key_path'], keyparams['cloudargs'])
         elif keyparams['option'] == KeyOptions.GET:
-            key = KeyPair.getExistingPairKey(conn,keyparams['keyname'])
+            key = KeyPair.getExistingPairKey(conn, keyparams['keyname'])
         elif keyparams['option'] == KeyOptions.IMPORT:
-            key = KeyPair.importKey(conn, keyparams['keyname'],keyparams['keypath'])
+            key = KeyPair.importKey(conn, keyparams['keyname'], keyparams['keypath'])
+
         node = conn.create_node(name=name, image=image, size=size, location=location,
-                          ex_create_attr={"ssh_keys":[key.fingerprint]})
+                                ex_create_attr={"ssh_keys": [key.fingerprint]})
         return node
+
 
 class GCE(object):
     @staticmethod
     def createInstance(conn, name, flavour, keyparams):
-        if(flavour is None):
+        if (flavour is None):
             raise Exception('The characteristics of the image has not been specified')
         image = flavour['image']
         location = flavour['location']
         size = flavour['size']
-        metadata = {"items": [{"value": "%s: %s %s"%(keyparams['username'],keyparams['public_key'],keyparams['username']), "key": "ssh-keys"}]}
-        KeyPair.writeKey(keyparams["private_key"],keyparams['keypath'])
+        metadata = {"items": [
+            {"value": "%s: %s %s" % (keyparams['username'], keyparams['public_key'], keyparams['username']),
+             "key": "ssh-keys"}]}
+        KeyPair.writeKey(keyparams["private_key"], keyparams['keypath'])
         node = conn.create_node(name=name, image=image, size=size, location=location, ex_metadata=metadata)
 
         return node

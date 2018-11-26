@@ -14,7 +14,7 @@ class DockerClient(object):
             elif res.return_code != 0:
                 return {"code": 1, "message": res.stdout}
             else:
-                return {"code": 0, "message": res.stdout}
+                return {"code": 0, "output": res.stdout}
 
     @staticmethod
     def form_string_cont_creation(image, command=None, volume=None, ports=None, detach=False):

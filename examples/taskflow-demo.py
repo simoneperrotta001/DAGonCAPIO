@@ -27,7 +27,7 @@ if __name__ == '__main__':
   taskD.add_dependency_to(taskB)
   taskD.add_dependency_to(taskC)
 
-  jsonWorkflow=workflow.asJson()
+  jsonWorkflow=workflow.as_json()
   with open('taskflow-demo.json', 'w') as outfile:
     stringWorkflow=json.dumps(jsonWorkflow,sort_keys=True, indent=2)
     outfile.write(stringWorkflow)

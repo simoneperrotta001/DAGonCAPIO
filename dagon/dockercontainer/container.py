@@ -11,9 +11,9 @@ class Container(object):
         return res
 
     def exec_in_cont(self, command):
-        docker_command = "docker exec -t " + self.key + " bash \"" + command + "\""
-        res = self.client.exec_command(docker_command)
-        return res
+        docker_command = "docker exec -t " + self.key + " sh -c \"" + command.strip() + "\""
+        #res = self.client.exec_command(docker_command)
+        return docker_command
 
     def rm(self, force=False):
         band = "-f" if force else ""

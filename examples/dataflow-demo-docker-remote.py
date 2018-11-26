@@ -8,21 +8,16 @@ from dagon import Status
 # Check if this is the main
 if __name__ == '__main__':
 
-    config = {
-        "scratch_dir_base": "/tmp/test/",
-        "remove_dir": False
-    }
-
     # Create the orchestration workflow
-    workflow = Workflow("DataFlow-Demo-Docker-remote", config)
+    workflow = Workflow("DataFlow-Demo-Docker-remote")
 
     # The task a
     taskA = DockerTask("A", "mkdir output;hostname > output/f1.txt", image="ubuntu_curl",
-                       ip="saturn.uniparthenope.it", ssh_username="dante")
+                       ip="ec2-34-219-189-203.us-west-2.compute.amazonaws.com", ssh_username="ubuntu", keypath="dagon_services.pem")
 
     # The task b
     taskB = DockerTask("B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt",
-                       "ubuntu_curl", ip="saturn.uniparthenope.it", ssh_username="dante")
+                       "ubuntu_curl", ip="ec2-34-219-189-203.us-west-2.compute.amazonaws.com", ssh_username="ubuntu", keypath="dagon_services.pem")
 
     # The task c
     taskC = DockerTask("C", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt",
@@ -34,12 +29,12 @@ if __name__ == '__main__':
     # add tasks to the workflow
     workflow.add_task(taskA)
     workflow.add_task(taskB)
-    ##workflow.add_task(taskC)
+    workflow.add_task(taskC)
     #workflow.add_task(taskD)
 
     workflow.make_dependencies()
 
-    jsonWorkflow = workflow.asJson()
+    jsonWorkflow = workflow.as_json()
     with open('dataflow-demo-docker.json', 'w') as outfile:
         stringWorkflow = json.dumps(jsonWorkflow, sort_keys=True, indent=2)
         outfile.write(stringWorkflow)
@@ -47,7 +42,7 @@ if __name__ == '__main__':
     # run the workflow
     workflow.run()
 
-    if workflow.get_dry() is False and taskD.status is not Status.FAILED:
+    """if workflow.get_dry() is False and taskD.status is not Status.FAILED:
         # set the result filename
         result_filename = taskD.get_scratch_dir() + "/f3.txt"
         while not os.path.exists(result_filename):
@@ -56,4 +51,4 @@ if __name__ == '__main__':
         # get the results
         with open(result_filename, "r") as infile:
             result = infile.readlines()
-            print result
+            print result"""

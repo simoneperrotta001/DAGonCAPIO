@@ -56,4 +56,4 @@ class SSHManager:
         elif code > 0:
             return {"code": 1, "message": stdout}
         else:
-            return {"code": 0, "message": stdout}
+            return {"code": 0, "output": stdout}

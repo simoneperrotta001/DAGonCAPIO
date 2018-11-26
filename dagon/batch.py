@@ -1,4 +1,6 @@
 from fabric.api import local, env
+from fabric.context_managers import settings, hide
+
 from task import Task
 from dagon.remote import RemoteTask
 
@@ -40,20 +42,31 @@ class Batch(Task):
     @staticmethod
     def execute_command(command):
         # Execute the bash command
-	print command
-        result = local(command, capture=True)
-        # check for an error
-        code, message = 0, ""
-        if len(result.stderr):
-            code, message = 1, result.stderr
-
-        return {"code": code, "message": message}
+        with settings(
+                hide('warnings', 'running', 'stdout', 'stderr'),
+                warn_only=True
+        ):
+            result = local(command, capture=True)
+            # check for an error
+            code, message = 0, ""
+            if len(result.stderr):
+                code, message = 1, result.stderr
+            return {"code": code, "message": message, "output":result.stdout}
 
     def on_execute(self, launcher_script, script_name):
         # Invoke the base method
         super(Batch, self).on_execute(launcher_script, script_name)
         return Batch.execute_command(self.working_dir + "/.dagon/" + script_name)
 
+    # returns public key
+    def get_public_key(self):
+        command = "cat " + self.working_dir + "/.dagon/ssh_key.pub"
+        result = Batch.execute_command(command)
+        return result['output']
+
+    def add_public_key(self, key):
+        command = "echo " + key.strip() + "| cat >> ~/.ssh/authorized_keys"
+        result = Batch.execute_command(command)
 
 class RemoteBatch(RemoteTask, Batch):
 
@@ -79,7 +92,7 @@ class RemoteBatch(RemoteTask, Batch):
 
 class Slurm(Batch):
 
-    def __init__(self,name, command, partition=None, ntasks=None, working_dir=None):
+    def __init__(self, name, command, partition=None, ntasks=None, working_dir=None):
         Batch.__init__(self, name, command, working_dir)
         self.partition = partition
         self.ntasks = ntasks
@@ -135,12 +148,10 @@ class RemoteSlurm(RemoteTask, Slurm):
 
     def on_execute(self, launcher_script, script_name):
         RemoteTask.on_execute(self, launcher_script, script_name)
-
         if script_name == "context.sh":
             return self.ssh_connection.execute_command("bash " + self.working_dir + "/.dagon/" + script_name)
 
         command = self.generate_command(script_name)
-        print command
         # Execute the bash command
         result = self.ssh_connection.execute_command(command)
         return result

@@ -1,13 +1,43 @@
-from urllib2 import urlopen
-import requests
-import dagon
-import time
 import socket
-from dagon.api import API
-import httplib
-from socket import gaierror
+from threading import Thread
+from urllib2 import urlopen
 
-class Connection:
+import requests
+import pickle
+
+
+class Connection(Thread):
+
+    def __init__(self, workflow, ip="127.0.0.1", port=9000):
+        super(Connection, self).__init__()
+        self.ip = ip
+        self.port = port
+        self.client = self.connect()
+        self.info = None
+        self.workflow = workflow
+
+    def connect(self):
+        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client.connect((self.ip, self.port))
+        return client
+
+    def send_str(self, str):
+        self.client.send(str)
+
+    def run(self):
+        while True:
+            data = self.client.recv(1024)
+            try:
+                info = pickle.loads(data)
+                if "task" in info:
+
+                    task = self.workflow.find_task_by_name(self.workflow.name, info['task'])
+                    task.set_info(info)
+            except:
+                pass
+
+    def close_connection(self):
+        self.client.close()
 
     # check if a port is open
     @staticmethod
@@ -37,7 +67,6 @@ class Connection:
                 return False
             return True
         except (requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError):
-            print "entro"
             return False
 
     @staticmethod

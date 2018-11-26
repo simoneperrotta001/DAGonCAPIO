@@ -8,13 +8,8 @@ from dagon import Status
 # Check if this is the main
 if __name__ == '__main__':
 
-    config = {
-        "scratch_dir_base": "/tmp/test/",
-        "remove_dir": False
-    }
-
     # Create the orchestration workflow
-    workflow = Workflow("DataFlow-Demo-Docker", config)
+    workflow = Workflow("DataFlow-Demo-Docker")
 
     # The task a
     taskA = DockerTask("A", "mkdir output;hostname > output/f1.txt", image="ubuntu_curl")
@@ -36,7 +31,7 @@ if __name__ == '__main__':
 
     workflow.make_dependencies()
 
-    jsonWorkflow = workflow.asJson()
+    jsonWorkflow = workflow.as_json()
     with open('dataflow-demo-docker.json', 'w') as outfile:
         stringWorkflow = json.dumps(jsonWorkflow, sort_keys=True, indent=2)
         outfile.write(stringWorkflow)

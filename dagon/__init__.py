@@ -1,5 +1,6 @@
 import logging
 import logging.config
+import os
 from logging.config import fileConfig
 from logging.config import dictConfig
 from types import NoneType
@@ -17,6 +18,7 @@ from dagon.batch import Slurm
 from dagon.docker_task import DockerRemoteTask
 
 from config import read_config
+from dagon.remote import RemoteTask
 
 
 class Status(Enum):
@@ -28,7 +30,6 @@ class Status(Enum):
 
 
 class Workflow(object):
-
     SCHEMA = "workflow://"
 
     def __init__(self, name, config=None, config_file=None):
@@ -66,11 +67,15 @@ class Workflow(object):
         if self.regist_on_api:
             try:
                 self.id = self.api.create_workflow(self)
+                """if "dagon_ip" in self.cfg and "ip" in self.cfg['dagon_ip']:
+                    self.connection = Connection(self)
+                    #self.connection.send_str(self.id)
+                    #self.connection.start()"""
                 self.logger.debug("Workflow registration success id = %s" % self.id)
             except Exception, e:
                 raise Exception(e)
 
-        port = Connection.find_port()
+        """port = Connection.find_port()
         config_ip = None
         if "dagon_ip" in self.cfg and "ip" in self.cfg['dagon_ip']:
             config_ip = self.cfg['dagon_ip']['ip']
@@ -81,7 +86,7 @@ class Workflow(object):
         self.url = "%s:%d" % (Connection.find_ip_public(), port)
         if not Connection.check_url(self.url):
             self.url = "%s:%d" % (ip, port)
-        self.logger.debug("Workflow server URL %s", self.url)
+        self.logger.debug("Workflow server URL %s", self.url)"""
 
     def get_dry(self):
         return self.dry
@@ -128,7 +133,7 @@ class Workflow(object):
             task.pre_run()
 
     # Return a json representation of the workflow
-    def asJson(self):
+    def as_json(self):
         jsonWorkflow = {"tasks": {}, "name": self.name, "id": self.id}
         for task in self.tasks:
             jsonWorkflow['tasks'][task.name] = task.as_json()
@@ -139,14 +144,14 @@ class Workflow(object):
         for task in self.tasks:
             task.start()
 
-        for task in self.tasks:
-            task.join()
+        """for task in self.tasks:
+            task.join()"""
 
-        try:
+        """try:
             self.workflow_server.shutdown()
         except Exception, e:
             print e
-            self.logger.debug("Server stopped %s", self.name)
+            self.logger.debug("Server stopped %s", self.name)"""
 
     def draw(self):
         g = Digraph(self.name)
@@ -173,6 +178,7 @@ class DataMover(Enum):
 class ProtocolStatus(Enum):
     ACTIVE = "active"
     DISACTIVE = "none"
+    INACTIVE = "inactive"
 
 
 class Stager(object):
@@ -188,22 +194,19 @@ class Stager(object):
         dst_task_info = dst_task.get_info()
         src_task_info = src_task.get_info()
 
-        if ((src_task.__class__ is Slurm or src_task.__class__ is Batch) and
-            (dst_task.__class__ is Batch or dst_task.__class__ is Slurm)):
-            data_mover = DataMover.LINK
-        elif dst_task_info is not None and src_task_info is not None:  # check transference protocols and remote machine info if is availabel
+
+        # check transference protocols and remote machine info if is available
+        if dst_task_info is not None and src_task_info is not None:
             if dst_task_info['ip'] == src_task_info['ip']:
                 data_mover = DataMover.LINK
             else:
                 protocols = ["GRIDFTP", "SCP", "FTP"]
                 for p in protocols:
-                    if ProtocolStatus(src_task_info[p]) is ProtocolStatus.ACTIVE and \
-                            ProtocolStatus(dst_task_info[p]) is ProtocolStatus.ACTIVE:
+                    if ProtocolStatus(src_task_info[p]) is ProtocolStatus.ACTIVE:
                         data_mover = DataMover[p]
                         break
-        else: #best effort (SCP)
-            data_mover = DataMover.SCP
-
+        else:  # best effort (SCP)
+            data_mover = DataMover.LINK
 
         # Check if the symbolic link have to be used...
         if data_mover == DataMover.LINK:
@@ -221,8 +224,35 @@ class Stager(object):
         elif data_mover == DataMover.SCP:
             # Add the copy command
             command = command + "# Add the secure copy command\n"
-            command = command + "scp -r " + src_task.get_user() + "@" + src_task.get_ip() + ":" + src_task.get_scratch_dir() + "/" + local_path + " " + dst_path + "/" + local_path + "\n\n"
+            if isinstance(src_task, RemoteTask):  # if source is accesible from dest machine
+                # copy my public key
+                key = dst_task.get_public_key()
+                src_task.add_public_key(key)
+
+                command = command + "scp -o \"StrictHostKeyChecking no\" -i " + dst_task.working_dir + \
+                          "/.dagon/ssh_key -r " + src_task.get_user() + "@" + src_task.get_ip() + ":" + \
+                          src_task.get_scratch_dir() + "/" + local_path + " " + dst_path + "/" + local_path + "\n\n"
+                command += "\nif [ $? -ne 0 ]; then code=1; fi"
+                #command += "\n rm " + dst_task.working_dir + "/.dagon/ssh_key"
+            else:  # if source is a local machine
+                # copy my public key
+                key = src_task.get_public_key()
+                dst_task.add_public_key(key)
+
+                command_mkdir = "mkdir -p " + dst_path + "/" + os.path.dirname(local_path) + "\n\n"
+                res = dst_task.ssh_connection.execute_command(command_mkdir)
+
+                if res['code']:
+                    raise Exception("Couldn't create directory %s" % dst_path + "/" + os.path.dirname(local_path))
+
+                command_local = "scp -o \"StrictHostKeyChecking no\" -i " + src_task.working_dir + \
+                                "/.dagon/ssh_key -r " + src_task.get_scratch_dir() + "/" + local_path + " " + \
+                                dst_task.get_user() + "@" + dst_task.get_ip() + ":" + dst_path + \
+                                "/" + local_path + "\n\n"
+                res = src_task.execute_command(command_local)
+
+                if res['code']:
+                    raise Exception("Couldn't copy data from %s to %s" % (src_task.get_ip(), dst_task.get_ip()))
+        command += "\nif [ $? -ne 0 ]; then code=1; fi"
 
         return command
-
-

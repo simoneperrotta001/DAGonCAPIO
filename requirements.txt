@@ -9,3 +9,4 @@ apache-libcloud==2.3.0
 configparser==3.5.0
 flask
 Flask-API
+pycrypto

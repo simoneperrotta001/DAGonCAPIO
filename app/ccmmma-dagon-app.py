@@ -167,7 +167,7 @@ if __name__ == '__main__':
 
   workflow.make_dependencies()
 
-  jsonWorkflow=workflow.asJson()
+  jsonWorkflow=workflow.as_json()
   with open('wrf.json', 'w') as outfile:
     stringWorkflow=json.dumps(jsonWorkflow,sort_keys=True, indent=2)
     outfile.write(stringWorkflow)

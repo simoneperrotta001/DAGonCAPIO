@@ -1,3 +1,4 @@
+from dagon import Batch
 from dagon.remote import RemoteTask
 from dockercontainer.container import Container
 from dockercontainer.docker_client import DockerClient
@@ -28,6 +29,26 @@ class LocalDockerTask(Task):
         json_task['command'] = self.command
         return json_task
 
+    # process the command to execute
+    """def process_body_command(self, body, arg, dst_path, local_path):
+        print body
+        body = Task.process_body_command(body, arg, dst_path, local_path)
+        body = self.container.exec_in_cont(body)
+        return body"""
+
+    def include_command(self, body):
+        body = super(LocalDockerTask, self).include_command(body)
+        body = "cd " + self.working_dir + ";" + body
+        body = self.container.exec_in_cont(body) + "\n"
+        return body
+
+    # Method execute
+    def execute(self):
+        if self.container is None:
+            self.container_id = self.create_container() if self.container_id is None else self.container_id
+            self.container = Container(self.container_id.rstrip(), self.docker_client)
+        super(LocalDockerTask, self).execute()
+
     # Create a Docker container
     def create_container(self):
         command = DockerClient.form_string_cont_creation(image=self.image, detach=True,
@@ -36,7 +57,7 @@ class LocalDockerTask(Task):
         result = self.docker_client.exec_command(command)
         if result['code']:
             raise Exception(self.result["message"].rstrip())
-        return result['message']
+        return result['output']
 
     def remove_container(self):
         self.container.stop()
@@ -46,12 +67,8 @@ class LocalDockerTask(Task):
     def on_execute(self, launcher_script, script_name):
         # Invoke the base method
         Task.on_execute(self, launcher_script, script_name)
-        if self.container is None:
-            self.container_id = self.create_container() if self.container_id is None else self.container_id
-            self.container = Container(self.container_id, self.docker_client)
-
-        return self.container.exec_in_cont(self.working_dir + "/.dagon/" + script_name)
-        # return self.docker_client.exec_command(self.working_dir + "/.dagon/" + script_name)
+        return Batch.execute_command("bash " + self.working_dir + "/.dagon/" + script_name)
+        # return self.docker_client.exec_command(self.working_dir + "/.dagon/" + script_name)"""
 
     def on_garbage(self):
         super(LocalDockerTask, self).on_garbage()
@@ -69,17 +86,14 @@ class DockerRemoteTask(LocalDockerTask, RemoteTask):
         self.docker_client = DockerRemoteClient(self.ssh_connection)
 
     def on_execute(self, launcher_script, script_name):
-        # Invoke the base method
         RemoteTask.on_execute(self, launcher_script, script_name)
-        self.container_id = self.create_container().rstrip() if self.container_id is None else self.container_id
-        self.container = Container(self.container_id, self.docker_client)
-        if script_name == "context.sh":
-            return self.ssh_connection.execute_command("bash " + self.working_dir + "/.dagon/" + script_name)
-        return self.container.exec_in_cont(self.working_dir + "/.dagon/" + script_name)
+        return self.ssh_connection.execute_command("bash " + self.working_dir + "/.dagon/" + script_name)
 
     def on_garbage(self):
         RemoteTask.on_garbage(self)
         self.remove_container()
+
+
 
 
 class DockerTask(Task):
@@ -90,7 +104,6 @@ class DockerTask(Task):
 
     def __new__(cls, name, command, image,  container_id=None, ip=None, port=None, ssh_username=None, keypath=None,
                 working_dir=None, local_working_dir=None, endpoint=None, remove=True):
-        print image
         is_remote = ip is not None
         if is_remote:
             return DockerRemoteTask(name, command, image=image, container_id=container_id, ip=ip,

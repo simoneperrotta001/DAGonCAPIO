@@ -12,9 +12,10 @@ class API:
 
     # check if the service URL is valid or a service is available
     def checkConnection(self):
+        print self.base_url
         try:
-            requests.get(self.base_url)
-        except ConnectionError:
+            requests.head(self.base_url)
+        except ConnectionError, e:
             raise ConnectionError("It is not possible connect to the URL %s" % self.base_url)
         except MissingSchema:
             raise ConnectionError("Bad URL %s" % self.base_url)

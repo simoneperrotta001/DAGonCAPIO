@@ -15,13 +15,13 @@ if __name__ == '__main__':
   }
 
   # Create the orchestration workflow
-  workflow=Workflow("DataFlow-Demo",config)
+  workflow=Workflow("DataFlow-Demo")
 
   # Set the dry
   workflow.set_dry(False)
   
   # The task a
-  taskA=batch.Slurm("A","mkdir output;hostname > output/f1.txt","testing",1)
+  taskA=batch.Slurm("A","mkdir output;hostname > output/f1.txt","hicpu",1)
   
   # The task b
   taskB=batch.Slurm("B","echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt","testing",1)
@@ -40,7 +40,7 @@ if __name__ == '__main__':
 
   workflow.make_dependencies()
 
-  jsonWorkflow=workflow.asJson()
+  jsonWorkflow=workflow.as_json()
   with open('dataflow-demo-slurm.json', 'w') as outfile:
     stringWorkflow=json.dumps(jsonWorkflow,sort_keys=True, indent=2)
     outfile.write(stringWorkflow)

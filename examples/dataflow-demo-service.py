@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
 
 
-    jsonWorkflow = workflow.asJson()
+    jsonWorkflow = workflow.as_json()
     with open('dataflow-demo.json', 'w') as outfile:
         stringWorkflow = json.dumps(jsonWorkflow, sort_keys=True, indent=2)
         outfile.write(stringWorkflow)
