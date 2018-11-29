@@ -1,0 +1,848 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>dagon.task &mdash; DagOn* 0.0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> DagOn*
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">DagOn*</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../dagon.html">dagon</a> &raquo;</li>
+        
+      <li>dagon.task</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for dagon.task</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">from</span> <span class="nn">json</span> <span class="k">import</span> <span class="n">loads</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="k">import</span> <span class="n">Thread</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">makedirs</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">chmod</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="k">import</span> <span class="n">time</span><span class="p">,</span> <span class="n">sleep</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="k">import</span> <span class="n">Enum</span>
+
+<span class="kn">import</span> <span class="nn">dagon</span>
+
+<div class="viewcode-block" id="Types"><a class="viewcode-back" href="../../index.html#dagon.task.Types">[docs]</a><span class="k">class</span> <span class="nc">Types</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Enum used to represent the main types tasks supported by dagon,</span>
+<span class="sd">    remote tasks are supported by the RemoteClass but it shouln&#39;d be</span>
+<span class="sd">    explicitly instantiate</span>
+
+<span class="sd">    :cvar BATCH: Regular Batch task (local or remote)</span>
+<span class="sd">    :cvar SLURM: Task executed using Slurm (local or remote)</span>
+<span class="sd">    :cvar CLOUD: Task executed in a cloud instance (ec2, digital ocean and google cloud  tested with libcloud)</span>
+<span class="sd">    :cvar DOCKER: Task executed on a docker container (local or remote)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">BATCH</span> <span class="o">=</span> <span class="s2">&quot;batch&quot;</span>
+    <span class="n">SLURM</span> <span class="o">=</span> <span class="s2">&quot;slurm&quot;</span>
+    <span class="n">CLOUD</span> <span class="o">=</span> <span class="s2">&quot;cloud&quot;</span>
+    <span class="n">DOCKER</span> <span class="o">=</span> <span class="s2">&quot;docker&quot;</span></div>
+
+
+<span class="c1"># Different types os tasks and their module and class name</span>
+<span class="n">tasks_types</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">Types</span><span class="o">.</span><span class="n">BATCH</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dagon.batch&quot;</span><span class="p">,</span> <span class="s2">&quot;Batch&quot;</span><span class="p">),</span>
+    <span class="n">Types</span><span class="o">.</span><span class="n">CLOUD</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dagon.remote&quot;</span><span class="p">,</span> <span class="s2">&quot;CloudTask&quot;</span><span class="p">),</span>
+    <span class="n">Types</span><span class="o">.</span><span class="n">DOCKER</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dagon.docker_task&quot;</span><span class="p">,</span> <span class="s2">&quot;DockerTask&quot;</span><span class="p">),</span>
+    <span class="n">Types</span><span class="o">.</span><span class="n">SLURM</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dagon.batch&quot;</span><span class="p">,</span> <span class="s2">&quot;Slurm&quot;</span><span class="p">)</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="Task"><a class="viewcode-back" href="../../index.html#dagon.task.Task">[docs]</a><span class="k">class</span> <span class="nc">Task</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    **Represents a task executed by DagOn**</span>
+
+<span class="sd">    It can be executed on local machine, cloud instance, cluster or in a docker container</span>
+
+<span class="sd">    :ivar name: unique name of the class</span>
+<span class="sd">    :ivar command: command to be executed</span>
+<span class="sd">    :ivar working_dir: path to the folder or directory where the task is going to be executed</span>
+<span class="sd">    :ivar nexts: tasks with dependencies to this tasks, that will be executed when this task ends</span>
+<span class="sd">    :ivar prevs: tasks that has to be executed before of this task (dependencies to be resolved)</span>
+<span class="sd">    :ivar reference_count: number of references to this task</span>
+<span class="sd">    :ivar remove_scratch_dir: True if the sratch directory has to be removed after the execution of this task</span>
+<span class="sd">    :ivar running: True if the task is in execution</span>
+<span class="sd">    :ivar workflow: workflow related to this task</span>
+<span class="sd">    :ivar status: actual :class:`dagon.Status` of the task</span>
+<span class="sd">    :ivar info: information of the enviroment where this task is going to be executed</span>
+<span class="sd">    :ivar endpoint: globus endpoint id (only used when :class:`dagon.DataMover` is DataMover)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">working_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param name: Name of the task</span>
+<span class="sd">        :param command: Command to be executed by the task</span>
+<span class="sd">        :param working_dir: Path to the directory where the task is be executed</span>
+<span class="sd">        :param endpoint: Globus Endpoint ID</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">Thread</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nexts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prevs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reference_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_scratch_dir</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">endpoint</span> <span class="o">=</span> <span class="n">endpoint</span>  <span class="c1"># globus endpoint id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="n">dagon</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">READY</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">working_dir</span> <span class="o">=</span> <span class="n">working_dir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">command</span> <span class="o">=</span> <span class="n">command</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1">#def __new__(cls, type, *args, **kwargs):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Choose the task type and returns an instance of the task type class</span>
+<span class="sd">        :param type: type of the task (:class:`Types`)</span>
+<span class="sd">        :param args: arguments of the task</span>
+<span class="sd">        :param kwargs: keyboard arguments of the task</span>
+<span class="sd">        :return: instance of the right class</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># choise the right class</span>
+    <span class="c1">#    return type.value</span>
+
+<div class="viewcode-block" id="Task.get_endpoint"><a class="viewcode-back" href="../../index.html#dagon.task.Task.get_endpoint">[docs]</a>    <span class="k">def</span> <span class="nf">get_endpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the globus ID endpoint</span>
+
+<span class="sd">        :return: Globus ID endpoint</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">endpoint</span></div>
+
+<div class="viewcode-block" id="Task.set_info"><a class="viewcode-back" href="../../index.html#dagon.task.Task.set_info">[docs]</a>    <span class="k">def</span> <span class="nf">set_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">info</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Change the information of the machine where the task is going to be executed. The information is used by</span>
+<span class="sd">        :class:`dagon.Stager` to decide the data transfer protocol/application</span>
+
+<span class="sd">        :param info: Machine info (ip, protocols, username)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span> <span class="o">=</span> <span class="n">info</span></div>
+
+<div class="viewcode-block" id="Task.get_ip"><a class="viewcode-back" href="../../index.html#dagon.task.Task.get_ip">[docs]</a>    <span class="k">def</span> <span class="nf">get_ip</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the ip of the machine where the task is executed</span>
+
+<span class="sd">        :return: IP address</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;ip&quot;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Task.get_info"><a class="viewcode-back" href="../../index.html#dagon.task.Task.get_info">[docs]</a>    <span class="k">def</span> <span class="nf">get_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the complete information of the machine where the task is executed</span>
+
+<span class="sd">        :return: Machine information collected</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">info</span></div>
+
+<div class="viewcode-block" id="Task.get_user"><a class="viewcode-back" href="../../index.html#dagon.task.Task.get_user">[docs]</a>    <span class="k">def</span> <span class="nf">get_user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the username who execute the task on the remote machine</span>
+
+<span class="sd">        :return: Unix Username</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;user&quot;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Task.get_scratch_dir"><a class="viewcode-back" href="../../index.html#dagon.task.Task.get_scratch_dir">[docs]</a>    <span class="k">def</span> <span class="nf">get_scratch_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the task&#39;s scratch directory as soon as it&#39;s available</span>
+
+<span class="sd">        :return: Absolute path to the scratch directory</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_dir</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">dagon</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">FAILED</span><span class="p">:</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_dir</span></div>
+
+<div class="viewcode-block" id="Task.get_scratch_name"><a class="viewcode-back" href="../../index.html#dagon.task.Task.get_scratch_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_scratch_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates a unique name for the task scratch directory name</span>
+
+<span class="sd">        :return: Name of the scratch directory</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">millis</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">time</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">))</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">millis</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;-&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span></div>
+
+
+<div class="viewcode-block" id="Task.as_json"><a class="viewcode-back" href="../../index.html#dagon.task.Task.as_json">[docs]</a>    <span class="k">def</span> <span class="nf">as_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;&quot;</span>
+<span class="sd">        Generates the JSON representation of the task</span>
+
+<span class="sd">        :return: JSON task representation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">json_task</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                     <span class="s2">&quot;working_dir&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_dir</span><span class="p">,</span> <span class="s2">&quot;nexts&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;prevs&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nexts</span><span class="p">:</span>
+            <span class="n">json_task</span><span class="p">[</span><span class="s1">&#39;nexts&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">prevs</span><span class="p">:</span>
+            <span class="n">json_task</span><span class="p">[</span><span class="s1">&#39;prevs&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">json_task</span></div>
+
+
+<div class="viewcode-block" id="Task.set_workflow"><a class="viewcode-back" href="../../index.html#dagon.task.Task.set_workflow">[docs]</a>    <span class="k">def</span> <span class="nf">set_workflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workflow</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the workflow which execute this task</span>
+
+<span class="sd">        :param workflow: :class:`dagon.Workflow` instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span> <span class="o">=</span> <span class="n">workflow</span></div>
+
+    <span class="c1"># Set the current status</span>
+    <span class="k">def</span> <span class="nf">set_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">status</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">regist_on_api</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">update_task_status</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">status</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Task.add_dependency_to"><a class="viewcode-back" href="../../index.html#dagon.task.Task.add_dependency_to">[docs]</a>    <span class="k">def</span> <span class="nf">add_dependency_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a dependency to other task</span>
+
+<span class="sd">        :param task: :class:`dagon.task.Task` instance dependency</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">task</span><span class="o">.</span><span class="n">nexts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prevs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">regist_on_api</span><span class="p">:</span>  <span class="c1"># add in the server</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">add_dependency</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
+
+    <span class="c1"># Increment the reference count</span>
+<div class="viewcode-block" id="Task.increment_reference_count"><a class="viewcode-back" href="../../index.html#dagon.task.Task.increment_reference_count">[docs]</a>    <span class="k">def</span> <span class="nf">increment_reference_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Increments the reference count</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reference_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reference_count</span> <span class="o">+</span> <span class="mi">1</span></div>
+
+    <span class="c1"># Call garbage collector (remove scratch directory, container, cloud instace, etc)</span>
+    <span class="c1"># implemented by each task class</span>
+<div class="viewcode-block" id="Task.on_garbage"><a class="viewcode-back" href="../../index.html#dagon.task.Task.on_garbage">[docs]</a>    <span class="k">def</span> <span class="nf">on_garbage</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Call garbage collector, removing the scratch directory, containers and instances related to the</span>
+<span class="sd">        task</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">working_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_dir</span> <span class="o">+</span> <span class="s2">&quot;-removed&quot;</span><span class="p">)</span></div>
+
+    <span class="c1"># Decremet the reference count</span>
+<div class="viewcode-block" id="Task.decrement_reference_count"><a class="viewcode-back" href="../../index.html#dagon.task.Task.decrement_reference_count">[docs]</a>    <span class="k">def</span> <span class="nf">decrement_reference_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Decremet the reference count. When the number of references is equals to zero, the garbage collector is called</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reference_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reference_count</span> <span class="o">-</span> <span class="mi">1</span>
+
+        <span class="c1"># Check if the scratch directory must be removed</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reference_count</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_scratch_dir</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="c1"># Call garbage collector (remove scratch directory, container, cloud instace, etc)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_garbage</span><span class="p">()</span>
+            <span class="c1"># Perform some logging</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Removed </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_dir</span><span class="p">)</span></div>
+
+    <span class="c1"># Method overrided</span>
+<div class="viewcode-block" id="Task.pre_run"><a class="viewcode-back" href="../../index.html#dagon.task.Task.pre_run">[docs]</a>    <span class="k">def</span> <span class="nf">pre_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Resolve task dependencies</span>
+<span class="sd">        For each workflow:// in the command string</span>
+<span class="sd">        1) Extract the referenced task</span>
+<span class="sd">        2) Add a reference in the referenced task</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Index of the starting position</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># Forever unless no anymore dagon.Workflow.SCHEMA are present</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="c1"># Get the position of the next dagon.Workflow.SCHEMA</span>
+            <span class="n">pos1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">dagon</span><span class="o">.</span><span class="n">Workflow</span><span class="o">.</span><span class="n">SCHEMA</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+
+            <span class="c1"># Check if there is no dagon.Workflow.SCHEMA</span>
+            <span class="k">if</span> <span class="n">pos1</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="c1"># Exit the forever cycle</span>
+                <span class="k">break</span>
+
+            <span class="c1"># Find the first occurrent of a whitespace (or if no occurrence means the end of the string)</span>
+            <span class="n">pos2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">pos1</span><span class="p">)</span>
+
+            <span class="c1"># Check if this is the last referenced argument</span>
+            <span class="k">if</span> <span class="n">pos2</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">pos2</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="p">)</span>
+
+            <span class="c1"># Extract the parameter string</span>
+            <span class="n">arg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="p">[</span><span class="n">pos1</span><span class="p">:</span><span class="n">pos2</span><span class="p">]</span>
+
+            <span class="c1"># Remove the dagon.Workflow.SCHEMA label</span>
+            <span class="n">arg</span> <span class="o">=</span> <span class="n">arg</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">dagon</span><span class="o">.</span><span class="n">Workflow</span><span class="o">.</span><span class="n">SCHEMA</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Split each argument in elements by the slash</span>
+            <span class="n">elements</span> <span class="o">=</span> <span class="n">arg</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Extract the referenced task&#39;s workflow name</span>
+            <span class="n">workflow_name</span> <span class="o">=</span> <span class="n">elements</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="c1"># The task name is the first element</span>
+            <span class="n">task_name</span> <span class="o">=</span> <span class="n">elements</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="c1"># Set the default workflow name if needed</span>
+            <span class="k">if</span> <span class="n">workflow_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">workflow_name</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                <span class="n">workflow_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">name</span>
+
+            <span class="c1"># Extract the reference task object</span>
+            <span class="n">task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">find_task_by_name</span><span class="p">(</span><span class="n">workflow_name</span><span class="p">,</span> <span class="n">task_name</span><span class="p">)</span>
+
+            <span class="c1"># Check if the refernced task is consistent</span>
+            <span class="k">if</span> <span class="n">task</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Add the dependency to the task</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_dependency_to</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+
+                <span class="c1"># Add the reference from the task</span>
+                <span class="n">task</span><span class="o">.</span><span class="n">increment_reference_count</span><span class="p">()</span>
+
+            <span class="c1"># Go to the next element</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="n">pos2</span></div>
+
+    <span class="c1"># Pre process command</span>
+    <span class="k">def</span> <span class="nf">pre_process_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">):</span>
+
+        <span class="n">stager</span> <span class="o">=</span> <span class="n">dagon</span><span class="o">.</span><span class="n">Stager</span><span class="p">()</span>
+
+        <span class="c1"># Initialize the script</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="s2">&quot;#! /bin/bash</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">header</span> <span class="o">+</span> <span class="s2">&quot;# This is the DagOn launcher script</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">header</span> <span class="o">+</span> <span class="s2">&quot;code=0</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="c1"># Add and execute the howim script</span>
+
+        <span class="n">context_script</span> <span class="o">=</span> <span class="n">header</span> <span class="o">+</span> <span class="s2">&quot;cd &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_dir</span> <span class="o">+</span> <span class="s2">&quot;/.dagon</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">context_script</span> <span class="o">+=</span> <span class="n">header</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_how_im_script</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_execute</span><span class="p">(</span><span class="n">context_script</span><span class="p">,</span> <span class="s2">&quot;context.sh&quot;</span><span class="p">)</span>  <span class="c1"># execute context script</span>
+        <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;code&#39;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_info</span><span class="p">(</span><span class="n">loads</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">]))</span>
+
+        <span class="c1">### start the creation of the launcher.sh script</span>
+        <span class="c1"># Create the header</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">header</span> <span class="o">+</span> <span class="s2">&quot;# Change the current directory to the working directory</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">header</span> <span class="o">+</span> <span class="s2">&quot;cd &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_dir</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">header</span> <span class="o">+</span> <span class="s2">&quot;if [ $? -ne 0 ]; then code=1; fi </span><span class="se">\n\n</span><span class="s2">&quot;</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">header</span> <span class="o">+</span> <span class="s2">&quot;# Start staging in</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+
+        <span class="c1"># Create the body</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="n">command</span>
+
+        <span class="c1"># Index of the starting position</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># Forever unless no anymore dagon.Workflow.SCHEMA are present</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+
+            <span class="c1"># Get the position of the next dagon.Workflow.SCHEcdMA</span>
+            <span class="n">pos1</span> <span class="o">=</span> <span class="n">command</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">dagon</span><span class="o">.</span><span class="n">Workflow</span><span class="o">.</span><span class="n">SCHEMA</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+
+            <span class="c1"># Check if there is no dagon.Workflow.SCHEMA</span>
+            <span class="k">if</span> <span class="n">pos1</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="c1"># Exit the forever cycle</span>
+                <span class="k">break</span>
+
+            <span class="c1"># Find the first occurrent of a whitespace (or if no occurrence means the end of the string)</span>
+            <span class="n">pos2</span> <span class="o">=</span> <span class="n">command</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">pos1</span><span class="p">)</span>
+
+            <span class="c1"># Check if this is the last referenced argument</span>
+            <span class="k">if</span> <span class="n">pos2</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">pos2</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+
+            <span class="c1"># Extract the parameter string</span>
+            <span class="n">arg</span> <span class="o">=</span> <span class="n">command</span><span class="p">[</span><span class="n">pos1</span><span class="p">:</span><span class="n">pos2</span><span class="p">]</span>
+
+            <span class="c1"># Remove the dagon.Workflow.SCHEMA label</span>
+            <span class="n">arg</span> <span class="o">=</span> <span class="n">arg</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">dagon</span><span class="o">.</span><span class="n">Workflow</span><span class="o">.</span><span class="n">SCHEMA</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Split each argument in elements by the slash</span>
+            <span class="n">elements</span> <span class="o">=</span> <span class="n">arg</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Extract the referenced task&#39;s workflow name</span>
+            <span class="n">workflow_name</span> <span class="o">=</span> <span class="n">elements</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="c1"># The task name is the first element</span>
+            <span class="n">task_name</span> <span class="o">=</span> <span class="n">elements</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="c1"># Get the rest of the string as local path</span>
+            <span class="n">local_path</span> <span class="o">=</span> <span class="n">arg</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">workflow_name</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="n">task_name</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Set the default workflow name if needed</span>
+            <span class="k">if</span> <span class="n">workflow_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">workflow_name</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                <span class="n">workflow_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">name</span>
+
+            <span class="c1"># Extract the reference task object</span>
+            <span class="n">task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">find_task_by_name</span><span class="p">(</span><span class="n">workflow_name</span><span class="p">,</span> <span class="n">task_name</span><span class="p">)</span>
+
+            <span class="c1"># Check if the refernced task is consistent</span>
+            <span class="k">if</span> <span class="n">task</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Evaluate the destiation path</span>
+                <span class="n">dst_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_dir</span> <span class="o">+</span> <span class="s2">&quot;/.dagon/inputs/&quot;</span> <span class="o">+</span> <span class="n">workflow_name</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="n">task_name</span>
+
+                <span class="c1"># Create the destination directory</span>
+                <span class="n">header</span> <span class="o">=</span> <span class="n">header</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2"># Create the destination directory</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">header</span> <span class="o">=</span> <span class="n">header</span> <span class="o">+</span> <span class="s2">&quot;mkdir -p &quot;</span> <span class="o">+</span> <span class="n">dst_path</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">local_path</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">header</span> <span class="o">=</span> <span class="n">header</span> <span class="o">+</span> <span class="s2">&quot;if [ $? -ne 0 ]; then code=1; fi</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+                <span class="c1"># Add the move data command</span>
+                <span class="n">header</span> <span class="o">=</span> <span class="n">header</span> <span class="o">+</span> <span class="n">stager</span><span class="o">.</span><span class="n">stage_in</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">,</span> <span class="n">local_path</span><span class="p">)</span>
+
+                <span class="c1"># Change the body of the command</span>
+                <span class="n">body</span> <span class="o">=</span> <span class="n">body</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">dagon</span><span class="o">.</span><span class="n">Workflow</span><span class="o">.</span><span class="n">SCHEMA</span> <span class="o">+</span> <span class="n">arg</span><span class="p">,</span> <span class="n">dst_path</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="n">local_path</span><span class="p">)</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="n">pos2</span>
+
+        <span class="c1"># Invoke the command</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">header</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2"># Invoke the command</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">header</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">include_command</span><span class="p">(</span><span class="n">body</span><span class="p">)</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">header</span> <span class="o">+</span> <span class="s2">&quot;if [ $? -ne 0 ]; then code=1; fi&quot;</span>
+        <span class="k">return</span> <span class="n">header</span>
+
+    <span class="c1"># process the command to execute</span>
+<div class="viewcode-block" id="Task.include_command"><a class="viewcode-back" href="../../index.html#dagon.task.Task.include_command">[docs]</a>    <span class="k">def</span> <span class="nf">include_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">body</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Include the command to execute in the script body</span>
+<span class="sd">        :param body: Script body</span>
+<span class="sd">        :return: Script body with the command</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">body</span> <span class="o">+</span> <span class="s2">&quot; |tee &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_dir</span> <span class="o">+</span> <span class="s2">&quot;/.dagon/stdout.txt</span><span class="se">\n</span><span class="s2">&quot;</span></div>
+
+    <span class="c1"># Post process the command</span>
+<div class="viewcode-block" id="Task.post_process_command"><a class="viewcode-back" href="../../index.html#dagon.task.Task.post_process_command">[docs]</a>    <span class="k">def</span> <span class="nf">post_process_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add some post process commands after the task execution</span>
+<span class="sd">        :param command: Command to be executed</span>
+<span class="sd">        :return: Command post-processed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">footer</span> <span class="o">=</span> <span class="n">command</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+        <span class="n">footer</span> <span class="o">=</span> <span class="n">footer</span> <span class="o">+</span> <span class="s2">&quot;# Perform post process</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">footer</span> <span class="o">+=</span> <span class="s2">&quot;exit $code&quot;</span>
+        <span class="k">return</span> <span class="n">footer</span></div>
+
+    <span class="c1"># Method to be overrided</span>
+<div class="viewcode-block" id="Task.on_execute"><a class="viewcode-back" href="../../index.html#dagon.task.Task.on_execute">[docs]</a>    <span class="k">def</span> <span class="nf">on_execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">script</span><span class="p">,</span> <span class="n">script_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Execute the task script</span>
+<span class="sd">        :param script: Script to be executed</span>
+<span class="sd">        :param script_name: Filename to save the script</span>
+<span class="sd">        :return: Execution result</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># The launcher script name</span>
+        <span class="n">script_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_dir</span> <span class="o">+</span> <span class="s2">&quot;/.dagon/&quot;</span> <span class="o">+</span> <span class="n">script_name</span>
+
+        <span class="c1"># Create a temporary launcher script</span>
+        <span class="n">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">script_name</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">script</span><span class="p">)</span>
+        <span class="n">file</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">chmod</span><span class="p">(</span><span class="n">script_name</span><span class="p">,</span> <span class="mi">0744</span><span class="p">)</span></div>
+
+
+
+    <span class="c1"># create path using mkdirs</span>
+<div class="viewcode-block" id="Task.mkdir_working_dir"><a class="viewcode-back" href="../../index.html#dagon.task.Task.mkdir_working_dir">[docs]</a>    <span class="k">def</span> <span class="nf">mkdir_working_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make the working directory</span>
+
+<span class="sd">        :param path: Path to the working directory</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Task.create_working_dir"><a class="viewcode-back" href="../../index.html#dagon.task.Task.create_working_dir">[docs]</a>    <span class="k">def</span> <span class="nf">create_working_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create the working directory</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Set a scratch directory as working directory</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">working_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">get_scratch_dir_base</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_scratch_name</span><span class="p">()</span>
+
+            <span class="c1"># Set to remove the scratch directory</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">remove_scratch_dir</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># Create scratch directory</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mkdir_working_dir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">working_dir</span> <span class="o">+</span> <span class="s2">&quot;/.dagon&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Scratch directory: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_dir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">regist_on_api</span><span class="p">:</span>  <span class="c1"># change scratch directory on server</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">update_task</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;working_dir&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_dir</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Error updating scratch directory on server </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Task.remove_reference_workflow"><a class="viewcode-back" href="../../index.html#dagon.task.Task.remove_reference_workflow">[docs]</a>    <span class="k">def</span> <span class="nf">remove_reference_workflow</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Remove the reference</span>
+<span class="sd">        For each workflow:// in the command</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Remove the reference</span>
+        <span class="c1"># For each workflow:// in the command</span>
+
+        <span class="c1"># Index of the starting position</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># Forever unless no anymore dagon.Workflow.SCHEMA are present</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="c1"># Get the position of the next dagon.Workflow.SCHEMA</span>
+            <span class="n">pos1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">dagon</span><span class="o">.</span><span class="n">Workflow</span><span class="o">.</span><span class="n">SCHEMA</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+
+            <span class="c1"># Check if there is no dagon.Workflow.SCHEMA</span>
+            <span class="k">if</span> <span class="n">pos1</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="c1"># Exit the forever cycle</span>
+                <span class="k">break</span>
+
+            <span class="c1"># Find the first occurrent of a whitespace (or if no occurrence means the end of the string)</span>
+            <span class="n">pos2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">pos1</span><span class="p">)</span>
+
+            <span class="c1"># Check if this is the last referenced argument</span>
+            <span class="k">if</span> <span class="n">pos2</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">pos2</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="p">)</span>
+
+            <span class="c1"># Extract the parameter string</span>
+            <span class="n">arg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="p">[</span><span class="n">pos1</span><span class="p">:</span><span class="n">pos2</span><span class="p">]</span>
+
+            <span class="c1"># Remove the dagon.Workflow.SCHEMA label</span>
+            <span class="n">arg</span> <span class="o">=</span> <span class="n">arg</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">dagon</span><span class="o">.</span><span class="n">Workflow</span><span class="o">.</span><span class="n">SCHEMA</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Split each argument in elements by the slash</span>
+            <span class="n">elements</span> <span class="o">=</span> <span class="n">arg</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Extract the referenced task&#39;s workflow name</span>
+            <span class="n">workflow_name</span> <span class="o">=</span> <span class="n">elements</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="c1"># The task name is the first element</span>
+            <span class="n">task_name</span> <span class="o">=</span> <span class="n">elements</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="c1"># Set the default workflow name if needed</span>
+            <span class="k">if</span> <span class="n">workflow_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">workflow_name</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                <span class="n">workflow_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">name</span>
+
+            <span class="c1"># Extract the reference task object</span>
+            <span class="n">task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">find_task_by_name</span><span class="p">(</span><span class="n">workflow_name</span><span class="p">,</span> <span class="n">task_name</span><span class="p">)</span>
+
+            <span class="c1"># Check if the refernced task is consistent</span>
+            <span class="k">if</span> <span class="n">task</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Remove the reference from the task</span>
+                <span class="n">task</span><span class="o">.</span><span class="n">decrement_reference_count</span><span class="p">()</span>
+
+            <span class="c1"># Go to the next element</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="n">pos2</span></div>
+
+    <span class="c1"># Method execute</span>
+<div class="viewcode-block" id="Task.execute"><a class="viewcode-back" href="../../index.html#dagon.task.Task.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Execute the task</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_working_dir</span><span class="p">()</span>
+
+        <span class="c1"># Apply some command pre processing</span>
+        <span class="n">launcher_script</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pre_process_command</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="p">)</span>
+
+        <span class="c1"># Apply some command post processing</span>
+        <span class="n">launcher_script</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_process_command</span><span class="p">(</span><span class="n">launcher_script</span><span class="p">)</span>
+
+        <span class="c1"># Execute only if not dry</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">dry</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="c1"># Invoke the actual executor</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_execute</span><span class="p">(</span><span class="n">launcher_script</span><span class="p">,</span> <span class="s2">&quot;launcher.sh&quot;</span><span class="p">)</span>
+            <span class="c1"># Check if the execution failed</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;code&#39;</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Executable raised a execption &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_reference_workflow</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Task.run"><a class="viewcode-back" href="../../index.html#dagon.task.Task.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Runs the thread where the task will be executed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Change the status</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="n">dagon</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">WAITING</span><span class="p">)</span>
+
+            <span class="c1"># Wait for each previous tasks</span>
+            <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">prevs</span><span class="p">:</span>
+                <span class="n">task</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+
+            <span class="c1"># Check if one of the previous tasks crashed</span>
+            <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">prevs</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">dagon</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">FAILED</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="n">dagon</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">FAILED</span><span class="p">)</span>
+                    <span class="k">return</span>
+
+            <span class="c1"># Change the status</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="n">dagon</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">RUNNING</span><span class="p">)</span>
+
+            <span class="c1"># Execute the task Job</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Executing...&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Except: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="n">dagon</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">FAILED</span><span class="p">)</span>
+                <span class="k">return</span>
+            <span class="c1"># self.execute()</span>
+
+            <span class="c1"># Start all next task</span>
+            <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nexts</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">dagon</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">READY</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Starting task: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">task</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+                    <span class="k">except</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Task </span><span class="si">%s</span><span class="s2"> already started.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+            <span class="c1"># Change the status</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="n">dagon</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">FINISHED</span><span class="p">)</span>
+            <span class="k">return</span></div>
+
+<div class="viewcode-block" id="Task.get_how_im_script"><a class="viewcode-back" href="../../index.html#dagon.task.Task.get_how_im_script">[docs]</a>    <span class="k">def</span> <span class="nf">get_how_im_script</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create the script to get the context where the task will be executed</span>
+
+<span class="sd">        :return: Context script</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        </span>
+<span class="s2"># Initialize</span>
+<span class="s2">machine_type=&quot;none&quot;</span>
+<span class="s2">public_id=&quot;none&quot;</span>
+<span class="s2">user=&quot;none&quot;</span>
+<span class="s2">status_sshd=&quot;none&quot;</span>
+<span class="s2">status_ftpd=&quot;none&quot;</span>
+
+<span class="s2">#get http communication protocol</span>
+<span class="s2">curl_or_wget=$(if hash curl 2&gt;/dev/null; then echo &quot;curl&quot;; elif hash wget 2&gt;/dev/null; then echo &quot;wget&quot;; fi);</span>
+
+
+<span class="s2">if [ $curl_or_wget = &quot;wget&quot; ]; then </span>
+<span class="s2">  public_ip=`wget -q -O- https://ipinfo.io/ip` </span>
+<span class="s2">else</span>
+<span class="s2">  public_ip=`curl -s https://ipinfo.io/ip`</span>
+<span class="s2">fi</span>
+
+<span class="s2">if [ &quot;$public_ip&quot; == &quot;&quot; ]</span>
+<span class="s2">then</span>
+<span class="s2">  # The machine is a cluster frontend (or a single machine)</span>
+<span class="s2">  machine_type=&quot;cluster-frontend&quot;</span>
+<span class="s2">  public_ip=`ifconfig 2&gt;/dev/null| grep &quot;inet &quot;| grep -v &quot;127.0.0.1&quot;| awk &#39;{print $2}&#39;|grep -v &quot;192.168.&quot;|grep -v &quot;172.16.&quot;|grep -v &quot;10.&quot;|head -n 1`</span>
+<span class="s2">fi</span>
+
+<span class="s2">if [ &quot;$public_ip&quot; == &quot;&quot; ]</span>
+<span class="s2">then</span>
+<span class="s2">  # If no public ip is available, then it is a cluster node</span>
+<span class="s2">  machine_type=&quot;cluster-node&quot;</span>
+<span class="s2">  public_ip=`ifconfig 2&gt;/dev/null| grep &quot;inet &quot;| grep -v &quot;127.0.0.1&quot;| awk &#39;{print $2}&#39;|head -n 1`  </span>
+<span class="s2">fi</span>
+
+
+<span class="s2"># Check if the secure copy is available</span>
+<span class="s2">status_sshd=`systemctl status sshd 2&gt;/dev/null | grep &#39;Active&#39; | awk &#39;{print $2}&#39;`</span>
+<span class="s2">if [ &quot;$status_sshd&quot; == &quot;&quot; ]</span>
+<span class="s2">then</span>
+<span class="s2">  status_sshd=&quot;none&quot;</span>
+<span class="s2">fi</span>
+
+<span class="s2"># Check if the ftp is available</span>
+<span class="s2">status_ftpd=`systemctl status globus-gridftp-server 2&gt;/dev/null|grep &quot;Active&quot;| awk &#39;{print $2}&#39;`</span>
+<span class="s2">if [ &quot;$status_ftpd&quot; == &quot;&quot; ]</span>
+<span class="s2">then</span>
+<span class="s2">  status_ftpd=&quot;none&quot;</span>
+<span class="s2">fi</span>
+
+<span class="s2"># Check if the grid ftp is available</span>
+<span class="s2">status_gsiftpd=`systemctl status globus-gridftp-server 2&gt;/dev/null|grep &quot;Active&quot;| awk &#39;{print $2}&#39;`</span>
+<span class="s2">if [ &quot;$status_gsiftpd&quot; == &quot;&quot; ]</span>
+<span class="s2">then</span>
+<span class="s2">  status_gsiftpd=&quot;none&quot;</span>
+<span class="s2">fi</span>
+
+<span class="s2"># Get the user</span>
+<span class="s2">user=$USER</span>
+
+<span class="s2">yes no 2&gt;/dev/null | ssh-keygen  -b 2048 -t rsa -f ssh_key -q -N &quot;&quot;  &gt;/dev/null</span>
+
+<span class="s2"># Construct the json</span>
+<span class="s2">json=&quot;{</span><span class="se">\\\&quot;</span><span class="s2">type</span><span class="se">\\\&quot;</span><span class="s2">:</span><span class="se">\\\&quot;</span><span class="s2">$machine_type</span><span class="se">\\\&quot;</span><span class="s2">,</span><span class="se">\\\&quot;</span><span class="s2">ip</span><span class="se">\\\&quot;</span><span class="s2">:</span><span class="se">\\\&quot;</span><span class="s2">$public_ip</span><span class="se">\\\&quot;</span><span class="s2">,</span><span class="se">\\\&quot;</span><span class="s2">user</span><span class="se">\\\&quot;</span><span class="s2">:</span><span class="se">\\\&quot;</span><span class="s2">$user</span><span class="se">\\\&quot;</span><span class="s2">,</span><span class="se">\\\&quot;</span><span class="s2">SCP</span><span class="se">\\\&quot;</span><span class="s2">:</span><span class="se">\\\&quot;</span><span class="s2">$status_sshd</span><span class="se">\\\&quot;</span><span class="s2">,</span><span class="se">\\\&quot;</span><span class="s2">FTP</span><span class="se">\\\&quot;</span><span class="s2">:</span><span class="se">\\\&quot;</span><span class="s2">$status_ftpd</span><span class="se">\\\&quot;</span><span class="s2">,</span><span class="se">\\\&quot;</span><span class="s2">GRIDFTP</span><span class="se">\\\&quot;</span><span class="s2">:</span><span class="se">\\\&quot;</span><span class="s2">$status_gsiftpd</span><span class="se">\\\&quot;</span><span class="s2">}&quot;</span>
+<span class="s2">echo $json</span>
+<span class="s2">&quot;&quot;&quot;</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Raffaele Montella
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

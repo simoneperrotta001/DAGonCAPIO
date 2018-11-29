@@ -1,0 +1,365 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>dagon.batch &mdash; DagOn* 0.0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> DagOn*
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">DagOn*</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../dagon.html">dagon</a> &raquo;</li>
+        
+      <li>dagon.batch</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for dagon.batch</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">fabric.api</span> <span class="k">import</span> <span class="n">local</span><span class="p">,</span> <span class="n">env</span>
+<span class="kn">from</span> <span class="nn">fabric.context_managers</span> <span class="k">import</span> <span class="n">settings</span><span class="p">,</span> <span class="n">hide</span>
+
+<span class="kn">from</span> <span class="nn">task</span> <span class="k">import</span> <span class="n">Task</span>
+<span class="kn">from</span> <span class="nn">dagon.remote</span> <span class="k">import</span> <span class="n">RemoteTask</span>
+
+
+<div class="viewcode-block" id="Batch"><a class="viewcode-back" href="../../index.html#dagon.batch.Batch">[docs]</a><span class="k">class</span> <span class="nc">Batch</span><span class="p">(</span><span class="n">Task</span><span class="p">):</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">use_ssh_config</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">working_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssh_username</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create an Local Batch class</span>
+
+<span class="sd">           Keyword arguments:</span>
+<span class="sd">           name -- task name</span>
+<span class="sd">           command -- command to be executed</span>
+<span class="sd">           working_dir -- directory where the outputs will be placed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Task</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">working_dir</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create an Batch task local or remote</span>
+
+<span class="sd">           Keyword arguments:</span>
+<span class="sd">           name -- task name</span>
+<span class="sd">           command -- command to be executed</span>
+<span class="sd">           working_dir -- directory where the outputs will be placed</span>
+<span class="sd">           ip -- hostname or ip of the machine where the task will be executed</span>
+<span class="sd">           ssh_username -- username in remote machine</span>
+<span class="sd">           keypath -- path to the private keypath</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="s2">&quot;ip&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="c1">#return RemoteBatch.__new__(cls, args, kwargs)</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Task</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">RemoteBatch</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Batch</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Batch.as_json"><a class="viewcode-back" href="../../index.html#dagon.batch.Batch.as_json">[docs]</a>    <span class="k">def</span> <span class="nf">as_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">json_task</span> <span class="o">=</span> <span class="n">Task</span><span class="o">.</span><span class="n">as_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">json_task</span><span class="p">[</span><span class="s1">&#39;command&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">command</span>
+        <span class="k">return</span> <span class="n">json_task</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">execute_command</span><span class="p">(</span><span class="n">command</span><span class="p">):</span>
+        <span class="c1"># Execute the bash command</span>
+        <span class="k">with</span> <span class="n">settings</span><span class="p">(</span>
+                <span class="n">hide</span><span class="p">(</span><span class="s1">&#39;warnings&#39;</span><span class="p">,</span> <span class="s1">&#39;running&#39;</span><span class="p">,</span> <span class="s1">&#39;stdout&#39;</span><span class="p">,</span> <span class="s1">&#39;stderr&#39;</span><span class="p">),</span>
+                <span class="n">warn_only</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">):</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">local</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">capture</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="c1"># check for an error</span>
+            <span class="n">code</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;&quot;</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">stderr</span><span class="p">):</span>
+                <span class="n">code</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">stderr</span>
+
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="n">code</span><span class="p">,</span> <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="n">message</span><span class="p">,</span> <span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">stdout</span><span class="p">}</span>
+
+<div class="viewcode-block" id="Batch.on_execute"><a class="viewcode-back" href="../../index.html#dagon.batch.Batch.on_execute">[docs]</a>    <span class="k">def</span> <span class="nf">on_execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">launcher_script</span><span class="p">,</span> <span class="n">script_name</span><span class="p">):</span>
+        <span class="c1"># Invoke the base method</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Batch</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">on_execute</span><span class="p">(</span><span class="n">launcher_script</span><span class="p">,</span> <span class="n">script_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Batch</span><span class="o">.</span><span class="n">execute_command</span><span class="p">(</span><span class="s2">&quot;bash &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_dir</span> <span class="o">+</span> <span class="s2">&quot;/.dagon/&quot;</span> <span class="o">+</span> <span class="n">script_name</span><span class="p">)</span></div>
+
+    <span class="c1"># returns public key</span>
+    <span class="k">def</span> <span class="nf">get_public_key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="s2">&quot;cat &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_dir</span> <span class="o">+</span> <span class="s2">&quot;/.dagon/ssh_key.pub&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">Batch</span><span class="o">.</span><span class="n">execute_command</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">add_public_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="s2">&quot;echo &quot;</span> <span class="o">+</span> <span class="n">key</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;| cat &gt;&gt; ~/.ssh/authorized_keys&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">Batch</span><span class="o">.</span><span class="n">execute_command</span><span class="p">(</span><span class="n">command</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RemoteBatch"><a class="viewcode-back" href="../../index.html#dagon.batch.RemoteBatch">[docs]</a><span class="k">class</span> <span class="nc">RemoteBatch</span><span class="p">(</span><span class="n">RemoteTask</span><span class="p">,</span> <span class="n">Batch</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">ssh_username</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">keypath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">working_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create an Batch task remote</span>
+
+<span class="sd">           Keyword arguments:</span>
+<span class="sd">           name -- task name</span>
+<span class="sd">           command -- command to be executed</span>
+<span class="sd">           working_dir -- directory where the outputs will be placed</span>
+<span class="sd">           ip -- hostname or ip of the machine where the task will be executed</span>
+<span class="sd">           ssh_username -- username in remote machine</span>
+<span class="sd">           keypath -- path to the private keypath</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">RemoteTask</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">ssh_username</span><span class="p">,</span> <span class="n">keypath</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">,</span> <span class="n">working_dir</span><span class="o">=</span><span class="n">working_dir</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">)</span>
+
+<div class="viewcode-block" id="RemoteBatch.on_execute"><a class="viewcode-back" href="../../index.html#dagon.batch.RemoteBatch.on_execute">[docs]</a>    <span class="k">def</span> <span class="nf">on_execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">launcher_script</span><span class="p">,</span> <span class="n">script_name</span><span class="p">):</span>
+        <span class="c1"># Invoke the base method</span>
+        <span class="n">RemoteTask</span><span class="o">.</span><span class="n">on_execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">launcher_script</span><span class="p">,</span> <span class="n">script_name</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_connection</span><span class="o">.</span><span class="n">execute_command</span><span class="p">(</span><span class="s2">&quot;bash &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_dir</span> <span class="o">+</span> <span class="s2">&quot;/.dagon/&quot;</span> <span class="o">+</span> <span class="n">script_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div></div>
+
+
+<div class="viewcode-block" id="Slurm"><a class="viewcode-back" href="../../index.html#dagon.batch.Slurm">[docs]</a><span class="k">class</span> <span class="nc">Slurm</span><span class="p">(</span><span class="n">Batch</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">partition</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ntasks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">working_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssh_username</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">Batch</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">working_dir</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">partition</span> <span class="o">=</span> <span class="n">partition</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ntasks</span> <span class="o">=</span> <span class="n">ntasks</span>
+
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create an Slurm task local or remote</span>
+
+<span class="sd">           Keyword arguments:</span>
+<span class="sd">           name -- task name</span>
+<span class="sd">           command -- command to be executed</span>
+<span class="sd">           partition -- partition where the task is going to be executed</span>
+<span class="sd">           ntasks -- number of tasks to execute</span>
+<span class="sd">           working_dir -- directory where the outputs will be placed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="s2">&quot;ip&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Task</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">RemoteSlurm</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Slurm</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">generate_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">script_name</span><span class="p">):</span>
+        <span class="n">partition_text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">partition</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">partition_text</span> <span class="o">=</span> <span class="s2">&quot;--partition=&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">partition</span>
+
+        <span class="n">ntasks_text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ntasks</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ntasks_text</span> <span class="o">=</span> <span class="s2">&quot;--ntasks=&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ntasks</span><span class="p">)</span>
+
+        <span class="c1"># Add the slurm batch command</span>
+        <span class="c1"># command = &quot;sbatch &quot; + partition_text + &quot; &quot; + ntasks_text + &quot; --job-name=&quot; + self.name + &quot; --chdir=&quot; + self.working_dir + &quot; --output=&quot; + self.working_dir + &quot;/.dagon/stdout.txt --wait &quot; + self.working_dir+&quot;/.dagon/launcher.sh&quot;</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="s2">&quot;sbatch &quot;</span> <span class="o">+</span> <span class="n">partition_text</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">ntasks_text</span> <span class="o">+</span> <span class="s2">&quot; -J &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot; -D &quot;</span> \
+                  <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_dir</span> <span class="o">+</span> <span class="s2">&quot; -W &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_dir</span> <span class="o">+</span> <span class="s2">&quot;/.dagon/&quot;</span> <span class="o">+</span> <span class="n">script_name</span>
+        <span class="k">return</span> <span class="n">command</span>
+
+<div class="viewcode-block" id="Slurm.on_execute"><a class="viewcode-back" href="../../index.html#dagon.batch.Slurm.on_execute">[docs]</a>    <span class="k">def</span> <span class="nf">on_execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">launcher_script</span><span class="p">,</span> <span class="n">script_name</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Batch</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">on_execute</span><span class="p">(</span><span class="n">launcher_script</span><span class="p">,</span> <span class="n">script_name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">script_name</span> <span class="o">==</span> <span class="s2">&quot;context.sh&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Batch</span><span class="o">.</span><span class="n">execute_command</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">working_dir</span> <span class="o">+</span> <span class="s2">&quot;/.dagon/&quot;</span> <span class="o">+</span> <span class="n">script_name</span><span class="p">)</span>
+
+        <span class="n">command</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_command</span><span class="p">(</span><span class="n">script_name</span><span class="p">)</span>
+
+        <span class="c1"># Execute the bash command</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">Batch</span><span class="o">.</span><span class="n">execute_command</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div></div>
+
+
+<div class="viewcode-block" id="RemoteSlurm"><a class="viewcode-back" href="../../index.html#dagon.batch.RemoteSlurm">[docs]</a><span class="k">class</span> <span class="nc">RemoteSlurm</span><span class="p">(</span><span class="n">RemoteTask</span><span class="p">,</span> <span class="n">Slurm</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">partition</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ntasks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">working_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssh_username</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">keypath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">ip</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">Slurm</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">working_dir</span><span class="o">=</span><span class="n">working_dir</span><span class="p">,</span> <span class="n">partition</span><span class="o">=</span><span class="n">partition</span><span class="p">,</span> <span class="n">ntasks</span><span class="o">=</span><span class="n">ntasks</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">)</span>
+        <span class="n">RemoteTask</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">ssh_username</span><span class="p">,</span> <span class="n">keypath</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">ip</span><span class="p">,</span> <span class="n">working_dir</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+<div class="viewcode-block" id="RemoteSlurm.on_execute"><a class="viewcode-back" href="../../index.html#dagon.batch.RemoteSlurm.on_execute">[docs]</a>    <span class="k">def</span> <span class="nf">on_execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">launcher_script</span><span class="p">,</span> <span class="n">script_name</span><span class="p">):</span>
+        <span class="n">RemoteTask</span><span class="o">.</span><span class="n">on_execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">launcher_script</span><span class="p">,</span> <span class="n">script_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">script_name</span> <span class="o">==</span> <span class="s2">&quot;context.sh&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_connection</span><span class="o">.</span><span class="n">execute_command</span><span class="p">(</span><span class="s2">&quot;bash &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_dir</span> <span class="o">+</span> <span class="s2">&quot;/.dagon/&quot;</span> <span class="o">+</span> <span class="n">script_name</span><span class="p">)</span>
+
+        <span class="n">command</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_command</span><span class="p">(</span><span class="n">script_name</span><span class="p">)</span>
+        <span class="c1"># Execute the bash command</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_connection</span><span class="o">.</span><span class="n">execute_command</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div></div>
+
+<span class="c1"># class AWSEC2(Batch):</span>
+<span class="c1">#</span>
+<span class="c1">#  def __init__(self,name,image_id,machine_type,working_dir=None):</span>
+<span class="c1">#    Batch.__init__(self,name,None)</span>
+<span class="c1">#   self.image_id=image_id</span>
+<span class="c1">#   self.machine_type=machine_type</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Raffaele Montella
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

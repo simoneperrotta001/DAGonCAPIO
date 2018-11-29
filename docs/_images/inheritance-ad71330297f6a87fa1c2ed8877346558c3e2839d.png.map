@@ -1,0 +1,5 @@
+<map id="inheritance6b6a5f0f87" name="inheritance6b6a5f0f87">
+<area shape="rect" id="node1" href="#dagon.batch.Batch" target="_top" title="Batch" alt="" coords="245,5,317,31"/>
+<area shape="rect" id="node2" href="#dagon.task.Task" target="_top" title="**Represents a task executed by DagOn**" alt="" coords="125,5,197,31"/>
+<area shape="rect" id="node3" title="A class that represents a thread of control." alt="" coords="5,5,77,31"/>
+</map>

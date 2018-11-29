@@ -1,0 +1,989 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Welcome to DagOn*’s documentation! &mdash; DagOn* 0.0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="#" class="icon icon-home"> DagOn*
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Welcome to DagOn*’s documentation!</a><ul>
+<li><a class="reference internal" href="#documentation-for-the-code">Documentation for the Code</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#dagon">DagOn*</a><ul>
+<li><a class="reference internal" href="#stager">Stager</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-dagon.task">Tasks</a><ul>
+<li><a class="reference internal" href="#batch-tasks">Batch tasks</a></li>
+<li><a class="reference internal" href="#slurm-tasks">Slurm tasks</a></li>
+<li><a class="reference internal" href="#module-dagon.remote">Cloud task</a></li>
+<li><a class="reference internal" href="#docker-tasks">Docker tasks</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">DagOn*</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="#">Docs</a> &raquo;</li>
+        
+      <li>Welcome to DagOn*’s documentation!</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="welcome-to-dagon-s-documentation">
+<h1>Welcome to DagOn*’s documentation!<a class="headerlink" href="#welcome-to-dagon-s-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<div class="graphviz"><img src="_images/inheritance-84499c9b279bb46913e130e748dc42f1740b2c3b.png" alt="Inheritance diagram of dagon.task.Task, dagon.batch.Batch, dagon.remote.RemoteTask, dagon.remote.CloudTask, dagon.docker_task.DockerTask, dagon.docker_task.DockerRemoteTask, dagon.batch.Slurm, dagon.batch.RemoteSlurm" usemap="#inheritancea2f0568dd4" class="inheritance graphviz" /></div>
+<map id="inheritancea2f0568dd4" name="inheritancea2f0568dd4">
+<area shape="rect" id="node1" href="#dagon.batch.Batch" target="_top" title="Batch" alt="" coords="245,56,317,81"/>
+<area shape="rect" id="node6" href="#dagon.docker_task.DockerTask" target="_top" title="DockerTask" alt="" coords="367,55,465,80"/>
+<area shape="rect" id="node8" href="#dagon.batch.Slurm" target="_top" title="Slurm" alt="" coords="380,104,452,129"/>
+<area shape="rect" id="node2" href="#dagon.task.Task" target="_top" title="**Represents a task executed by DagOn**" alt="" coords="125,31,197,56"/>
+<area shape="rect" id="node4" href="#dagon.remote.RemoteTask" target="_top" title="RemoteTask" alt="" coords="365,5,467,31"/>
+<area shape="rect" id="node3" href="#dagon.remote.CloudTask" target="_top" title="CloudTask" alt="" coords="544,5,632,31"/>
+<area shape="rect" id="node5" href="#dagon.docker_task.DockerRemoteTask" target="_top" title="DockerRemoteTask" alt="" coords="515,55,661,80"/>
+<area shape="rect" id="node7" href="#dagon.batch.RemoteSlurm" target="_top" title="RemoteSlurm" alt="" coords="533,104,643,129"/>
+</map><div class="section" id="documentation-for-the-code">
+<h2>Documentation for the Code<a class="headerlink" href="#documentation-for-the-code" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+</div>
+<div class="section" id="dagon">
+<h1>DagOn*<a class="headerlink" href="#dagon" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="dagon.Workflow">
+<em class="property">class </em><code class="descclassname">dagon.</code><code class="descname">Workflow</code><span class="sig-paren">(</span><em>name</em>, <em>config=None</em>, <em>config_file=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon.html#Workflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.Workflow" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>Represents a workflow executed by DagOn</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> – unique name of the workflow</li>
+<li><strong>cfg</strong> – workflow configuration</li>
+<li><strong>tasks</strong> – Task to be executed by the workflow</li>
+<li><a class="reference internal" href="#dagon.Workflow.id" title="dagon.Workflow.id"><strong>id</strong></a> – workflow ID</li>
+<li><strong>regist_on_api</strong> – True to regist the data on the API when it’s available</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Create a workflow</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> – Workflow name</li>
+<li><strong>config</strong> – configuration dictionary of the workflow</li>
+<li><strong>config_file</strong> – Path to the configuration file of the workflow. By default, try to loads ‘dagon.ini’</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="dagon.Workflow.add_task">
+<code class="descname">add_task</code><span class="sig-paren">(</span><em>task</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon.html#Workflow.add_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.Workflow.add_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a task to this workflow</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>task</strong> – <a class="reference internal" href="#dagon.task.Task" title="dagon.task.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">dagon.task.Task</span></code></a> instance</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.Workflow.as_json">
+<code class="descname">as_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon.html#Workflow.as_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.Workflow.as_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a json representation of the workflow</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">JSON representation</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.Workflow.find_task_by_name">
+<code class="descname">find_task_by_name</code><span class="sig-paren">(</span><em>workflow_name</em>, <em>task_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon.html#Workflow.find_task_by_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.Workflow.find_task_by_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Search for a task of an specific workflow</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>workflow_name</strong> – Name of the workflow</li>
+<li><strong>task_name</strong> – Name of the task</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#dagon.task.Task" title="dagon.task.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">dagon.task.Task</span></code></a> instance if is found, None in other case</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.Workflow.get_scratch_dir_base">
+<code class="descname">get_scratch_dir_base</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon.html#Workflow.get_scratch_dir_base"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.Workflow.get_scratch_dir_base" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the path to the base scratch directory</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Absolute path to the scratch directory</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="dagon.Workflow.id">
+<code class="descname">id</code><em class="property"> = None</em><a class="headerlink" href="#dagon.Workflow.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>if “dagon_ip” in self.cfg and “ip” in self.cfg[‘dagon_ip’]:
+self.connection = Connection(self)
+#self.connection.send_str(self.id)
+#self.connection.start()</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.Workflow.make_dependencies">
+<code class="descname">make_dependencies</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon.html#Workflow.make_dependencies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.Workflow.make_dependencies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Looks for all the dependencies between tasks</p>
+</dd></dl>
+
+</dd></dl>
+
+<div class="section" id="stager">
+<h2>Stager<a class="headerlink" href="#stager" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="dagon.Stager">
+<em class="property">class </em><code class="descclassname">dagon.</code><code class="descname">Stager</code><a class="reference internal" href="_modules/dagon.html#Stager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.Stager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Choose the transference protocol to move data between tasks</p>
+<dl class="method">
+<dt id="dagon.Stager.stage_in">
+<code class="descname">stage_in</code><span class="sig-paren">(</span><em>dst_task</em>, <em>src_task</em>, <em>dst_path</em>, <em>local_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon.html#Stager.stage_in"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.Stager.stage_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluates the context of the machines and choose the transfer protocol</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dst_task</strong> – Task where the data has to be put</li>
+<li><strong>src_task</strong> – Task from the data has to be taken</li>
+<li><strong>dst_path</strong> – Path where the file is going to be save on the destiny directory</li>
+<li><strong>local_path</strong> – Path where is the file to be transferred on the source task</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dagon.ProtocolStatus">
+<em class="property">class </em><code class="descclassname">dagon.</code><code class="descname">ProtocolStatus</code><a class="reference internal" href="_modules/dagon.html#ProtocolStatus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.ProtocolStatus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Status of the protocol on a machine</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ACTIVE</strong> – Protocol running and active</li>
+<li><strong>NONE</strong> – Protocol not installed</li>
+<li><strong>INACTIVE</strong> – Protocol not running</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="dagon.DataMover">
+<em class="property">class </em><code class="descclassname">dagon.</code><code class="descname">DataMover</code><a class="reference internal" href="_modules/dagon.html#DataMover"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.DataMover" title="Permalink to this definition">¶</a></dt>
+<dd><p>Possible transfer protocols/apps</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>DONTMOVE</strong> – Don’t move nothing</li>
+<li><strong>LINK</strong> – Using a symbolic link</li>
+<li><strong>COPY</strong> – Copying the data</li>
+<li><strong>SCP</strong> – Using secure copy</li>
+<li><strong>HTTP</strong> – Using HTTP</li>
+<li><strong>HTTPS</strong> – Using HTTPS</li>
+<li><strong>FTP</strong> – Using FTP</li>
+<li><strong>SFTP</strong> – Using secure FTP</li>
+<li><strong>GRIDFTP</strong> – Using Globus GridFTP</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="module-dagon.task">
+<span id="tasks"></span><h1>Tasks<a class="headerlink" href="#module-dagon.task" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="dagon.task.Task">
+<em class="property">class </em><code class="descclassname">dagon.task.</code><code class="descname">Task</code><span class="sig-paren">(</span><em>name</em>, <em>command</em>, <em>working_dir=None</em>, <em>endpoint=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/task.html#Task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.task.Task" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>Represents a task executed by DagOn</strong></p>
+<p>It can be executed on local machine, cloud instance, cluster or in a docker container</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> – unique name of the class</li>
+<li><strong>command</strong> – command to be executed</li>
+<li><strong>working_dir</strong> – path to the folder or directory where the task is going to be executed</li>
+<li><strong>nexts</strong> – tasks with dependencies to this tasks, that will be executed when this task ends</li>
+<li><strong>prevs</strong> – tasks that has to be executed before of this task (dependencies to be resolved)</li>
+<li><strong>reference_count</strong> – number of references to this task</li>
+<li><strong>remove_scratch_dir</strong> – True if the sratch directory has to be removed after the execution of this task</li>
+<li><strong>running</strong> – True if the task is in execution</li>
+<li><strong>workflow</strong> – workflow related to this task</li>
+<li><strong>status</strong> – actual <code class="xref py py-class docutils literal notranslate"><span class="pre">dagon.Status</span></code> of the task</li>
+<li><a class="reference internal" href="#dagon.task.Task.info" title="dagon.task.Task.info"><strong>info</strong></a> – information of the enviroment where this task is going to be executed</li>
+<li><strong>endpoint</strong> – globus endpoint id (only used when <a class="reference internal" href="#dagon.DataMover" title="dagon.DataMover"><code class="xref py py-class docutils literal notranslate"><span class="pre">dagon.DataMover</span></code></a> is DataMover)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> – Name of the task</li>
+<li><strong>command</strong> – Command to be executed by the task</li>
+<li><strong>working_dir</strong> – Path to the directory where the task is be executed</li>
+<li><strong>endpoint</strong> – Globus Endpoint ID</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="dagon.task.Task.add_dependency_to">
+<code class="descname">add_dependency_to</code><span class="sig-paren">(</span><em>task</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/task.html#Task.add_dependency_to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.task.Task.add_dependency_to" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a dependency to other task</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>task</strong> – <a class="reference internal" href="#dagon.task.Task" title="dagon.task.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">dagon.task.Task</span></code></a> instance dependency</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.task.Task.as_json">
+<code class="descname">as_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/task.html#Task.as_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.task.Task.as_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>”
+Generates the JSON representation of the task</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">JSON task representation</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.task.Task.create_working_dir">
+<code class="descname">create_working_dir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/task.html#Task.create_working_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.task.Task.create_working_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create the working directory</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.task.Task.decrement_reference_count">
+<code class="descname">decrement_reference_count</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/task.html#Task.decrement_reference_count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.task.Task.decrement_reference_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decremet the reference count. When the number of references is equals to zero, the garbage collector is called</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.task.Task.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/task.html#Task.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.task.Task.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the task</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.task.Task.get_endpoint">
+<code class="descname">get_endpoint</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/task.html#Task.get_endpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.task.Task.get_endpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the globus ID endpoint</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Globus ID endpoint</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.task.Task.get_how_im_script">
+<code class="descname">get_how_im_script</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/task.html#Task.get_how_im_script"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.task.Task.get_how_im_script" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create the script to get the context where the task will be executed</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Context script</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.task.Task.get_info">
+<code class="descname">get_info</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/task.html#Task.get_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.task.Task.get_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the complete information of the machine where the task is executed</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Machine information collected</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.task.Task.get_ip">
+<code class="descname">get_ip</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/task.html#Task.get_ip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.task.Task.get_ip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the ip of the machine where the task is executed</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">IP address</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.task.Task.get_scratch_dir">
+<code class="descname">get_scratch_dir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/task.html#Task.get_scratch_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.task.Task.get_scratch_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the task’s scratch directory as soon as it’s available</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Absolute path to the scratch directory</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.task.Task.get_scratch_name">
+<code class="descname">get_scratch_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/task.html#Task.get_scratch_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.task.Task.get_scratch_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a unique name for the task scratch directory name</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Name of the scratch directory</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.task.Task.get_user">
+<code class="descname">get_user</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/task.html#Task.get_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.task.Task.get_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the username who execute the task on the remote machine</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Unix Username</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.task.Task.include_command">
+<code class="descname">include_command</code><span class="sig-paren">(</span><em>body</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/task.html#Task.include_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.task.Task.include_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Include the command to execute in the script body
+:param body: Script body
+:return: Script body with the command</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.task.Task.increment_reference_count">
+<code class="descname">increment_reference_count</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/task.html#Task.increment_reference_count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.task.Task.increment_reference_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Increments the reference count</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="dagon.task.Task.info">
+<code class="descname">info</code><em class="property"> = None</em><a class="headerlink" href="#dagon.task.Task.info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Choose the task type and returns an instance of the task type class
+:param type: type of the task (<a class="reference internal" href="#dagon.task.Types" title="dagon.task.Types"><code class="xref py py-class docutils literal notranslate"><span class="pre">Types</span></code></a>)
+:param args: arguments of the task
+:param kwargs: keyboard arguments of the task
+:return: instance of the right class</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.task.Task.mkdir_working_dir">
+<code class="descname">mkdir_working_dir</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/task.html#Task.mkdir_working_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.task.Task.mkdir_working_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make the working directory</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> – Path to the working directory</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.task.Task.on_execute">
+<code class="descname">on_execute</code><span class="sig-paren">(</span><em>script</em>, <em>script_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/task.html#Task.on_execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.task.Task.on_execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the task script
+:param script: Script to be executed
+:param script_name: Filename to save the script
+:return: Execution result</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.task.Task.on_garbage">
+<code class="descname">on_garbage</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/task.html#Task.on_garbage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.task.Task.on_garbage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call garbage collector, removing the scratch directory, containers and instances related to the
+task</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.task.Task.post_process_command">
+<code class="descname">post_process_command</code><span class="sig-paren">(</span><em>command</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/task.html#Task.post_process_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.task.Task.post_process_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add some post process commands after the task execution
+:param command: Command to be executed
+:return: Command post-processed</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.task.Task.pre_run">
+<code class="descname">pre_run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/task.html#Task.pre_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.task.Task.pre_run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resolve task dependencies
+For each workflow:// in the command string
+1) Extract the referenced task
+2) Add a reference in the referenced task</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.task.Task.remove_reference_workflow">
+<code class="descname">remove_reference_workflow</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/task.html#Task.remove_reference_workflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.task.Task.remove_reference_workflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the reference
+For each workflow:// in the command</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.task.Task.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/task.html#Task.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.task.Task.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs the thread where the task will be executed</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.task.Task.set_info">
+<code class="descname">set_info</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/task.html#Task.set_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.task.Task.set_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the information of the machine where the task is going to be executed. The information is used by
+<a class="reference internal" href="#dagon.Stager" title="dagon.Stager"><code class="xref py py-class docutils literal notranslate"><span class="pre">dagon.Stager</span></code></a> to decide the data transfer protocol/application</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>info</strong> – Machine info (ip, protocols, username)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.task.Task.set_workflow">
+<code class="descname">set_workflow</code><span class="sig-paren">(</span><em>workflow</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/task.html#Task.set_workflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.task.Task.set_workflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the workflow which execute this task</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>workflow</strong> – <a class="reference internal" href="#dagon.Workflow" title="dagon.Workflow"><code class="xref py py-class docutils literal notranslate"><span class="pre">dagon.Workflow</span></code></a> instance</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dagon.task.Types">
+<em class="property">class </em><code class="descclassname">dagon.task.</code><code class="descname">Types</code><a class="reference internal" href="_modules/dagon/task.html#Types"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.task.Types" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enum used to represent the main types tasks supported by dagon,
+remote tasks are supported by the RemoteClass but it shouln’d be
+explicitly instantiate</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>BATCH</strong> – Regular Batch task (local or remote)</li>
+<li><strong>SLURM</strong> – Task executed using Slurm (local or remote)</li>
+<li><strong>CLOUD</strong> – Task executed in a cloud instance (ec2, digital ocean and google cloud  tested with libcloud)</li>
+<li><strong>DOCKER</strong> – Task executed on a docker container (local or remote)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<div class="section" id="batch-tasks">
+<h2>Batch tasks<a class="headerlink" href="#batch-tasks" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="dagon.batch.Batch">
+<em class="property">class </em><code class="descclassname">dagon.batch.</code><code class="descname">Batch</code><span class="sig-paren">(</span><em>name</em>, <em>command</em>, <em>working_dir=None</em>, <em>endpoint=None</em>, <em>ip=None</em>, <em>ssh_username=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/batch.html#Batch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.batch.Batch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an Local Batch class</p>
+<p>Keyword arguments:
+name – task name
+command – command to be executed
+working_dir – directory where the outputs will be placed</p>
+<dl class="method">
+<dt id="dagon.batch.Batch.as_json">
+<code class="descname">as_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/batch.html#Batch.as_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.batch.Batch.as_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>”
+Generates the JSON representation of the task</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">JSON task representation</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.batch.Batch.on_execute">
+<code class="descname">on_execute</code><span class="sig-paren">(</span><em>launcher_script</em>, <em>script_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/batch.html#Batch.on_execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.batch.Batch.on_execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the task script
+:param script: Script to be executed
+:param script_name: Filename to save the script
+:return: Execution result</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dagon.batch.RemoteBatch">
+<em class="property">class </em><code class="descclassname">dagon.batch.</code><code class="descname">RemoteBatch</code><span class="sig-paren">(</span><em>name</em>, <em>command</em>, <em>ssh_username=None</em>, <em>keypath=None</em>, <em>ip=None</em>, <em>working_dir=None</em>, <em>endpoint=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/batch.html#RemoteBatch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.batch.RemoteBatch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an Batch task remote</p>
+<p>Keyword arguments:
+name – task name
+command – command to be executed
+working_dir – directory where the outputs will be placed
+ip – hostname or ip of the machine where the task will be executed
+ssh_username – username in remote machine
+keypath – path to the private keypath</p>
+<dl class="method">
+<dt id="dagon.batch.RemoteBatch.on_execute">
+<code class="descname">on_execute</code><span class="sig-paren">(</span><em>launcher_script</em>, <em>script_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/batch.html#RemoteBatch.on_execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.batch.RemoteBatch.on_execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the task script
+:param script: Script to be executed
+:param script_name: Filename to save the script
+:return: Execution result</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="slurm-tasks">
+<h2>Slurm tasks<a class="headerlink" href="#slurm-tasks" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="dagon.batch.Slurm">
+<em class="property">class </em><code class="descclassname">dagon.batch.</code><code class="descname">Slurm</code><span class="sig-paren">(</span><em>name</em>, <em>command</em>, <em>partition=None</em>, <em>ntasks=None</em>, <em>working_dir=None</em>, <em>endpoint=None</em>, <em>ip=None</em>, <em>ssh_username=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/batch.html#Slurm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.batch.Slurm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an Slurm task local or remote</p>
+<p>Keyword arguments:
+name – task name
+command – command to be executed
+partition – partition where the task is going to be executed
+ntasks – number of tasks to execute
+working_dir – directory where the outputs will be placed</p>
+<dl class="method">
+<dt id="dagon.batch.Slurm.on_execute">
+<code class="descname">on_execute</code><span class="sig-paren">(</span><em>launcher_script</em>, <em>script_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/batch.html#Slurm.on_execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.batch.Slurm.on_execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the task script
+:param script: Script to be executed
+:param script_name: Filename to save the script
+:return: Execution result</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dagon.batch.RemoteSlurm">
+<em class="property">class </em><code class="descclassname">dagon.batch.</code><code class="descname">RemoteSlurm</code><span class="sig-paren">(</span><em>name</em>, <em>command</em>, <em>partition=None</em>, <em>ntasks=None</em>, <em>working_dir=None</em>, <em>ssh_username=None</em>, <em>keypath=None</em>, <em>ip=None</em>, <em>endpoint=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/batch.html#RemoteSlurm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.batch.RemoteSlurm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an Slurm task local or remote</p>
+<p>Keyword arguments:
+name – task name
+command – command to be executed
+partition – partition where the task is going to be executed
+ntasks – number of tasks to execute
+working_dir – directory where the outputs will be placed</p>
+<dl class="method">
+<dt id="dagon.batch.RemoteSlurm.on_execute">
+<code class="descname">on_execute</code><span class="sig-paren">(</span><em>launcher_script</em>, <em>script_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/batch.html#RemoteSlurm.on_execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.batch.RemoteSlurm.on_execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the task script
+:param script: Script to be executed
+:param script_name: Filename to save the script
+:return: Execution result</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-dagon.remote">
+<span id="cloud-task"></span><h2>Cloud task<a class="headerlink" href="#module-dagon.remote" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="dagon.remote.CloudTask">
+<em class="property">class </em><code class="descclassname">dagon.remote.</code><code class="descname">CloudTask</code><span class="sig-paren">(</span><em>name</em>, <em>command</em>, <em>provider</em>, <em>ssh_username</em>, <em>key_options</em>, <em>instance_id=None</em>, <em>instance_flavour=None</em>, <em>instance_name=None</em>, <em>stop_instance=False</em>, <em>endpoint=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/remote.html#CloudTask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.remote.CloudTask" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="dagon.remote.CloudTask.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/remote.html#CloudTask.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.remote.CloudTask.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the task</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.remote.CloudTask.on_execute">
+<code class="descname">on_execute</code><span class="sig-paren">(</span><em>launcher_script</em>, <em>script_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/remote.html#CloudTask.on_execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.remote.CloudTask.on_execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the task script
+:param script: Script to be executed
+:param script_name: Filename to save the script
+:return: Execution result</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.remote.CloudTask.on_garbage">
+<code class="descname">on_garbage</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/remote.html#CloudTask.on_garbage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.remote.CloudTask.on_garbage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call garbage collector, removing the scratch directory, containers and instances related to the
+task</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dagon.remote.RemoteTask">
+<em class="property">class </em><code class="descclassname">dagon.remote.</code><code class="descname">RemoteTask</code><span class="sig-paren">(</span><em>name</em>, <em>ssh_username</em>, <em>keypath</em>, <em>command</em>, <em>ip=None</em>, <em>working_dir=None</em>, <em>endpoint=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/remote.html#RemoteTask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.remote.RemoteTask" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="dagon.remote.RemoteTask.mkdir_working_dir">
+<code class="descname">mkdir_working_dir</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/remote.html#RemoteTask.mkdir_working_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.remote.RemoteTask.mkdir_working_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make the working directory</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> – Path to the working directory</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.remote.RemoteTask.on_execute">
+<code class="descname">on_execute</code><span class="sig-paren">(</span><em>launcher_script</em>, <em>script_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/remote.html#RemoteTask.on_execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.remote.RemoteTask.on_execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the task script
+:param script: Script to be executed
+:param script_name: Filename to save the script
+:return: Execution result</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.remote.RemoteTask.on_garbage">
+<code class="descname">on_garbage</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/remote.html#RemoteTask.on_garbage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.remote.RemoteTask.on_garbage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call garbage collector, removing the scratch directory, containers and instances related to the
+task</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="docker-tasks">
+<h2>Docker tasks<a class="headerlink" href="#docker-tasks" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="dagon.docker_task.DockerTask">
+<em class="property">class </em><code class="descclassname">dagon.docker_task.</code><code class="descname">DockerTask</code><span class="sig-paren">(</span><em>name</em>, <em>command</em>, <em>image</em>, <em>container_id=None</em>, <em>working_dir=None</em>, <em>endpoint=None</em>, <em>remove=True</em>, <em>ip=None</em>, <em>ssh_username=None</em>, <em>keypath=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/docker_task.html#DockerTask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.docker_task.DockerTask" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="dagon.docker_task.DockerTask.as_json">
+<code class="descname">as_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/docker_task.html#DockerTask.as_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.docker_task.DockerTask.as_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>”
+Generates the JSON representation of the task</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">JSON task representation</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.docker_task.DockerTask.include_command">
+<code class="descname">include_command</code><span class="sig-paren">(</span><em>body</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/docker_task.html#DockerTask.include_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.docker_task.DockerTask.include_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Include the command to execute in the script body
+:param body: Script body
+:return: Script body with the command</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.docker_task.DockerTask.on_execute">
+<code class="descname">on_execute</code><span class="sig-paren">(</span><em>launcher_script</em>, <em>script_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/docker_task.html#DockerTask.on_execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.docker_task.DockerTask.on_execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the task script
+:param script: Script to be executed
+:param script_name: Filename to save the script
+:return: Execution result</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.docker_task.DockerTask.on_garbage">
+<code class="descname">on_garbage</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/docker_task.html#DockerTask.on_garbage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.docker_task.DockerTask.on_garbage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call garbage collector, removing the scratch directory, containers and instances related to the
+task</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dagon.docker_task.DockerRemoteTask">
+<em class="property">class </em><code class="descclassname">dagon.docker_task.</code><code class="descname">DockerRemoteTask</code><span class="sig-paren">(</span><em>name</em>, <em>command</em>, <em>image=None</em>, <em>container_id=None</em>, <em>ip=None</em>, <em>ssh_username=None</em>, <em>keypath=None</em>, <em>working_dir=None</em>, <em>remove=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/docker_task.html#DockerRemoteTask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.docker_task.DockerRemoteTask" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="dagon.docker_task.DockerRemoteTask.on_execute">
+<code class="descname">on_execute</code><span class="sig-paren">(</span><em>launcher_script</em>, <em>script_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/docker_task.html#DockerRemoteTask.on_execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.docker_task.DockerRemoteTask.on_execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the task script
+:param script: Script to be executed
+:param script_name: Filename to save the script
+:return: Execution result</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dagon.docker_task.DockerRemoteTask.on_garbage">
+<code class="descname">on_garbage</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dagon/docker_task.html#DockerRemoteTask.on_garbage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dagon.docker_task.DockerRemoteTask.on_garbage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call garbage collector, removing the scratch directory, containers and instances related to the
+task</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+</ul>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Raffaele Montella
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

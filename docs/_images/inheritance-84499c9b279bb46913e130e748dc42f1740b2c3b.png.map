@@ -1,0 +1,11 @@
+<map id="inheritancea2f0568dd4" name="inheritancea2f0568dd4">
+<area shape="rect" id="node1" href="#dagon.batch.Batch" target="_top" title="Batch" alt="" coords="245,56,317,81"/>
+<area shape="rect" id="node6" href="#dagon.docker_task.DockerTask" target="_top" title="DockerTask" alt="" coords="367,55,465,80"/>
+<area shape="rect" id="node8" href="#dagon.batch.Slurm" target="_top" title="Slurm" alt="" coords="380,104,452,129"/>
+<area shape="rect" id="node2" href="#dagon.task.Task" target="_top" title="**Represents a task executed by DagOn**" alt="" coords="125,31,197,56"/>
+<area shape="rect" id="node4" href="#dagon.remote.RemoteTask" target="_top" title="RemoteTask" alt="" coords="365,5,467,31"/>
+<area shape="rect" id="node3" href="#dagon.remote.CloudTask" target="_top" title="CloudTask" alt="" coords="544,5,632,31"/>
+<area shape="rect" id="node5" href="#dagon.docker_task.DockerRemoteTask" target="_top" title="DockerRemoteTask" alt="" coords="515,55,661,80"/>
+<area shape="rect" id="node7" href="#dagon.batch.RemoteSlurm" target="_top" title="RemoteSlurm" alt="" coords="533,104,643,129"/>
+<area shape="rect" id="node9" title="A class that represents a thread of control." alt="" coords="5,31,77,56"/>
+</map>
