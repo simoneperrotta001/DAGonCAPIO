@@ -1,6 +1,0 @@
-<map id="inheritance1d15dadb43" name="inheritance1d15dadb43">
-<area shape="rect" id="node1" href="#dagon.task.Task" target="_top" title="**Represents a task executed by DagOn**" alt="" coords="191,55,317,80"/>
-<area shape="rect" id="node2" title="A class that represents a thread of control." alt="" coords="5,55,139,80"/>
-<area shape="rect" id="node3" href="#dagon.task.Types" target="_top" title="Enum used to represent the main types tasks supported by dagon," alt="" coords="187,5,321,31"/>
-<area shape="rect" id="node4" title="Generic enumeration." alt="" coords="22,5,122,31"/>
-</map>

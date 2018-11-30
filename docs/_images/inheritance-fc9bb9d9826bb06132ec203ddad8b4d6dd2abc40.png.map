@@ -1,7 +1,0 @@
-<map id="inheritance3188d0eac5" name="inheritance3188d0eac5">
-<area shape="rect" id="node1" href="#dagon.batch.Batch" target="_top" title="Batch" alt="" coords="260,5,332,31"/>
-<area shape="rect" id="node2" href="#dagon.task.Task" target="_top" title="**Represents a task executed by DagOn**" alt="" coords="125,31,197,56"/>
-<area shape="rect" id="node4" href="#dagon.remote.RemoteTask" target="_top" title="RemoteTask" alt="" coords="245,55,347,80"/>
-<area shape="rect" id="node3" href="#dagon.remote.CloudTask" target="_top" title="CloudTask" alt="" coords="395,55,483,80"/>
-<area shape="rect" id="node5" title="A class that represents a thread of control." alt="" coords="5,31,77,56"/>
-</map>
