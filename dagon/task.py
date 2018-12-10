@@ -1,18 +1,130 @@
-import os
 import shutil
-import sys
-import time
-import traceback
 from json import loads
 from threading import Thread
-from os import makedirs
+from os import makedirs, path, chmod
+from time import time, sleep
+from enum import Enum
+
 import dagon
 
 
-class Task(Thread):
+class TaskType(Enum):
+    """
+    Enum used to represent the main types tasks supported by dagon,
+    remote tasks are supported by the RemoteClass but it should not be
+    explicitly instantiate
 
-    def __init__(self, name, command="", working_dir=None):
+    :cvar BATCH: Regular Batch task (local or remote)
+    :cvar SLURM: Task executed using Slurm (local or remote)
+    :cvar CLOUD: Task executed in a cloud instance (ec2, digital ocean and google cloud  tested with libcloud)
+    :cvar DOCKER: Task executed on a docker container (local or remote)
+    """
+
+    BATCH = "batch"
+    SLURM = "slurm"
+    CLOUD = "cloud"
+    DOCKER = "docker"
+
+
+# Different types os tasks and their module and class name
+tasks_types = {
+    TaskType.BATCH: ("dagon.batch", "Batch"),
+    TaskType.CLOUD: ("dagon.remote", "CloudTask"),
+    TaskType.DOCKER: ("dagon.docker_task", "DockerTask"),
+    TaskType.SLURM: ("dagon.batch", "Slurm")
+}
+
+
+class DagonTask(object):
+    """
+    Create the instance for Dagon Tasks
+    """
+
+    def __new__(cls, class_type, *args, **kwargs):
+        """
+        Choose the task type and returns an instance of the task type class
+
+        :param class_type: type of the task (:class:`Types`)
+        :type class_type: :class:`TaskType`
+
+        :param args: arguments of the task
+        :type name: list[]
+
+        :param kwargs: keyboard arguments of the task
+        :type name: dict()
+
+        :return: subclass instance of :class:`Task`
+        :rtype: cls
+        """
+
+        from importlib import import_module
+
+        task_class = tasks_types[class_type]
+        module = import_module(task_class[0])
+        class_ = getattr(module, task_class[1])
+        return class_(*args, **kwargs)
+
+
+class Task(Thread):
+    """
+    **Represents a task executed by DagOn**
+
+    It can be executed on local machine, cloud instance, cluster or in a docker container
+
+    :ivar name: unique name of the class
+    :vartype name: str
+
+    :ivar command: command to be executed
+    :vartype command: str
+
+    :ivar working_dir: path to the folder or directory where the task is going to be executed
+    :vartype working_dir: str
+
+    :ivar nexts: tasks with dependencies to this tasks, that will be executed when this task ends
+    :vartype nexts: list[]
+
+    :ivar prevs: tasks that has to be executed before of this task (dependencies to be resolved)
+    :vartype prevs: list[]
+
+    :ivar reference_count: number of references to this task
+    :vartype reference_count: int
+
+    :ivar remove_scratch_dir: True if the sratch directory has to be removed after the execution of this task
+    :vartype remove_scratch_dir: bool
+
+    :ivar running: True if the task is in execution
+    :vartype running: bool
+
+    :ivar workflow: workflow related to this task
+    :vartype workflow: :class:`dagon.Workflow`
+
+    :ivar status: actual :class:`dagon.Status` of the task
+    :vartype status: :class:`dagon.Status`
+
+    :ivar info: information of the enviroment where this task is going to be executed
+    :vartype info: dict(str, object)
+
+    :ivar endpoint: globus endpoint id (only used when :class:`dagon.DataMover` is DataMover)
+    :vartype endpoint: str
+    """
+
+    def __init__(self, name, command, working_dir=None, endpoint=None):
+        """
+        :param name: name of the task
+        :type name: str
+
+        :param command: command to be executed by the task
+        :type command: str
+
+        :param working_dir: path to the directory where the task is be executed
+        :type working_dir: str
+
+        :param endpoint: globus Endpoint ID
+        :type endpoint: str
+        """
+
         Thread.__init__(self)
+        self.ssh_connection = None
         self.name = name
         self.nexts = []
         self.prevs = []
@@ -20,73 +132,157 @@ class Task(Thread):
         self.remove_scratch_dir = False
         self.running = False
         self.workflow = None
+        self.endpoint = endpoint  # globus endpoint id
         self.set_status(dagon.Status.READY)
         self.working_dir = working_dir
         self.command = command
         self.info = None
 
+    def get_endpoint(self):
+        """
+        Returns the globus ID endpoint
+
+        :return: Globus endpoint ID
+        :rtype: str with the endpoint ID
+        """
+        return self.endpoint
+
     def set_info(self, info):
+        """
+        Change the information of the machine where the task is going to be executed. The information is used by
+        :class:`dagon.Stager` to decide the data transfer protocol/application
+
+        :param info: Machine info (ip, protocols, username)
+        :type info: dict(str, object)
+        """
+
         self.info = info
 
     def get_ip(self):
+        """
+        Returns the ip of the machine where the task is executed
+
+        :return: IP address
+        :rtype: str
+        """
         return self.info["ip"]
 
     def get_info(self):
+        """
+        Returns the complete information of the machine where the task is executed
+
+        :return: Machine information collected
+        :rtype: dict(str, object)
+        """
         return self.info
 
     def get_user(self):
+        """
+        Return the username who execute the task on the remote machine
+
+        :return: Unix Username
+        :rtype: str
+        """
+
         return self.info["user"]
 
     def get_scratch_dir(self):
+        """
+        Returns the task's scratch directory as soon as it's available
+
+        :return: Absolute path to the scratch directory
+        :rtype: str
+        """
+
         while self.working_dir is None and self.status is not dagon.Status.FAILED:
-            time.sleep(1)
+            sleep(1)
         return self.working_dir
 
     def get_scratch_name(self):
-        millis = int(round(time.time() * 1000))
+        """
+        Generates a unique name for the task scratch directory name
+
+        :return: Name of the scratch directory
+        :rtype: str
+        """
+        millis = int(round(time() * 1000))
         return str(millis) + "-" + self.name
 
-    # asJson
     def as_json(self):
+        """"
+        Generates the JSON representation of the task
+
+        :return: JSON task representation
+        :rtype: dict(str, object)
+        """
+
         json_task = {"name": self.name, "status": self.status.name,
-                     "working_dir": self.working_dir, "nexts": [], "prevs": []}
+                     "working_dir": self.working_dir, "nexts": [], "prevs": [],
+                     "command":self.command, "type": type(self).__name__.lower()}
+
         for t in self.nexts:
             json_task['nexts'].append(t.name)
         for t in self.prevs:
             json_task['prevs'].append(t.name)
         return json_task
 
-    # Set the workflow
     def set_workflow(self, workflow):
+        """
+        Set the workflow which execute this task
+
+        :param workflow: :class:`dagon.Workflow` instance
+        :type workflow: :class:`dagon.Workflow`
+        """
         self.workflow = workflow
 
     # Set the current status
     def set_status(self, status):
+        """
+        Set the status for the current task
+
+        :param status: status of the task
+        :type status: :class:`dagon.task.Status`
+        """
         self.status = status
         if self.workflow is not None:
             self.workflow.logger.debug("%s: %s", self.name, self.status)
-            if self.workflow.regist_on_api:
-                self.workflow.api.update_task_status(self.workflow.id, self.name, status.name)
+            if self.workflow.is_api_available:
+                self.workflow.api.update_task_status(self.workflow.workflow_id, self.name, status.name)
 
-    # Add the dependency to a task
     def add_dependency_to(self, task):
+        """
+        Add a dependency to other task
+
+        :param task: :class:`dagon.task.Task` instance dependency
+        :type task: :class:`dagon.task.Task`
+        """
         task.nexts.append(self)
         self.prevs.append(task)
 
-        if self.workflow.regist_on_api:  # add in the server
-            self.workflow.api.add_dependency(self.workflow.id, self.name, task.name)
+        if self.workflow.is_api_available:  # add in the server
+            self.workflow.api.add_dependency(self.workflow.workflow_id, self.name, task.name)
 
     # Increment the reference count
     def increment_reference_count(self):
+        """
+        Increments the reference count
+        """
         self.reference_count = self.reference_count + 1
 
     # Call garbage collector (remove scratch directory, container, cloud instace, etc)
     # implemented by each task class
     def on_garbage(self):
+        """
+        Call garbage collector, removing the scratch directory, containers and instances related to the
+        task
+        """
         shutil.move(self.working_dir, self.working_dir + "-removed")
 
     # Decremet the reference count
     def decrement_reference_count(self):
+        """
+        Decremet the reference count. When the number of references is equals to zero, the garbage collector is called
+        """
         self.reference_count = self.reference_count - 1
 
         # Check if the scratch directory must be removed
@@ -98,19 +294,22 @@ class Task(Thread):
 
     # Method overrided
     def pre_run(self):
-        # For each workflow:// in the command string
-        ### Extract the referenced task
-        ### Add a reference in the referenced task
+        """
+        Resolve task dependencies
+        For each workflow:// in the command string
+        1) Extract the referenced task
+        2) Add a reference in the referenced task
 
+        """
         # Index of the starting position
         pos = 0
 
-        # Forever unless no anymore Workflow.SCHEMA are present
+        # Forever unless no anymore dagon.Workflow.SCHEMA are present
         while True:
-            # Get the position of the next Workflow.SCHEMA
+            # Get the position of the next dagon.Workflow.SCHEMA
             pos1 = self.command.find(dagon.Workflow.SCHEMA, pos)
 
-            # Check if there is no Workflow.SCHEMA
+            # Check if there is no dagon.Workflow.SCHEMA
             if pos1 == -1:
                 # Exit the forever cycle
                 break
@@ -125,7 +324,7 @@ class Task(Thread):
             # Extract the parameter string
             arg = self.command[pos1:pos2]
 
-            # Remove the Workflow.SCHEMA label
+            # Remove the dagon.Workflow.SCHEMA label
             arg = arg.replace(dagon.Workflow.SCHEMA, "")
 
             # Split each argument in elements by the slash
@@ -157,6 +356,15 @@ class Task(Thread):
 
     # Pre process command
     def pre_process_command(self, command):
+        """
+        Preprocess the command resolving the dependencies with other tasks
+
+        :param command:
+        :type command: command to be executed by the task
+
+        :return: command preprocessed
+        :rtype: str
+        """
 
         stager = dagon.Stager()
 
@@ -168,6 +376,7 @@ class Task(Thread):
 
         context_script = header + "cd " + self.working_dir + "/.dagon\n"
         context_script += header + self.get_how_im_script() + "\n\n"
+
         result = self.on_execute(context_script, "context.sh")  # execute context script
         if result['code']:
             raise Exception(result['message'])
@@ -186,13 +395,13 @@ class Task(Thread):
         # Index of the starting position
         pos = 0
 
-        # Forever unless no anymore Workflow.SCHEMA are present
+        # Forever unless no anymore dagon.Workflow.SCHEMA are present
         while True:
 
-            # Get the position of the next Workflow.SCHEcdMA
+            # Get the position of the next dagon.Workflow.SCHEcdMA
             pos1 = command.find(dagon.Workflow.SCHEMA, pos)
 
-            # Check if there is no Workflow.SCHEMA
+            # Check if there is no dagon.Workflow.SCHEMA
             if pos1 == -1:
                 # Exit the forever cycle
                 break
@@ -207,7 +416,7 @@ class Task(Thread):
             # Extract the parameter string
             arg = command[pos1:pos2]
 
-            # Remove the Workflow.SCHEMA label
+            # Remove the dagon.Workflow.SCHEMA label
             arg = arg.replace(dagon.Workflow.SCHEMA, "")
 
             # Split each argument in elements by the slash
@@ -236,7 +445,7 @@ class Task(Thread):
 
                 # Create the destination directory
                 header = header + "\n\n# Create the destination directory\n"
-                header = header + "mkdir -p " + dst_path + "/" + os.path.dirname(local_path) + "\n"
+                header = header + "mkdir -p " + dst_path + "/" + path.dirname(local_path) + "\n"
                 header = header + "if [ $? -ne 0 ]; then code=1; fi\n\n"
                 # Add the move data command
                 header = header + stager.stage_in(self, task, dst_path, local_path)
@@ -253,10 +462,20 @@ class Task(Thread):
 
     # process the command to execute
     def include_command(self, body):
+        """
+        Include the command to execute in the script body
+        :param body: Script body
+        :return: Script body with the command
+        """
         return body + " |tee " + self.working_dir + "/.dagon/stdout.txt\n"
 
     # Post process the command
     def post_process_command(self, command):
+        """
+        Add some post process commands after the task execution
+        :param command: Command to be executed
+        :return: Command post-processed
+        """
         footer = command + "\n\n"
         footer = footer + "# Perform post process\n"
         footer += "exit $code"
@@ -264,7 +483,18 @@ class Task(Thread):
 
     # Method to be overrided
     def on_execute(self, script, script_name):
+        """
+        Execute the task script
 
+        :param script: script content
+        :type script: str
+
+        :param script_name: script name
+        :type script_name: str
+
+        :return: execution result
+        :rtype: dict() with the execution output (str) and code (int)
+        """
         # The launcher script name
         script_name = self.working_dir + "/.dagon/" + script_name
 
@@ -273,43 +503,55 @@ class Task(Thread):
         file.write(script)
         file.flush()
         file.close()
-        os.chmod(script_name, 0744)
+        chmod(script_name, 0744)
 
     # create path using mkdirs
     def mkdir_working_dir(self, path):
+        """
+        Make the working directory
+
+        :param path: Path to the working directory
+        :type path: str
+        """
         makedirs(path)
 
     def create_working_dir(self):
+        """
+        Create the working directory
+        """
         if self.working_dir is None:
             # Set a scratch directory as working directory
             self.working_dir = self.workflow.get_scratch_dir_base() + "/" + self.get_scratch_name()
 
-            # Create scratch directory
-            self.mkdir_working_dir(self.working_dir + "/.dagon")
-
             # Set to remove the scratch directory
             self.remove_scratch_dir = True
 
+        # Create scratch directory
+        self.mkdir_working_dir(self.working_dir + "/.dagon")
         self.workflow.logger.debug("%s: Scratch directory: %s", self.name, self.working_dir)
-        if self.workflow.regist_on_api:  # change scratch directory on server
+        if self.workflow.is_api_available:  # change scratch directory on server
             try:
-                self.workflow.api.update_task(self.workflow.id, self.name, "working_dir", self.working_dir)
+                self.workflow.api.update_task(self.workflow.workflow_id, self.name, "working_dir", self.working_dir)
             except Exception, e:
                 self.workflow.logger.error("%s: Error updating scratch directory on server %s", self.name, e)
 
     def remove_reference_workflow(self):
+        """
+        Remove the reference
+        For each workflow:// in the command
+        """
         # Remove the reference
         # For each workflow:// in the command
 
         # Index of the starting position
         pos = 0
 
-        # Forever unless no anymore Workflow.SCHEMA are present
+        # Forever unless no anymore dagon.Workflow.SCHEMA are present
         while True:
-            # Get the position of the next Workflow.SCHEMA
+            # Get the position of the next dagon.Workflow.SCHEMA
             pos1 = self.command.find(dagon.Workflow.SCHEMA, pos)
 
-            # Check if there is no Workflow.SCHEMA
+            # Check if there is no dagon.Workflow.SCHEMA
             if pos1 == -1:
                 # Exit the forever cycle
                 break
@@ -324,7 +566,7 @@ class Task(Thread):
             # Extract the parameter string
             arg = self.command[pos1:pos2]
 
-            # Remove the Workflow.SCHEMA label
+            # Remove the dagon.Workflow.SCHEMA label
             arg = arg.replace(dagon.Workflow.SCHEMA, "")
 
             # Split each argument in elements by the slash
@@ -353,6 +595,11 @@ class Task(Thread):
 
     # Method execute
     def execute(self):
+        """
+        Execute the task
+
+        :raises Exception: a problem occurred during the task  execution
+        """
         self.create_working_dir()
 
         # Apply some command pre processing
@@ -372,6 +619,9 @@ class Task(Thread):
         self.remove_reference_workflow()
 
     def run(self):
+        """
+        Runs the thread where the task will be executed
+        """
         if self.workflow is not None:
             # Change the status
             self.set_status(dagon.Status.WAITING)
@@ -394,7 +644,6 @@ class Task(Thread):
                 self.workflow.logger.debug("%s: Executing...", self.name)
                 self.execute()
             except Exception, e:
-                # traceback.print_exc(file=sys.stdout)
                 self.workflow.logger.error("%s: Except: %s", self.name, str(e))
                 self.set_status(dagon.Status.FAILED)
                 return
@@ -413,7 +662,33 @@ class Task(Thread):
             self.set_status(dagon.Status.FINISHED)
             return
 
+    def get_public_key(self):
+        """
+        Return the temporal public key to this machine
+
+        :return: public key
+        :rtype: str with the public key
+        """
+        pass
+
+    def add_public_key(self, key):
+        """
+        Add a SSH public key on the remote machine
+
+        :param key: Path to the public key
+        :type key: str
+        :return: result of the execution
+        :rtype: dict() with the execution output (str) and code (int)
+        """
+        pass
+
     def get_how_im_script(self):
+        """
+        Create the script to get the context where the task will be executed
+
+        :return: Context script
+        :rtype: str
+        """
         return """
         
 # Initialize
@@ -456,14 +731,14 @@ then
 fi
 
 # Check if the ftp is available
-status_ftpd=`service vsftpd status 2>/dev/null|grep "Active"| awk '{print $2}'`
+status_ftpd=`systemctl status globus-gridftp-server 2>/dev/null|grep "Active"| awk '{print $2}'`
 if [ "$status_ftpd" == "" ]
 then
   status_ftpd="none"
 fi
 
 # Check if the grid ftp is available
-status_gsiftpd=`service gsiftpd status 2>/dev/null|grep "Active"| awk '{print $2}'`
+status_gsiftpd=`systemctl status globus-gridftp-server 2>/dev/null|grep "Active"| awk '{print $2}'`
 if [ "$status_gsiftpd" == "" ]
 then
   status_gsiftpd="none"
@@ -472,9 +747,12 @@ fi
 # Get the user
 user=$USER
 
-ssh-keygen  -b 2048 -t rsa -f ssh_key -q -N ""
+yes no 2>/dev/null | ssh-keygen  -b 2048 -t rsa -f ssh_key -q -N ""  >/dev/null
 
 # Construct the json
 json="{\\\"type\\\":\\\"$machine_type\\\",\\\"ip\\\":\\\"$public_ip\\\",\\\"user\\\":\\\"$user\\\",\\\"SCP\\\":\\\"$status_sshd\\\",\\\"FTP\\\":\\\"$status_ftpd\\\",\\\"GRIDFTP\\\":\\\"$status_gsiftpd\\\"}"
 echo $json
 """
+
+
+

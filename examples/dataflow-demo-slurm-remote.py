@@ -17,7 +17,6 @@ if __name__ == '__main__':
 
     # The task a
     taskA = Slurm("A", "mkdir output;hostname > output/f1.txt", "hicpu", 1, ip="193.205.230.5", ssh_username="diluccio")
-
     # The task b
     taskB = Slurm("B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", "hicpu", 1, ip="193.205.230.5", ssh_username="diluccio")
 

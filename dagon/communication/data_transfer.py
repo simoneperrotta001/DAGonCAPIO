@@ -1,121 +1,117 @@
-import ntpath
-import paramiko
-import globus_sdk
-from enum import Enum
-from scp import SCPClient
-from paramiko import SSHClient
-from fabric.api import local, env, run
-from connection import Connection
-
-class DataTransfer(Enum):
-    GLOBUS = 1
-    SCP = 2
-
-    #Infer the data transportation method (default SCP)
-    @staticmethod
-    def inferDataTransportation(ip, endpoint):
-        if endpoint is not None and Connection.is_port_open(ip, 2811) and Connection.is_port_open(ip, 7512):
-            return DataTransfer.GLOBUS
-        else:
-            return DataTransfer.SCP
-
-class SCPManager:
-
-    def __init__(self, _from=None, _to=None):
-        self._from = _from
-        self._to = _to
-
-    @staticmethod
-    def path_leaf(path):
-        head, tail = ntpath.split(path)
-        return tail or ntpath.basename(head) 
-
-    def putDataInRemote(self, sshClient, ori, dest):
-        scp = SCPClient(sshClient.get_connection().get_transport())
-        scp.put(ori,dest, recursive=True)
-        scp.close()
-        
-    def getDataFromRemote(self,sshClient, ori, dest):
-        scp = SCPClient(sshClient.get_connection().get_transport())
-        scp.get(ori, recursive=True, local_path=dest)
-        scp.close()
-
-    @staticmethod
-    def mkdirRemote(sshClient, absolute_path, ip, ssh_username, ssh_password):
-        env.host_string = ip
-        env.user = ssh_username
-        env.password = ssh_password
-        run('mkdir -p {0}'.format(absolute_path))
-
-    def copyData(self, ori, dest, intermedary):
-        if self._to is None:
-            self.getDataFromRemote(self._from, ori, intermedary)
-        elif self._from is None:
-            self.putDataInRemote(self._to, ori, dest)
-        else:
-            self.getDataFromRemote(self._from, ori, intermedary)
-            self.putDataInRemote(self._to, intermedary, dest)
+from globus_sdk import TransferData, AccessTokenAuthorizer, TransferClient
 
 
 class GlobusManager:
+    """
+    **Manages the data transference between two nodes using globus**
 
-    TRANSFER_TOKEN = "AgjQG9kKWjqVMwoejbjBK4X9OQP9EYqrqXY4BqBjwYa0MW1VdnS9CQbJP0lP2oagd9D060J6nDaNoEFpEQakysz1pr"
+    :ivar _from: endpoint ID of the data source machine
+    :vartype _from: str
+
+    :ivar _to: endpoint ID of the data destiny machine
+    :vartype _to: str
+
+    """
+
+    TRANSFER_TOKEN = "Ag82ObxMdj80Gxd2ex7oVJWJnPv4dWQ8ndkpblOz51n42G6g96i8Cjqx5zKDE4jM5E2OzrJgMYMlNYC7NmMbYfk6VP"
 
     def __init__(self, _from, _to):
+
+        """
+
+        :param _from: endpoint ID of the data source machine
+        :type _from: str
+
+        :param _to:  endpoint ID of the data destiny machine
+        :type _to: str
+        """
+
         self._from = _from
         self._to = _to
 
-    @staticmethod
-    def path_leaf(path):
-        SCPManager.path_leaf(path)
+    def copy_directory(self, ori, destiny, tc):
 
-    def copyDirectory(self, ori, dest, tc):
-        tdata = globus_sdk.TransferData(tc, self._from,
-                                 self._to,
-                                 label="SDK example",
-                                 sync_level="checksum")
-        
-        tdata.add_item(ori, dest,recursive=True)
-        transfer_result = tc.submit_transfer(tdata)
+        """
+        copy a directory using globus transfer
+
+        :param ori: path where the data is in the source machine
+        :type ori: str
+
+        :param destiny: path where the data will be put on the destiny machine
+        :type destiny: str
+
+        :param tc: globus transfer client
+        :type tc: :class:`globus_sdk.TransferClient`
+
+        :return: status of the transference
+        :rtype: str
+        """
+
+        transference_data = TransferData(tc, self._from,
+                                         self._to,
+                                         label="SDK example",
+                                         sync_level="checksum")
+
+        transference_data.add_item(ori, destiny, recursive=True)
+        transfer_result = tc.submit_transfer(transference_data)
         while not tc.task_wait(transfer_result["task_id"], timeout=1):
             task = tc.get_task(transfer_result["task_id"])
-            if task['nice_status'] != "OK":
+
+            if task['nice_status'] == "NOT_A_DIRECTORY":
                 tc.cancel_task(task["task_id"])
                 return task['nice_status']
         return "OK"
-    
-    def copyFile(self, ori, dest, tc):
-        tdata = globus_sdk.TransferData(tc, self._from,
-                                 self._to,
-                                 label="SDK example",
-                                 sync_level="checksum")
-        
-        tdata.add_item(ori, dest)
-        transfer_result = tc.submit_transfer(tdata)
+
+    def copy_file(self, ori, destiny, tc):
+        """
+        copy a file using globus
+
+        :param ori: path where the data is in the source machine
+        :type ori: str
+
+        :param destiny: path where the data will be put on the destiny machine
+        :type destiny: str
+
+        :param tc: globus transfer client
+        :type tc: :class:`globus_sdk.TransferClient`
+
+        :return: status of the transference
+        :rtype: str
+        """
+
+        transference_data = TransferData(tc, self._from,
+                                         self._to,
+                                         label="SDK example",
+                                         sync_level="checksum")
+
+        transference_data.add_item(ori, destiny)
+        transfer_result = tc.submit_transfer(transference_data)
         while not tc.task_wait(transfer_result["task_id"], timeout=1):
-            task = tc.get_task(transfer_result["task_id"])
-            if task['nice_status'] != "OK":
-                tc.cancel_task(task["task_id"])
-                return task['nice_status']
+            # wait until transfer ends
+            continue
+
         return "OK"
 
-    def copyData(self, ori, dest):
-        #print "xxx", ori, dest
-        authorizer = globus_sdk.AccessTokenAuthorizer(GlobusManager.TRANSFER_TOKEN)
-        tc = globus_sdk.TransferClient(authorizer=authorizer)
-        res = self.copyDirectory(ori, dest, tc)
+    def copy_data(self, ori, destiny):
+
+        """
+        copy data using globus
+
+        :param ori: path where the data is in the source machine
+        :type ori: str
+
+        :param destiny: path where the data will be put on the destiny machine
+        :type destiny: str
+
+        :raises Exception: a problem occurred during the transference
+        """
+
+        authorizer = AccessTokenAuthorizer(GlobusManager.TRANSFER_TOKEN)
+        tc = TransferClient(authorizer=authorizer)
+        res = self.copy_directory(ori, destiny, tc)
 
         if res == "NOT_A_DIRECTORY":
-            res = self.copyFile(ori, dest, tc)
-        
+            res = self.copy_file(ori, destiny, tc)
+
         if res is not "OK":
             raise Exception(res)
-
-    @staticmethod
-    def mkdirRemote(endpoint, path):
-        try:
-            authorizer = globus_sdk.AccessTokenAuthorizer(GlobusManager.TRANSFER_TOKEN)
-            tc = globus_sdk.TransferClient(authorizer=authorizer)
-            tc.operation_mkdir(endpoint, path=path)
-        except Exception, e:
-            print e

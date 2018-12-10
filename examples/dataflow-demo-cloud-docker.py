@@ -5,8 +5,8 @@ from libcloud.compute.types import Provider
 from dagon import Workflow
 from dagon.remote import CloudTask
 from dagon.docker_task import DockerTask
-from dagon.cloud.cloud_manager import KeyPair
-from dagon.cloud.cloud_manager import KeyOptions
+from dagon.cloud import KeyPair
+from dagon.cloud import KeyOptions
 
 # Check if this is the main
 if __name__ == '__main__':

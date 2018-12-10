@@ -9,11 +9,10 @@ from dagon import Status
 if __name__ == '__main__':
 
     # Create the orchestration workflow
-    workflow = Workflow("DataFlow-Demo-Docker-remote")
+    workflow = Workflow("DataFlow-Demo-Docker-remote-docker-2")
 
     # The task a
-    taskA = DockerTask("A", "mkdir output;hostname > output/f1.txt", image="ubuntu_curl",
-                       ip="ec2-34-219-189-203.us-west-2.compute.amazonaws.com", ssh_username="ubuntu", keypath="dagon_services.pem")
+    taskA = DockerTask("A", "mkdir output;hostname > output/f1.txt", image="ubuntu_curl", ip="ec2-34-219-189-203.us-west-2.compute.amazonaws.com", ssh_username="ubuntu", keypath="dagon_services.pem")
 
     # The task b
     taskB = DockerTask("B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt",
@@ -30,7 +29,7 @@ if __name__ == '__main__':
     workflow.add_task(taskA)
     workflow.add_task(taskB)
     workflow.add_task(taskC)
-    #workflow.add_task(taskD)
+    workflow.add_task(taskD)
 
     workflow.make_dependencies()
 

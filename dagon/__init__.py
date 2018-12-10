@@ -2,26 +2,33 @@ import logging
 import logging.config
 import os
 from logging.config import fileConfig
-from logging.config import dictConfig
 from types import NoneType
 
 from backports.configparser import NoSectionError
-from requests.exceptions import ConnectionError
-from graphviz import Digraph
 from enum import Enum
-from dagon.api import API
-from dagon.api.server import WorkflowServer
-from dagon.communication.connection import Connection
-
-from dagon.batch import Batch
-from dagon.batch import Slurm
-from dagon.docker_task import DockerRemoteTask
+from requests.exceptions import ConnectionError
 
 from config import read_config
+from dagon.api import API
+from dagon.api.server import WorkflowServer
+from dagon.batch import Batch
+from dagon.batch import Slurm
+from dagon.communication.data_transfer import GlobusManager
+from dagon.docker_task import DockerRemoteTask
 from dagon.remote import RemoteTask
 
 
 class Status(Enum):
+    """
+    Possible states that a :class:`dagon.Task` could be in
+
+    :cvar READY: Ready to execute
+    :cvar WAITING: Waiting for some tasks to end them execution
+    :cvar RUNNING: On execution
+    :cvar FINISHED: Executed with success
+    :cvar FAILED: Executed with error
+    """
+
     READY = "READY"
     WAITING = "WAITING"
     RUNNING = "RUNNING"
@@ -30,33 +37,63 @@ class Status(Enum):
 
 
 class Workflow(object):
+    """
+    **Represents a workflow executed by DagOn**
+
+    :ivar name: unique name of the workflow
+    :vartype name: str
+
+    :ivar cfg: workflow configuration
+    :vartype cfg: str
+
+    :ivar tasks: Task to be executed by the workflow
+    :vartype tasks: str
+
+    :ivar workflow_id: workflow ID
+    :vartype workflow_id: str
+
+    :ivar is_api_available: True if the API is available
+    :vartype is_api_available: str
+    """
+
     SCHEMA = "workflow://"
 
-    def __init__(self, name, config=None, config_file=None):
+    def __init__(self, name, config=None, config_file='dagon.ini'):
+        """
+        Create a workflow
 
-        if config is None and config_file is None:
-            self.cfg = read_config('dagon.ini')
-            fileConfig('dagon.ini')
-        elif config is not None:
+        :param name: Workflow name
+        :type name: str
+
+        :param config: configuration dictionary of the workflow
+        :type config: dict(str, str)
+
+        :param config_file: Path to the configuration file of the workflow. By default, try to loads 'dagon.ini'
+        :type config_file: str
+        """
+
+        if config is not None:
             self.cfg = config
-        elif config_file is not None:
-            self.cfg = read_config('dagon.ini')
+        else:
+            self.cfg = read_config(config_file)
             fileConfig(config_file)
 
+        # supress some logs
         logging.getLogger("paramiko").setLevel(logging.WARNING)
         logging.getLogger("globus_sdk").setLevel(logging.WARNING)
+
         self.logger = logging.getLogger()
 
         self.name = name
         self.dry = False
         self.tasks = []
-        self.id = 0
-        self.regist_on_api = False
+        self.workflow_id = 0
+        self.is_api_available = False
 
         # to regist in the dagon service
         try:
             self.api = API(self.cfg['dagon_service']['route'])
-            self.regist_on_api = True
+            self.is_api_available = True
         except NoneType:
             self.logger.error("No dagon URL in config file")
         except NoSectionError:
@@ -64,29 +101,12 @@ class Workflow(object):
         except ConnectionError, e:
             self.logger.error(e)
 
-        if self.regist_on_api:
+        if self.is_api_available:
             try:
-                self.id = self.api.create_workflow(self)
-                """if "dagon_ip" in self.cfg and "ip" in self.cfg['dagon_ip']:
-                    self.connection = Connection(self)
-                    #self.connection.send_str(self.id)
-                    #self.connection.start()"""
-                self.logger.debug("Workflow registration success id = %s" % self.id)
+                self.workflow_id = self.api.create_workflow(self)
+                self.logger.debug("Workflow registration success id = %s" % self.workflow_id)
             except Exception, e:
                 raise Exception(e)
-
-        """port = Connection.find_port()
-        config_ip = None
-        if "dagon_ip" in self.cfg and "ip" in self.cfg['dagon_ip']:
-            config_ip = self.cfg['dagon_ip']['ip']
-        ip = Connection.find_ip_local(config_ip)
-
-        self.workflow_server = WorkflowServer(self, ip, port)
-        self.workflow_server.start()  # start workflow server
-        self.url = "%s:%d" % (Connection.find_ip_public(), port)
-        if not Connection.check_url(self.url):
-            self.url = "%s:%d" % (ip, port)
-        self.logger.debug("Workflow server URL %s", self.url)"""
 
     def get_dry(self):
         return self.dry
@@ -94,13 +114,29 @@ class Workflow(object):
     def set_dry(self, dry):
         self.dry = dry
 
-    def get_url(self):
-        return self.url
-
     def get_scratch_dir_base(self):
+        """
+        Returns the path to the base scratch directory
+
+        :return: Absolute path to the scratch directory
+        :rtype: str with absolute path to the base scratch directory
+        """
         return self.cfg['batch']['scratch_dir_base']
 
     def find_task_by_name(self, workflow_name, task_name):
+        """
+        Search for a task of an specific workflow
+
+        :param workflow_name: Name of the workflow
+        :type workflow_name: str
+
+        :param task_name: Name of the task
+        :type task_name: str
+
+        :return: task instance
+        :rtype: :class:`dagon.task.Task` instance if it is found, None in other case
+        """
+
         # Check if the workflow is the current one
         if workflow_name == self.name:
 
@@ -115,12 +151,22 @@ class Workflow(object):
         return None
 
     def add_task(self, task):
+        """
+        Add a task to this workflow
+
+        :param task: :class:`dagon.task.Task` instance
+        :type task: :class:`dagon.task.Task`
+        """
         self.tasks.append(task)
         task.set_workflow(self)
-        if self.regist_on_api:
-            self.api.add_task(self.id, task)
+        if self.is_api_available:
+            self.api.add_task(self.workflow_id, task)
 
     def make_dependencies(self):
+        """
+        Looks for all the dependencies between tasks
+        """
+
         # Clean all dependencies
         for task in self.tasks:
             task.nexts = []
@@ -134,7 +180,14 @@ class Workflow(object):
 
     # Return a json representation of the workflow
     def as_json(self):
-        jsonWorkflow = {"tasks": {}, "name": self.name, "id": self.id}
+        """
+        Return a json representation of the workflow
+
+        :return: JSON representation
+        :rtype: dict(str, object) with data class
+        """
+
+        jsonWorkflow = {"tasks": {}, "name": self.name, "id": self.workflow_id}
         for task in self.tasks:
             jsonWorkflow['tasks'][task.name] = task.as_json()
         return jsonWorkflow
@@ -144,26 +197,25 @@ class Workflow(object):
         for task in self.tasks:
             task.start()
 
-        """for task in self.tasks:
-            task.join()"""
-
-        """try:
-            self.workflow_server.shutdown()
-        except Exception, e:
-            print e
-            self.logger.debug("Server stopped %s", self.name)"""
-
-    def draw(self):
-        g = Digraph(self.name)
-        g.node_attr.update(color='lightblue2', style='filled')
         for task in self.tasks:
-            g.node(task.name, task.name)
-            for child in task.nexts:
-                g.edge(task.name, child.name)
-        # g.view()
+            task.join()
 
 
 class DataMover(Enum):
+    """
+    Possible transfer protocols/apps
+
+    :cvar DONTMOVE: Don't move nothing
+    :cvar LINK: Using a symbolic link
+    :cvar COPY: Copying the data
+    :cvar SCP: Using secure copy
+    :cvar HTTP: Using HTTP
+    :cvar HTTPS: Using HTTPS
+    :cvar FTP: Using FTP
+    :cvar SFTP: Using secure FTP
+    :cvar GRIDFTP: Using Globus GridFTP
+    """
+
     DONTMOVE = 0
     LINK = 1
     COPY = 2
@@ -176,16 +228,47 @@ class DataMover(Enum):
 
 
 class ProtocolStatus(Enum):
+    """
+    Status of the protocol on a machine
+
+    :cvar ACTIVE: Protocol running and active
+    :cvar NONE: Protocol not installed
+    :cvar INACTIVE: Protocol not running
+    """
+
     ACTIVE = "active"
-    DISACTIVE = "none"
+    NONE = "none"
     INACTIVE = "inactive"
 
 
 class Stager(object):
+    """
+    Choose the transference protocol to move data between tasks
+    """
+
     def __init__(self):
         pass
 
     def stage_in(self, dst_task, src_task, dst_path, local_path):
+        """
+        Evaluates the context of the machines and choose the transfer protocol
+
+        :param dst_task: task where the data has to be put
+        :type dst_task: :class:`dagon.task.Task`
+
+        :param src_task: task from the data has to be taken
+        :type src_task: :class:`dagon.task.Task`
+
+        :param dst_path: path where the file is going to be save on the destiny directory
+        :type dst_path: str
+
+        :param local_path: path where is the file to be transferred on the source task
+        :type local_path: str
+
+        :return: comand to move the data
+        :rtype: str with the command
+        """
+
         data_mover = DataMover.DONTMOVE
         command = ""
 
@@ -193,7 +276,6 @@ class Stager(object):
         # get tasks info and select transference protocol
         dst_task_info = dst_task.get_info()
         src_task_info = src_task.get_info()
-
 
         # check transference protocols and remote machine info if is available
         if dst_task_info is not None and src_task_info is not None:
@@ -204,27 +286,42 @@ class Stager(object):
                 for p in protocols:
                     if ProtocolStatus(src_task_info[p]) is ProtocolStatus.ACTIVE:
                         data_mover = DataMover[p]
+
+                        if data_mover == DataMover.GRIDFTP and \
+                                ProtocolStatus(dst_task_info[p]) is not ProtocolStatus.ACTIVE and \
+                                dst_task_info.get_endpoint() is None and \
+                                dst_task_info.get_endpoint() is None:
+                            continue
+
                         break
         else:  # best effort (SCP)
             data_mover = DataMover.LINK
 
         # Check if the symbolic link have to be used...
-        if data_mover == DataMover.LINK:
+        if data_mover == DataMover.GRIDFTP:
+            # data could be copy using globus sdk
+            ep1 = src_task.get_endpoint()
+            ep2 = dst_task.get_endpoint()
+            gm = GlobusManager(ep1, ep2)
+            gm.copyData(src_task.get_scratch_dir() + "/" + local_path, dst_path + "/" + local_path)
+
+        elif data_mover == DataMover.LINK:
             # Add the link command
             command = command + "# Add the link command\n"
-            command = command + "ln -sf " + src_task.get_scratch_dir() + "/" + local_path + " " + dst_path + "/" + local_path + "\n\n"
-
+            command = command + "ln -sf " + src_task.get_scratch_dir() + "/" + local_path + " " \
+                      + dst_path + "/" + local_path + "\n\n"
         # Check if the copy have to be used...
         elif data_mover == DataMover.COPY:
             # Add the copy command
             command = command + "# Add the copy command\n"
-            command = command + "cp -r " + src_task.get_scratch_dir() + "/" + local_path + " " + dst_path + "/" + local_path + "\n\n"
+            command = command + "cp -r " + src_task.get_scratch_dir() + "/" + local_path + " " + \
+                      dst_path + "/" + local_path + "\n\n"
 
         # Check if the secure copy have to be used...
         elif data_mover == DataMover.SCP:
             # Add the copy command
             command = command + "# Add the secure copy command\n"
-            if isinstance(src_task, RemoteTask):  # if source is accesible from dest machine
+            if isinstance(src_task, RemoteTask):  # if source is accessible from destiny machine
                 # copy my public key
                 key = dst_task.get_public_key()
                 src_task.add_public_key(key)
@@ -233,7 +330,7 @@ class Stager(object):
                           "/.dagon/ssh_key -r " + src_task.get_user() + "@" + src_task.get_ip() + ":" + \
                           src_task.get_scratch_dir() + "/" + local_path + " " + dst_path + "/" + local_path + "\n\n"
                 command += "\nif [ $? -ne 0 ]; then code=1; fi"
-                #command += "\n rm " + dst_task.working_dir + "/.dagon/ssh_key"
+                # command += "\n rm " + dst_task.working_dir + "/.dagon/ssh_key"
             else:  # if source is a local machine
                 # copy my public key
                 key = src_task.get_public_key()
@@ -249,10 +346,11 @@ class Stager(object):
                                 "/.dagon/ssh_key -r " + src_task.get_scratch_dir() + "/" + local_path + " " + \
                                 dst_task.get_user() + "@" + dst_task.get_ip() + ":" + dst_path + \
                                 "/" + local_path + "\n\n"
-                res = src_task.execute_command(command_local)
+                res = Batch.execute_command(command_local)
 
                 if res['code']:
                     raise Exception("Couldn't copy data from %s to %s" % (src_task.get_ip(), dst_task.get_ip()))
+
         command += "\nif [ $? -ne 0 ]; then code=1; fi"
 
         return command

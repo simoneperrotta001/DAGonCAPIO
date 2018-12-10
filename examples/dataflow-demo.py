@@ -1,8 +1,10 @@
-from dagon import Workflow
-from dagon import batch
+
 import json
 import time
 import os
+
+from dagon import Workflow
+from dagon.task import DagonTask, TaskType
 
 # Check if this is the main
 if __name__ == '__main__':
@@ -13,22 +15,22 @@ if __name__ == '__main__':
     }
 
     # Create the orchestration workflow
-    workflow = Workflow("DataFlow-Demo-Server982")
+    workflow = Workflow("DataFlow-Demo-Server")
 
     # Set the dry
     workflow.set_dry(False)
 
     # The task a
-    taskA = batch.Batch("A", "mkdir output;hostname > output/f1.txt")
+    taskA = DagonTask(TaskType.BATCH, "A", "mkdir output;hostname > output/f1.txt")
 
     # The task b
-    taskB = batch.Batch("B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt")
+    taskB = DagonTask(TaskType.BATCH, "B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt")
 
     # The task c
-    taskC = batch.Batch("C", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt")
+    taskC = DagonTask(TaskType.BATCH, "C", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt")
 
     # The task d
-    taskD = batch.Batch("D", "cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt")
+    taskD = DagonTask(TaskType.BATCH, "D", "cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt")
 
     # add tasks to the workflow
     workflow.add_task(taskA)

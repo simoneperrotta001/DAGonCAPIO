@@ -7,7 +7,7 @@ from libcloud.compute.types import Provider
 
 from dagon import batch
 from dagon import Workflow
-import dagon.cloud.cloud_manager as cm
+import dagon.cloud as cm
 from dagon.remote import CloudTask
 from dagon import docker_task as dt
 from dagon.docker_task import DockerTask
