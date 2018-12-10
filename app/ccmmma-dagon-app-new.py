@@ -1,4 +1,4 @@
-from dagon import Workflow
+from dagon import Workflow, Slurm
 from dagon import batch
 import json
 import time
@@ -8,12 +8,6 @@ import datetime
 
 # Check if this is the main
 if __name__ == '__main__':
-
-    config = {
-        "scratch_dir_base": "/home/ccmmma/scratch/",
-        "remove_dir": False
-    }
-
     # Set some default values
 
     # The model setup version
@@ -31,7 +25,7 @@ if __name__ == '__main__':
     # Check if the number of command line arguments is correct
     if len(sys.argv) == 4:
 
-        # Set the inizialization date
+        # Set the initialization date
         i_date = sys.argv[1]
 
         # Set the number of hours to simulate
@@ -46,7 +40,7 @@ if __name__ == '__main__':
         # Perform a dry run with default parameters
         print "Defaults: " + str(wrf_model) + " " + str(i_date) + " " + str(hours) + " " + str(dry)
 
-    # The application root
+        # The application root
     prometeo_root = "/home/ccmmma/prometeo/"
 
     # Where the restart are stored
@@ -91,10 +85,7 @@ if __name__ == '__main__':
     final = end_date.strftime("%Y-%m-%d_%H:%M:%S")
 
     # Create the orchestration workflow
-    workflow = Workflow("CCMMMA", config)
-
-    # Set the dry
-    workflow.set_dry(True)
+    workflow = Workflow("CCMMMA")
 
     # Some beauty logging
     workflow.logger.info("initialization date: %s", i_date)
@@ -107,34 +98,23 @@ if __name__ == '__main__':
                                       command_dir_base + "/makeWpsNamelist." + wrf_model + " " + initial + " " + final)
 
     # The geogrid task executed using Slurm
-    taskGeogrid = batch.Batch("geogrid",
-                              "sbatch --wait " + command_dir_base + "/geogrid " + i_date + " workflow://makeWpsNameList/namelist.wps")
+    taskGeogrid = Slurm("geogrid", command_dir_base + "/geogrid " + i_date +
+                        " workflow:///makeWpsNameList/namelist.wps", "hicpu", 1)
 
     # The ungrib task executed using Slurm
-    taskUngrib = batch.Batch("ungrib",
-                             "sbatch --wait " + command_dir_base + "/ungrib " + i_date + " " + data_dir + " workflow://makeWpsNameList/namelist.wps")
+    taskUngrib = Slurm("ungrib", command_dir_base + "/ungrib " + i_date + " " + data_dir +
+                       " workflow:///makeWpsNameList/namelist.wps" , "hicpu", 1)
 
     # the metgrid task executed using Slurm
-    taskMetgrid = batch.Batch("metgrid",
-                              "sbatch --wait " + command_dir_base + "/metgrid " + i_date + " workflow://makeWpsNameList/namelist.wps workflow://ungrib/FILE\* workflow://geogrid/geo_em.\*")
+    taskMetgrid = Slurm("metgrid", command_dir_base + "/metgrid " + i_date +
+                        " workflow:///makeWpsNameList/namelist.wps workflow:///ungrib/FILE\* workflow:///geogrid/geo_em.\*")
 
-    #  # Check if first day restarts are available
-    #  count=0
-    #  for domain in domainItems:
-    #    if os.path.isfile(restart_dir_base+"/wrfrst_"+domain+"_"+start_date.strftime("%Y-%m-%d")+"_00:00:00"):
-    #      count=count+1
-    #
-    #  if count==len(domainItems):
-    #    useRestart="True"
-    #    restartFile=restart_dir_base+"wrfrst_d\?\?_"+start_date.strftime("%Y-%m-%d")+"_00:00:00"
-
-    # The makeInputNameList for the whole simulation executed locally
-    taskMakeInputNameList = batch.Batch("makeInputNameList",
-                                        command_dir_base + "/makeInputNamelist." + wrf_model + " " + i_date + " " + f_date + " 3 " + useRestart + " 1440")
+    taskMakeInputNameList = batch.Batch("makeInputNameList", command_dir_base + "/makeInputNamelist." + wrf_model + " "
+                                        + i_date + " " + f_date + " 3 " + useRestart + " 1440")
 
     # The real task executed using Slurm
-    taskReal = batch.Batch("real",
-                           "sbatch --wait " + command_dir_base + "/real " + i_date + " workflow://makeInputNameList/namelist.input workflow://metgrid/met_em.\*")
+    taskReal = Slurm("real", command_dir_base + "/real " + i_date +
+                     " workflow:///makeInputNameList/namelist.input workflow:///metgrid/met_em.\*", "hicpu", 1)
 
     # add tasks to the workflow
     workflow.add_task(taskMakeWpsNameList)
@@ -156,18 +136,17 @@ if __name__ == '__main__':
 
         if day > 0:
             useRestart = "True"
-            restartFile = "workflow://wrf_" + str(day - 1) + "/wrfrst_d\?\?_" + i_date1.strftime(
-                "%Y-%m-%d") + "_00:00:00"
-
+            restartFile = "workflow:///wrf_" + str(day - 1) + "/wrfrst_d\?\?_" + \
+                          i_date1.strftime("%Y-%m-%d") + "_00:00:00"
         taskMakeInputNameList = batch.Batch("makeInputNameList_" + str(day),
-                                            command_dir_base + "/makeInputNamelist." + wrf_model + " " + i_date1s + " " + f_date1s + " 3 " + useRestart + " 1440")
-        taskWrf = batch.Batch("wrf_" + str(day),
-                              "sbatch --wait " + command_dir_base + "/wrf " + i_date + " workflow://makeInputNameList_" + str(
-                                  day) + "/namelist.input workflow://real/wrfbdy\* workflow://real/wrfinput\* " + restartFile)
+                                            command_dir_base + "/makeInputNamelist." + wrf_model + " " + i_date1s +
+                                            " " + f_date1s + " 3 " + useRestart + " 1440")
+        taskWrf = Slurm("wrf_" + str(day), command_dir_base + "/wrf " + i_date + " workflow://makeInputNameList_"
+                        + str(day) + "/namelist.input workflow://real/wrfbdy\* workflow://real/wrfinput\* "
+                        + restartFile)
         taskSaveRestart = batch.Batch("saveRestart_" + str(day),
                                       "cp -r workflow://wrf_" + str(day) + "/wrfrst_d??_" + f_date1.strftime(
                                           "%Y-%m-%d") + "_00:00:00 " + restart_dir_base)
-
         taskPublish = batch.Batch("publishWrfOutput_" + str(day),
                                   "sbatch --wait " + command_dir_base + "/publishWrfOutput " + i_date + " " + i_date1s + " " + wrf_model + " workflow://wrf_" + str(
                                       day) + "/wrfout_")
