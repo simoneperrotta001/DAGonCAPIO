@@ -1,4 +1,4 @@
-import requests
+
 from requests.exceptions import ConnectionError
 
 import requests

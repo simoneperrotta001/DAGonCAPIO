@@ -31,7 +31,7 @@ class DockerClient(object):
                 return {"code": 0, "output": res.stdout}
 
     @staticmethod
-    def form_string_cont_creation(image, command=None, volume=None, ports=None):
+    def form_string_cont_creation(image, command=None, volume=None, dagon_volume=None, ports=None):
         """
         creates an string to create the container on the remote machine
 
@@ -57,6 +57,8 @@ class DockerClient(object):
 
         if volume is not None:
             docker_command += " -v \'%s\':\'%s\'" % (volume['host'], volume['container'])
+        if dagon_volume is not None:
+            docker_command += " -v \'%s\':\'%s\'" % (dagon_volume['host'], dagon_volume['container'])
         if ports is not None:
             docker_command += " -p \'%s\':\'%s\'" % (ports['host'], ports['container'])
         docker_command += " %s" % image

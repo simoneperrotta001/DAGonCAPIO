@@ -18,7 +18,7 @@ class DockerTask(Batch):
 
     """
 
-    def __init__(self, name, command, image=None, container_id=None, working_dir=None, endpoint=None, remove=True):
+    def __init__(self, name, command, image=None, container_id=None, working_dir=None, endpoint=None, remove=True, volume=None):
 
         """
         :param name: task name
@@ -47,6 +47,7 @@ class DockerTask(Batch):
         self.remove = remove
         self.image = image
         self.endpoint = endpoint
+        self.volume = volume
         self.docker_client = DockerClient()
 
     def __new__(cls, *args, **kwargs):
@@ -99,8 +100,10 @@ class DockerTask(Batch):
         """
 
         command = DockerClient.form_string_cont_creation(image=self.image,
-                                                         volume={"host": self.workflow.get_scratch_dir_base(),
+                                                         volume=self.volume,
+                                                         dagon_volume={"host": self.workflow.get_scratch_dir_base(),
                                                                  "container": self.workflow.get_scratch_dir_base()})
+
         result = self.docker_client.exec_command(command)
         if result['code']:
             raise Exception(self.result["message"].rstrip())

@@ -5,6 +5,7 @@ from os import makedirs, path, chmod
 from time import time, sleep
 from enum import Enum
 
+
 import dagon
 
 
@@ -611,7 +612,10 @@ class Task(Thread):
         # Execute only if not dry
         if self.workflow.dry is False:
             # Invoke the actual executor
+            start_time = time()
             self.result = self.on_execute(launcher_script, "launcher.sh")
+            self.workflow.logger.debug("%s Completed in %s seconds ---" % (self.name, (time() - start_time)))
+
             # Check if the execution failed
             if self.result['code']:
                 raise Exception('Executable raised a execption ' + self.result['message'])
