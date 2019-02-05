@@ -78,11 +78,12 @@ class Workflow(object):
             self.cfg = read_config(config_file)
             fileConfig(config_file)
 
-        # supress some logs
-        logging.getLogger("paramiko").setLevel(logging.WARNING)
-        logging.getLogger("globus_sdk").setLevel(logging.WARNING)
+        # logging
+        logging.basicConfig(filename='example.log', level=logging.DEBUG)
 
-        self.logger = logging.getLogger()
+        # console handler
+        self.logger = logging.getLogger(__name__)
+        self.logger.debug("hiho debug message")
 
         self.name = name
         self.dry = False
