@@ -1,10 +1,10 @@
 import shutil
 from json import loads
 from threading import Thread
+from threading import Semaphore
 from os import makedirs, path, chmod
 from time import time, sleep
 from enum import Enum
-
 
 import dagon
 
@@ -59,7 +59,6 @@ class DagonTask(object):
         """
 
         from importlib import import_module
-
         task_class = tasks_types[class_type]
         module = import_module(task_class[0])
         class_ = getattr(module, task_class[1])
@@ -105,11 +104,9 @@ class Task(Thread):
     :ivar info: information of the enviroment where this task is going to be executed
     :vartype info: dict(str, object)
 
-    :ivar endpoint: globus endpoint id (only used when :class:`dagon.DataMover` is DataMover)
-    :vartype endpoint: str
     """
 
-    def __init__(self, name, command, working_dir=None, endpoint=None):
+    def __init__(self, name, command, working_dir=None):
         """
         :param name: name of the task
         :type name: str
@@ -120,10 +117,7 @@ class Task(Thread):
         :param working_dir: path to the directory where the task is be executed
         :type working_dir: str
 
-        :param endpoint: globus Endpoint ID
-        :type endpoint: str
         """
-
         Thread.__init__(self)
         self.ssh_connection = None
         self.name = name
@@ -133,20 +127,10 @@ class Task(Thread):
         self.remove_scratch_dir = False
         self.running = False
         self.workflow = None
-        self.endpoint = endpoint  # globus endpoint id
         self.set_status(dagon.Status.READY)
         self.working_dir = working_dir
         self.command = command
         self.info = None
-
-    def get_endpoint(self):
-        """
-        Returns the globus ID endpoint
-
-        :return: Globus endpoint ID
-        :rtype: str with the endpoint ID
-        """
-        return self.endpoint
 
     def set_info(self, info):
         """
@@ -219,7 +203,7 @@ class Task(Thread):
 
         json_task = {"name": self.name, "status": self.status.name,
                      "working_dir": self.working_dir, "nexts": [], "prevs": [],
-                     "command":self.command, "type": type(self).__name__.lower()}
+                     "command": self.command, "type": type(self).__name__.lower()}
 
         for t in self.nexts:
             json_task['nexts'].append(t.name)
@@ -249,6 +233,13 @@ class Task(Thread):
             self.workflow.logger.debug("%s: %s", self.name, self.status)
             if self.workflow.is_api_available:
                 self.workflow.api.update_task_status(self.workflow.workflow_id, self.name, status.name)
+
+    def execute_command(self, command):
+        """"
+        Executes a command
+        :param command: command to be executed
+        """
+        pass
 
     def add_dependency_to(self, task):
         """
@@ -289,9 +280,12 @@ class Task(Thread):
         # Check if the scratch directory must be removed
         if self.reference_count == 0 and self.remove_scratch_dir is True:
             # Call garbage collector (remove scratch directory, container, cloud instace, etc)
-            self.on_garbage()
+            #self.on_garbage()
             # Perform some logging
             self.workflow.logger.debug("Removed %s", self.working_dir)
+
+    def set_semaphore(self, sem):
+        self.semaphore = sem
 
     # Method overrided
     def pre_run(self):
@@ -642,16 +636,20 @@ class Task(Thread):
 
             # Change the status
             self.set_status(dagon.Status.RUNNING)
-
+            self.workflow.logger.debug("%s: Executing...", self.name)
+            self.semaphore.acquire()
+            self.execute()
+            sleep(2)
+            self.semaphore.release()
             # Execute the task Job
-            try:
+            """try:
                 self.workflow.logger.debug("%s: Executing...", self.name)
                 self.execute()
             except Exception, e:
                 self.workflow.logger.error("%s: Except: %s", self.name, str(e))
                 self.set_status(dagon.Status.FAILED)
                 return
-            # self.execute()
+            # self.execute()"""
 
             # Start all next task
             for task in self.nexts:
@@ -694,20 +692,21 @@ class Task(Thread):
         :rtype: str
         """
         return """
-        
+
 # Initialize
 machine_type="none"
 public_id="none"
 user="none"
 status_sshd="none"
 status_ftpd="none"
+status_skycds="none"
 
 #get http communication protocol
 curl_or_wget=$(if hash curl 2>/dev/null; then echo "curl"; elif hash wget 2>/dev/null; then echo "wget"; fi);
 
 
-if [ $curl_or_wget = "wget" ]; then 
-  public_ip=`wget -q -O- https://ipinfo.io/ip` 
+if [ $curl_or_wget = "wget" ]; then
+  public_ip=`wget -q -O- https://ipinfo.io/ip`
 else
   public_ip=`curl -s https://ipinfo.io/ip`
 fi
@@ -723,7 +722,7 @@ if [ "$public_ip" == "" ]
 then
   # If no public ip is available, then it is a cluster node
   machine_type="cluster-node"
-  public_ip=`ifconfig 2>/dev/null| grep "inet "| grep -v "127.0.0.1"| awk '{print $2}'|head -n 1`  
+  public_ip=`ifconfig 2>/dev/null| grep "inet "| grep -v "127.0.0.1"| awk '{print $2}'|head -n 1`
 fi
 
 
@@ -748,15 +747,22 @@ then
   status_gsiftpd="none"
 fi
 
+#check if skycds container is running
+status_docker=`systemctl status docker 2>/dev/null|grep "Active"| awk '{print $2}'`
+if [ "$status_gsiftpd" == "active" ]
+then
+    if [ "$(docker ps -aq -f status=running -f name=client)" ]; then
+    # cleanup
+        status_skycds="active"
+    fi
+fi
+
 # Get the user
 user=$USER
 
-yes no 2>/dev/null | ssh-keygen  -b 2048 -t rsa -f ssh_key -q -N ""  >/dev/null
+echo "no" | ssh-keygen  -b 2048 -t rsa -f ssh_key -q -N ""  >/dev/null
 
 # Construct the json
-json="{\\\"type\\\":\\\"$machine_type\\\",\\\"ip\\\":\\\"$public_ip\\\",\\\"user\\\":\\\"$user\\\",\\\"SCP\\\":\\\"$status_sshd\\\",\\\"FTP\\\":\\\"$status_ftpd\\\",\\\"GRIDFTP\\\":\\\"$status_gsiftpd\\\"}"
+json="{\\\"type\\\":\\\"$machine_type\\\",\\\"ip\\\":\\\"$public_ip\\\",\\\"user\\\":\\\"$user\\\",\\\"SCP\\\":\\\"$status_sshd\\\",\\\"FTP\\\":\\\"$status_ftpd\\\",\\\"GRIDFTP\\\":\\\"$status_gsiftpd\\\",\\\"SKYCDS\\\":\\\"$status_skycds\\\"}"
 echo $json
 """
-
-
-

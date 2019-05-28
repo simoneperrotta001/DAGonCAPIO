@@ -3,10 +3,12 @@ import logging.config
 import os
 from logging.config import fileConfig
 from types import NoneType
-
+import threading
 from backports.configparser import NoSectionError
 from enum import Enum
 from requests.exceptions import ConnectionError
+
+from time import time, sleep
 
 from config import read_config
 from dagon.api import API
@@ -14,6 +16,7 @@ from dagon.api.server import WorkflowServer
 from dagon.batch import Batch
 from dagon.batch import Slurm
 from dagon.communication.data_transfer import GlobusManager
+from dagon.communication.data_transfer import SKYCDS
 from dagon.docker_task import DockerRemoteTask
 from dagon.remote import RemoteTask
 
@@ -58,7 +61,7 @@ class Workflow(object):
 
     SCHEMA = "workflow://"
 
-    def __init__(self, name, config=None, config_file='dagon.ini'):
+    def __init__(self, name, config=None, config_file='dagon.ini', max_threads=10):
         """
         Create a workflow
 
@@ -77,13 +80,12 @@ class Workflow(object):
         else:
             self.cfg = read_config(config_file)
             fileConfig(config_file)
+        self.sem = threading.Semaphore(max_threads)
+        # supress some logs
+        logging.getLogger("paramiko").setLevel(logging.WARNING)
+        logging.getLogger("globus_sdk").setLevel(logging.WARNING)
 
-        # logging
-        logging.basicConfig(filename='example.log', level=logging.DEBUG)
-
-        # console handler
-        self.logger = logging.getLogger(__name__)
-        self.logger.debug("hiho debug message")
+        self.logger = logging.getLogger()
 
         self.name = name
         self.dry = False
@@ -177,6 +179,7 @@ class Workflow(object):
         # Automatically detect dependencies
         for task in self.tasks:
             # Invoke pre run
+            task.set_semaphore(self.sem)
             task.pre_run()
 
     # Return a json representation of the workflow
@@ -195,11 +198,16 @@ class Workflow(object):
 
     def run(self):
         self.logger.debug("Running workflow: %s", self.name)
+        start_time = time()
+        #print self.tasks
         for task in self.tasks:
             task.start()
 
         for task in self.tasks:
             task.join()
+        completed_in = (time() - start_time)
+        print completed_in
+        self.logger.debug("Workflow completed in %s seconds ---" % completed_in)
 
 
 class DataMover(Enum):
@@ -226,6 +234,7 @@ class DataMover(Enum):
     FTP = 6
     SFTP = 7
     GRIDFTP = 8
+    SKYCDS = 9
 
 
 class ProtocolStatus(Enum):
@@ -289,9 +298,8 @@ class Stager(object):
                         data_mover = DataMover[p]
 
                         if data_mover == DataMover.GRIDFTP and \
-                                ProtocolStatus(dst_task_info[p]) is not ProtocolStatus.ACTIVE and \
-                                dst_task_info.get_endpoint() is None and \
-                                dst_task_info.get_endpoint() is None:
+                                not dst_task.get_endpoint() and \
+                                not src_task.get_endpoint():
                             continue
 
                         break
@@ -304,7 +312,19 @@ class Stager(object):
             ep1 = src_task.get_endpoint()
             ep2 = dst_task.get_endpoint()
             gm = GlobusManager(ep1, ep2)
-            gm.copyData(src_task.get_scratch_dir() + "/" + local_path, dst_path + "/" + local_path)
+
+            #generate tar with data
+            tar_path = src_task.get_scratch_dir() + "/" + local_path + "/data.tar"
+            command_tar = "tar -czvf %s %s --exclude=*.tar" % (tar_path, src_task.get_scratch_dir())
+            result = src_task.execute_command(command_tar)
+
+            gm.copy_data(tar_path, dst_path + "/" + local_path + "/" + "data.tar.gz")
+
+        elif data_mover == DataMover.SKYCDS:
+            skycds = SKYCDS()
+            upload_result = skycds.upload_data(src_task, src_task.get_scratch_dir(), encryption=True)
+            download_result = skycds.download_data(dst_task, dst_path)
+
 
         elif data_mover == DataMover.LINK:
             # Add the link command
