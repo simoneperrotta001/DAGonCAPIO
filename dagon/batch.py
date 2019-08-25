@@ -24,7 +24,7 @@ class Batch(Task):
         :param endpoint: Globus endpoint ID
         :type endpoint: str
         """
-        Task.__init__(self, name, command, working_dir, endpoint=endpoint)
+        Task.__init__(self, name, command, working_dir)
 
     def __new__(cls, *args, **kwargs):
         """Create an Batch task local or remote
