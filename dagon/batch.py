@@ -3,6 +3,7 @@ from fabric.context_managers import settings, hide
 
 from task import Task
 from dagon.remote import RemoteTask
+from subprocess import Popen, PIPE, STDOUT
 
 
 class Batch(Task):
@@ -56,17 +57,26 @@ class Batch(Task):
         :rtype: dict() with the execution output (str), code (int) and error (str)
         """
         # Execute the bash command
-        with settings(
-                hide('warnings', 'running', 'stdout', 'stderr'),
-                warn_only=True
-        ):
-            result = local(command, capture=True)
-            # check for an error
-            code, message = 0, ""
-            if len(result.stderr):
-                code, message = 1, result.stderr
+        # with settings(
+        #         hide('warnings', 'running', 'stdout', 'stderr'),
+        #         warn_only=True
+        # ):
+        #     result = local(command, capture=True)
+        #     # check for an error
+        #     code, message = 0, ""
+        #     if len(result.stderr):
+        #         code, message = 1, result.stderr
+        #
+        #     return {"code": code, "message": message, "output": result.stdout}
+        p = Popen(command.split(" "), stdin=PIPE, stdout=PIPE, stderr=PIPE, close_fds=True, bufsize=-1, universal_newlines=True)
+        #print "commmand",command
+        out, err = p.communicate()
 
-            return {"code": code, "message": message, "output": result.stdout}
+        code, message = 0, ""
+        if len(err):
+            code, message = 1, err
+        return {"code": code, "message": message, "output": out}
+
 
     def on_execute(self, script, script_name):
         """
@@ -327,3 +337,4 @@ class RemoteSlurm(RemoteTask, Slurm):
         # Execute the bash command
         result = self.ssh_connection.execute_command(command)
         return result
+

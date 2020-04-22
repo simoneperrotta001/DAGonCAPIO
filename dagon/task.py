@@ -409,23 +409,28 @@ class Task(Thread):
                 pos2 = len(command)
 
             # Extract the parameter string
+            if command[pos1-1] == "\'":
+                pos1 -= 1
             arg = command[pos1:pos2]
 
             # Remove the dagon.Workflow.SCHEMA label
             arg = arg.replace(dagon.Workflow.SCHEMA, "")
 
+
             # Split each argument in elements by the slash
             elements = arg.split("/")
 
             # Extract the referenced task's workflow name
-            workflow_name = elements[0]
+            if elements[0] == "'":
+                workflow_name = " "
+            else:
+                workflow_name = elements[0]
 
             # The task name is the first element
             task_name = elements[1]
 
             # Get the rest of the string as local path
             local_path = arg.replace(workflow_name + "/" + task_name, "")
-
             # Set the default workflow name if needed
             if workflow_name is None or workflow_name == "":
                 workflow_name = self.workflow.name
@@ -443,6 +448,8 @@ class Task(Thread):
                 header = header + "mkdir -p " + dst_path + "/" + path.dirname(local_path) + "\n"
                 header = header + "if [ $? -ne 0 ]; then code=1; fi\n\n"
                 # Add the move data command
+
+
                 header = header + stager.stage_in(self, task, dst_path, local_path)
 
                 # Change the body of the command
@@ -637,10 +644,10 @@ class Task(Thread):
             # Change the status
             self.set_status(dagon.Status.RUNNING)
             self.workflow.logger.debug("%s: Executing...", self.name)
-            self.semaphore.acquire()
+            #self.semaphore.acquire()
             self.execute()
-            sleep(2)
-            self.semaphore.release()
+            #sleep(2)
+            #self.semaphore.release()
             # Execute the task Job
             """try:
                 self.workflow.logger.debug("%s: Executing...", self.name)
@@ -652,13 +659,13 @@ class Task(Thread):
             # self.execute()"""
 
             # Start all next task
-            for task in self.nexts:
-                if task.status == dagon.Status.READY:
-                    self.workflow.logger.debug("%s: Starting task: %s", self.name, task.name)
-                    try:
-                        task.start()
-                    except:
-                        self.workflow.logger.warn("%s: Task %s already started.", self.name, task.name)
+            #for task in self.nexts:
+            #    if task.status == dagon.Status.READY:
+            #        self.workflow.logger.debug("%s: Starting task: %s", self.name, task.name)
+            #        try:
+            #            task.start()
+            #        except:
+            #            self.workflow.logger.warn("%s: Task %s already started.", self.name, task.name)
 
             # Change the status
             self.set_status(dagon.Status.FINISHED)
@@ -766,3 +773,4 @@ echo "no" | ssh-keygen  -b 2048 -t rsa -f ssh_key -q -N ""  >/dev/null
 json="{\\\"type\\\":\\\"$machine_type\\\",\\\"ip\\\":\\\"$public_ip\\\",\\\"user\\\":\\\"$user\\\",\\\"SCP\\\":\\\"$status_sshd\\\",\\\"FTP\\\":\\\"$status_ftpd\\\",\\\"GRIDFTP\\\":\\\"$status_gsiftpd\\\",\\\"SKYCDS\\\":\\\"$status_skycds\\\"}"
 echo $json
 """
+

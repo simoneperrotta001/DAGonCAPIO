@@ -80,7 +80,7 @@ class Workflow(object):
         else:
             self.cfg = read_config(config_file)
             fileConfig(config_file)
-        self.sem = threading.Semaphore(max_threads)
+        #self.sem = threading.Semaphore(max_threads)
         # supress some logs
         logging.getLogger("paramiko").setLevel(logging.WARNING)
         logging.getLogger("globus_sdk").setLevel(logging.WARNING)
@@ -92,7 +92,7 @@ class Workflow(object):
         self.tasks = []
         self.workflow_id = 0
         self.is_api_available = False
-
+        self.max_threads = max_threads
         # to regist in the dagon service
         try:
             self.api = API(self.cfg['dagon_service']['route'])
@@ -179,7 +179,7 @@ class Workflow(object):
         # Automatically detect dependencies
         for task in self.tasks:
             # Invoke pre run
-            task.set_semaphore(self.sem)
+            #task.set_semaphore(self.sem)
             task.pre_run()
 
     # Return a json representation of the workflow
@@ -200,11 +200,19 @@ class Workflow(object):
         self.logger.debug("Running workflow: %s", self.name)
         start_time = time()
         #print self.tasks
-        for task in self.tasks:
-            task.start()
+        n_max = len(self.tasks)
+        i=0
+        while(i<n_max):
+            for task in self.tasks[i:i+self.max_threads]:
+                task.start()
+            for task in self.tasks[i:i+self.max_threads]:
+                task.join()
+            print
+            i+=self.max_threads
 
-        for task in self.tasks:
-            task.join()
+
+        """for task in self.tasks:
+            task.join()"""
         completed_in = (time() - start_time)
         print completed_in
         self.logger.debug("Workflow completed in %s seconds ---" % completed_in)
@@ -375,3 +383,4 @@ class Stager(object):
         command += "\nif [ $? -ne 0 ]; then code=1; fi"
 
         return command
+
