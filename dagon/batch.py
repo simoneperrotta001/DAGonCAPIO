@@ -1,7 +1,7 @@
 from fabric.api import local, env
 from fabric.context_managers import settings, hide
 
-from task import Task
+from dagon.task import Task
 from dagon.remote import RemoteTask
 from subprocess import Popen, PIPE, STDOUT
 
@@ -11,7 +11,7 @@ class Batch(Task):
     **Executes a Batch task**
     """
 
-    def __init__(self, name, command, working_dir=None, endpoint=None):
+    def __init__(self, name, command, working_dir=None, endpoint=None, transversal_workflow=None):
         """
         :param name: task name
         :type name: str
@@ -25,7 +25,7 @@ class Batch(Task):
         :param endpoint: Globus endpoint ID
         :type endpoint: str
         """
-        Task.__init__(self, name, command, working_dir)
+        Task.__init__(self, name, command, working_dir,transversal_workflow = transversal_workflow)
 
     def __new__(cls, *args, **kwargs):
         """Create an Batch task local or remote
@@ -40,11 +40,14 @@ class Batch(Task):
            ssh_username -- username in remote machine
            keypath -- path to the private keypath
         """
-
+        #if "ip" in kwargs:
+        #    return super(Task, cls).__new__(RemoteBatch)
+        #else:
+        #    return super(Batch, cls).__new__(cls, *args, **kwargs)
         if "ip" in kwargs:
-            return super(Task, cls).__new__(RemoteBatch)
+            return super().__new__(RemoteBatch)
         else:
-            return super(Batch, cls).__new__(cls, *args, **kwargs)
+            return super().__new__(cls)
 
     @staticmethod
     def execute_command(command):
@@ -218,9 +221,9 @@ class Slurm(Batch):
         """
 
         if "ip" in kwargs:
-            return super(Task, cls).__new__(RemoteSlurm)
+            return super().__new__(RemoteSlurm)
         else:
-            return super(Slurm, cls).__new__(cls)
+            return super().__new__(cls)
 
     def generate_command(self, script_name):
 
@@ -263,7 +266,7 @@ class Slurm(Batch):
         :rtype: dict() with the execution output (str) and code (int)
         """
 
-        super(Batch, self).on_execute(script, script_name)
+        super().on_execute(script, script_name)
 
         if script_name == "context.sh":
             return Batch.execute_command(self.working_dir + "/.dagon/" + script_name)
