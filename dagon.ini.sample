@@ -1,5 +1,6 @@
 [dagon_service]
 route = http://localhost:57000
+use = False
 
 [transversal_service]
 route = http://localhost:54350

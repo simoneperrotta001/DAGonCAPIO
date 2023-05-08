@@ -700,13 +700,13 @@ class Task(Thread):
         """
         if self.workflow is not None:
             # Change the status
+
             self.set_status(dagon.Status.WAITING)
 
             # Wait for each previous tasks
             for task in self.prevs:
-                if self.workflow.find_task_by_name(self.workflow.name,
-                                                   task.name) == None:  # if its a process from other workflow
-                    while (True):
+                if self.workflow.find_task_by_name(self.workflow.name, task.name) is None:  # if its a process from other workflow
+                    while True:
                         if self.workflow.is_api_available and task.transversal_workflow is not None:  # when is an asynchronous execution
                             try:
                                 transversal_task = self.workflow.api.get_task(task.transversal_workflow, task.name)[
@@ -725,7 +725,7 @@ class Task(Thread):
                         else:
                             sleep(.5)
                 else:
-                    while (True):
+                    while True:
                         if task.status == dagon.Status.WAITING or task.status == dagon.Status.READY:  # if this happends, the workflow is probably a meta-workflow
                             sleep(.5)
                         else:
@@ -740,12 +740,12 @@ class Task(Thread):
 
             # Change the status
             self.set_status(dagon.Status.RUNNING)
+            # Execute the task Job
             self.workflow.logger.debug("%s: Executing...", self.name)
-            self.semaphore.acquire()
+            # self.semaphore.acquire()
             self.execute()
             sleep(2)
-            self.semaphore.release()
-            # Execute the task Job
+            # self.semaphore.release()
             """try:
                 self.workflow.logger.debug("%s: Executing...", self.name)
                 self.execute()

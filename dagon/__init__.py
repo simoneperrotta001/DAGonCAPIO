@@ -3,6 +3,10 @@ import logging.config
 import os
 from logging.config import fileConfig
 import threading
+import collections
+from collections import abc
+
+collections.MutableMapping = abc.MutableMapping
 from backports.configparser import NoSectionError
 from enum import Enum
 from requests.exceptions import ConnectionError
@@ -105,15 +109,16 @@ class Workflow(object):
             self.logger.error("No ftp ip in config file")
 
         # to regist in the dagon service
-        try:
-            self.api = API(self.cfg['dagon_service']['route'])
-            self.is_api_available = True
-        except KeyError:
-            self.logger.error("No dagon URL in config file")
-        except NoSectionError:
-            self.logger.error("No dagon URL in config file")
-        except ConnectionError as e:
-            self.logger.error(e)
+        if self.cfg['dagon_service']['use'] == "True":
+            try:
+                self.api = API(self.cfg['dagon_service']['route'])
+                self.is_api_available = True
+            except KeyError:
+                self.logger.error("No dagon URL in config file")
+            except NoSectionError:
+                self.logger.error("No dagon URL in config file")
+            except ConnectionError as e:
+                self.logger.error(e)
 
         if self.is_api_available:
             try:
@@ -221,7 +226,7 @@ class Workflow(object):
     def run(self):
         self.logger.debug("Running workflow: %s", self.name)
         start_time = time()
-        # print self.tasks
+        # print(self.tasks)
         for task in self.tasks:
             task.start()
 
@@ -246,11 +251,11 @@ class Workflow(object):
 
         Raise an Exception when a cylce is founded
         """
-        needed = [];
+        needed = []
         needy = []
         for task in self.tasks:
             for prev in task.prevs:
-                bool_needed = False;
+                bool_needed = False
                 bool_needy = False
                 needed.append(prev)  # dependency task is added
                 if task in needed or task.nexts in needed: bool_needed = True  # are you or your decendents needed?

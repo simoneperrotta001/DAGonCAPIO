@@ -48,7 +48,7 @@ class RemoteTask(Task):
         :type endpoint: str
 
         """
-        Task.__init__(self, name, command, working_dir=working_dir, endpoint=endpoint,transversal_workflow=transversal_workflow)
+        Task.__init__(self, name, command, working_dir=working_dir, transversal_workflow=transversal_workflow)
         self.transfer = None
         self.ip = ip
         self.keypath = abspath(keypath) if keypath is not None else keypath

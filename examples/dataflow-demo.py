@@ -58,4 +58,4 @@ if __name__ == '__main__':
         # get the results
         with open(result_filename, "r") as infile:
             result = infile.readlines()
-            print result
+            print(result)

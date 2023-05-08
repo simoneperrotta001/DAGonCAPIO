@@ -12,16 +12,16 @@ if __name__ == '__main__':
     workflow = Workflow("DataFlow-Demo-Docker")
 
     # The task a
-    taskA = DockerTask("A", "mkdir output;hostname > output/f1.txt", image="ubuntu_curl")
+    taskA = DockerTask("A", "mkdir output;hostname > output/f1.txt", image="ubuntu")
 
     # The task b
-    taskB = DockerTask("B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", "ubuntu_curl")
+    taskB = DockerTask("B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", "ubuntu")
 
     # The task c
-    taskC = DockerTask("C", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", "ubuntu_curl")
+    taskC = DockerTask("C", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", "ubuntu")
 
     # The task d
-    taskD = DockerTask("D", "cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt", "ubuntu_curl")
+    taskD = DockerTask("D", "cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt", "ubuntu")
 
     # add tasks to the workflow
     workflow.add_task(taskA)
@@ -48,4 +48,4 @@ if __name__ == '__main__':
         # get the results
         with open(result_filename, "r") as infile:
             result = infile.readlines()
-            print result
+            print(result)

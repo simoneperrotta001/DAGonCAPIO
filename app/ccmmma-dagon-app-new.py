@@ -38,7 +38,7 @@ if __name__ == '__main__':
         dry = False
     else:
         # Perform a dry run with default parameters
-        print "Defaults: " + str(wrf_model) + " " + str(i_date) + " " + str(hours) + " " + str(dry)
+        print("Defaults: " + str(wrf_model) + " " + str(i_date) + " " + str(hours) + " " + str(dry))
 
         # The application root
     prometeo_root = "/home/ccmmma/prometeo/"
