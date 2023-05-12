@@ -388,8 +388,10 @@ class Stager(object):
         elif data_mover == DataMover.LINK:
             # Add the link command
             command = command + "# Add the link command\n"
-            command = command + "ln -sf " + src_task.get_scratch_dir() + "/" + local_path + " " \
-                      + dst_path + "/" + local_path + "\n\n"
+            command = command + "pushd " + dst_path + "/" + os.path.dirname(os.path.abspath(local_path)) + "\n"
+            command = command + "ln -sf " + src_task.get_scratch_dir() + "/" + local_path.replace("\\", "") + " .\n"
+            command = command + "popd\n\n"
+                      
         # Check if the copy have to be used...
         elif data_mover == DataMover.COPY:
             # Add the copy command
