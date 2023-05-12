@@ -183,7 +183,7 @@ class Slurm(Batch):
     :vartype ntask: int
     """
 
-    def __init__(self, name, command, partition=None, ntasks=None, working_dir=None, endpoint=None):
+    def __init__(self, name, command, partition=None, ntasks=None, memory=None, working_dir=None, endpoint=None):
 
         """
         :param name: name of the task
@@ -198,6 +198,9 @@ class Slurm(Batch):
         :param ntasks: number of parallel tasks to be executed
         :type ntasks: int
 
+        :param memory: number of memory to be allocate
+        :type memory: int
+
         :param working_dir: path to the task's working directory
         :type working_dir: str
 
@@ -208,6 +211,7 @@ class Slurm(Batch):
         Batch.__init__(self, name, command, working_dir, endpoint=endpoint)
         self.partition = partition
         self.ntasks = ntasks
+        self.memory = memory
 
     def __new__(cls, *args, **kwargs):
         """Create an Slurm task local or remote
@@ -245,9 +249,13 @@ class Slurm(Batch):
         if self.ntasks is not None:
             ntasks_text = "--ntasks=" + str(self.ntasks)
 
+        memory_text = ""
+        if self.memory is not None:
+            memory_text = "--mem=" + str(self.memory)
+
         # Add the slurm batch command
         # command = "sbatch " + partition_text + " " + ntasks_text + " --job-name=" + self.name + " --chdir=" + self.working_dir + " --output=" + self.working_dir + "/.dagon/stdout.txt --wait " + self.working_dir+"/.dagon/launcher.sh"
-        command = "sbatch " + partition_text + " " + ntasks_text + " -J " + self.name + " -D " \
+        command = "sbatch " + partition_text + " " + ntasks_text + " " + memory_text + " -J " + self.name + " -D " \
                   + self.working_dir + " -W " + self.working_dir + "/.dagon/" + script_name
         return command
 
