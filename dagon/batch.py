@@ -274,7 +274,7 @@ class Slurm(Batch):
         :rtype: dict() with the execution output (str) and code (int)
         """
 
-        super().on_execute(script, script_name)
+        super(Batch, self).on_execute(script, script_name)
 
         if script_name == "context.sh":
             return Batch.execute_command(self.working_dir + "/.dagon/" + script_name)
