@@ -134,6 +134,17 @@ class Task(Thread):
         self.dag_tps = None
         self.transversal_workflow = transversal_workflow
         self.workflows = None
+        self.data_mover = None
+
+    def set_data_mover(self, data_mover):
+        """
+        Change the mode of the stager. The information is used by
+        :class:`dagon.Stager` to decide the mode (COPY/LINK)
+
+        :param data_mover: mode of the stager
+        :type info: class:`dagon.DataMover`
+        """
+        self.data_mover = data_mover
 
     def set_info(self, info):
         """
@@ -407,7 +418,7 @@ class Task(Thread):
         :rtype: str
         """
 
-        stager = dagon.Stager()
+        stager = dagon.Stager(self.data_mover)
 
         # Initialize the script
         header = "#! /bin/bash\n"

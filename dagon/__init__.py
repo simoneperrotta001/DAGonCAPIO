@@ -127,11 +127,19 @@ class Workflow(object):
             except Exception as e:
                 raise Exception(e)
 
+        self.data_mover = DataMover.LINK
+
     def get_dry(self):
         return self.dry
 
     def set_dry(self, dry):
         self.dry = dry
+
+    def get_data_mover(self):
+        return self.data_mover
+
+    def set_data_mover(self, data_mover):
+        self.data_mover = data_mover
 
     def get_scratch_dir_base(self):
         """
@@ -176,6 +184,9 @@ class Workflow(object):
         :param task: :class:`dagon.task.Task` instance
         :type task: :class:`dagon.task.Task`
         """
+        if task.data_mover is None:
+            task.set_data_mover(self.data_mover)
+
         self.tasks.append(task)
         task.set_workflow(self)
         if self.is_api_available:
@@ -315,8 +326,8 @@ class Stager(object):
     Choose the transference protocol to move data between tasks
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, data_mover):
+        self.data_mover = data_mover
 
     def stage_in(self, dst_task, src_task, dst_path, local_path):
         """
@@ -349,7 +360,7 @@ class Stager(object):
         # check transference protocols and remote machine info if is available
         if dst_task_info is not None and src_task_info is not None:
             if dst_task_info['ip'] == src_task_info['ip']:
-                data_mover = DataMover.LINK
+                data_mover = self.data_mover
             else:
                 protocols = ["GRIDFTP", "SCP", "FTP"]
                 for p in protocols:
@@ -363,7 +374,7 @@ class Stager(object):
 
                         break
         else:  # best effort (SCP)
-            data_mover = DataMover.LINK
+            data_mover = self.data_mover
 
         # Check if the symbolic link have to be used...
         if data_mover == DataMover.GRIDFTP:
