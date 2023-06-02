@@ -239,10 +239,17 @@ class Workflow(object):
         start_time = time()
         # print(self.tasks)
         for task in self.tasks:
-            task.start()
+            try:
+                task.start()
+            except:
+                pass
 
         for task in self.tasks:
-            task.join()
+            try:
+                task.join()
+            except:
+                pass
+        
         completed_in = (time() - start_time)
         self.logger.info("Workflow '" + self.name + "' completed in %s seconds ---" % completed_in)
 

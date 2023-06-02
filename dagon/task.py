@@ -1,4 +1,5 @@
 import shutil
+import glob
 from json import loads
 from threading import Thread
 from threading import Semaphore
@@ -135,6 +136,13 @@ class Task(Thread):
         self.transversal_workflow = transversal_workflow
         self.workflows = None
         self.data_mover = None
+        self.mode = "sequential"
+
+    def set_mode(self, mode):
+        self.mode = mode
+
+    def get_mode(self):
+        return self.mode
 
     def set_data_mover(self, data_mover):
         """
@@ -530,8 +538,60 @@ class Task(Thread):
                 # Add the move data command
                 header = header + stager.stage_in(self, task, dst_path, local_path)
 
-                # Change the body of the command
-                body = body.replace(dagon.Workflow.SCHEMA + arg, dst_path + "/" + local_path)
+                if self.mode == "parallel":
+                    files = glob.glob(task.get_scratch_dir() + "/" + local_path)
+                    taskType = TaskType[type(self).__name__.upper()]
+
+                    for file in files:
+                        filename, _ = path.splitext(path.basename(file))
+                        taskParallelName = "{}_{}".format(self.name, filename)
+                        cmd = body.replace(dagon.Workflow.SCHEMA + arg, "")
+                        cmd += " workflow:///" + self.name + "/" + path.basename(file)
+
+                        if type(self) == dagon.batch.Batch:
+                            parallel_task = DagonTask(taskType, taskParallelName, cmd, 
+                                                      transversal_workflow=self.transversal_workflow)
+                        
+                        if type(self) == dagon.batch.RemoteBatch:
+                            parallel_task = DagonTask(taskType, taskParallelName, cmd, ssh_username=self.ssh_username, 
+                                                      keypath=self.keypath, ip=self.ip)
+
+                        elif type(self) == dagon.batch.Slurm:
+                            parallel_task = DagonTask(taskType, taskParallelName, cmd, partition=self.partition, 
+                                                      ntasks=self.ntasks, memory=self.memory)
+
+                        elif type(self) == dagon.batch.RemoteSlurm:
+                            parallel_task = DagonTask(taskType, taskParallelName, cmd, partition=self.partition, 
+                                                      ntasks=self.ntasks, memory=self.memory,
+                                                      ssh_username=self.ssh_username, keypath=self.keypath, ip=self.ip)
+
+                        elif type(self) == dagon.remote.CloudTask:
+                            parallel_task = DagonTask(taskType, taskParallelName, cmd, provider=self.provider, 
+                                                      ssh_username=self.ssh_username, key_options=self.key_options, 
+                                                      instance_id=self.instance_id, instance_flavour=self.instance_flavour, 
+                                                      instance_name=self.instance_name, stop_instance=self.stop_instance)
+
+                        elif type(self) == dagon.docker_task.DockerTask:
+                            parallel_task = DagonTask(taskType, taskParallelName, cmd, image=self.image, 
+                                                      container_id=self.container_id, remove=self.remove, 
+                                                      volume=self.volume, transversal_workflow=self.transversal_workflow)
+
+                        elif type(self) == dagon.docker_task.DockerRemoteTask:
+                            parallel_task = DagonTask(taskType, taskParallelName, cmd, image=self.image, 
+                                                      container_id=self.container_id, ssh_username=self.ssh_username, 
+                                                      keypath=self.keypath, ip=self.ip,
+                                                      remove=self.remove, volume=self.volume, 
+                                                      transversal_workflow=self.transversal_workflow)
+                        
+                        self.workflow.add_task(parallel_task)
+
+                    self.workflow.make_dependencies()
+
+                    body = "echo \"Starting parallel tasks...\"\n"
+                    body += "ln -sf " + dst_path + "/" + local_path + " " + self.get_scratch_dir()
+                else:
+                    # Change the body of the command
+                    body = body.replace(dagon.Workflow.SCHEMA + arg, dst_path + "/" + local_path)
             pos = pos2
 
         # Invoke the command

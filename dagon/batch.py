@@ -291,7 +291,7 @@ class RemoteSlurm(RemoteTask, Slurm):
     ** Represent a task that runs on a remote slurm deployment **
     """
 
-    def __init__(self, name, command, partition=None, ntasks=None, working_dir=None, ssh_username=None, keypath=None,
+    def __init__(self, name, command, partition=None, ntasks=None, memory=None, working_dir=None, ssh_username=None, keypath=None,
                  ip=None, endpoint=None):
         """
         :param name: name of the task
@@ -322,7 +322,7 @@ class RemoteSlurm(RemoteTask, Slurm):
         :type ip: str
 
         """
-        Slurm.__init__(self, name, command, working_dir=working_dir, partition=partition, ntasks=ntasks,
+        Slurm.__init__(self, name, command, working_dir=working_dir, partition=partition, ntasks=ntasks, memory=memory,
                        endpoint=endpoint)
         RemoteTask.__init__(self, name, ssh_username, keypath, command, ip, working_dir, endpoint=None)
 
