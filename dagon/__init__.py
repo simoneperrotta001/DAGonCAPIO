@@ -127,7 +127,7 @@ class Workflow(object):
             except Exception as e:
                 raise Exception(e)
 
-        self.data_mover = DataMover.LINK
+        self.data_mover = DataMover.COPY
 
     def get_dry(self):
         return self.dry
@@ -407,8 +407,9 @@ class Stager(object):
         elif data_mover == DataMover.COPY:
             # Add the copy command
             command = command + "# Add the copy command\n"
-            command = command + "cp -r " + src_task.get_scratch_dir() + "/" + local_path + " " + \
-                      dst_path + "/" + local_path + "\n\n"
+            command = command + "pushd " + dst_path + "/" + os.path.dirname(os.path.abspath(local_path)) + "\n"
+            command = command + "cp -r " + src_task.get_scratch_dir() + "/" + local_path.replace("\\", "") + " .\n"
+            command = command + "popd\n\n"
 
         # Check if the secure copy have to be used...
         elif data_mover == DataMover.SCP:
