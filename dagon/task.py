@@ -136,6 +136,7 @@ class Task(Thread):
         self.transversal_workflow = transversal_workflow
         self.workflows = None
         self.data_mover = None
+        self.stager_mover = None
         self.mode = "sequential"
 
     def set_mode(self, mode):
@@ -153,6 +154,13 @@ class Task(Thread):
         :type info: class:`dagon.DataMover`
         """
         self.data_mover = data_mover
+
+    def set_stager_mover(self, stager_mover):
+        """
+        :param data_mover: mode of the stager
+        :type info: class:`dagon.StagerMover`
+        """
+        self.stager_mover = stager_mover
 
     def set_info(self, info):
         """
@@ -426,7 +434,7 @@ class Task(Thread):
         :rtype: str
         """
 
-        stager = dagon.Stager(self.data_mover)
+        stager = dagon.Stager(self.data_mover, self.stager_mover, self.workflow.cfg)
 
         # Initialize the script
         header = "#! /bin/bash\n"

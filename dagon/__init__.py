@@ -128,6 +128,7 @@ class Workflow(object):
                 raise Exception(e)
 
         self.data_mover = DataMover.COPY
+        self.stager_mover = StagerMover.NORMAL
 
     def get_dry(self):
         return self.dry
@@ -140,6 +141,9 @@ class Workflow(object):
 
     def set_data_mover(self, data_mover):
         self.data_mover = data_mover
+
+    def set_stager_mover(self, stager_mover):
+        self.stager_mover = stager_mover
 
     def get_scratch_dir_base(self):
         """
@@ -186,6 +190,8 @@ class Workflow(object):
         """
         if task.data_mover is None:
             task.set_data_mover(self.data_mover)
+        if task.stager_mover is None:
+            task.set_stager_mover(self.stager_mover)
 
         self.tasks.append(task)
         task.set_workflow(self)
@@ -314,6 +320,19 @@ class DataMover(Enum):
     SKYCDS = 9
 
 
+class StagerMover(Enum):
+    """
+    Possible mode
+
+    :cvar NORMAL: sequential
+    :cvar PARALLEL: using threads
+    :cvar SLURM: using Slurm
+    """
+    NORMAL = 0
+    PARALLEL = 1
+    SLURM = 2
+
+
 class ProtocolStatus(Enum):
     """
     Status of the protocol on a machine
@@ -333,8 +352,10 @@ class Stager(object):
     Choose the transference protocol to move data between tasks
     """
 
-    def __init__(self, data_mover):
+    def __init__(self, data_mover, stager_mover, cfg):
         self.data_mover = data_mover
+        self.stager_mover = stager_mover
+        self.cfg = cfg
 
     def stage_in(self, dst_task, src_task, dst_path, local_path):
         """
@@ -383,6 +404,9 @@ class Stager(object):
         else:  # best effort (SCP)
             data_mover = self.data_mover
 
+        src = src_task.get_scratch_dir() + "/" + local_path
+        dst = dst_path + "/" + os.path.dirname(os.path.abspath(local_path))
+
         # Check if the symbolic link have to be used...
         if data_mover == DataMover.GRIDFTP:
             # data could be copy using globus sdk
@@ -391,11 +415,11 @@ class Stager(object):
             gm = GlobusManager(ep1, ep2)
 
             # generate tar with data
-            tar_path = src_task.get_scratch_dir() + "/" + local_path + "/data.tar"
+            tar_path = src + "/data.tar"
             command_tar = "tar -czvf %s %s --exclude=*.tar" % (tar_path, src_task.get_scratch_dir())
             result = src_task.execute_command(command_tar)
 
-            gm.copy_data(tar_path, dst_path + "/" + local_path + "/" + "data.tar.gz")
+            gm.copy_data(tar_path, dst + "/" + "data.tar.gz")
 
         elif data_mover == DataMover.SKYCDS:
             skycds = SKYCDS()
@@ -406,17 +430,19 @@ class Stager(object):
         elif data_mover == DataMover.LINK:
             # Add the link command
             command = command + "# Add the link command\n"
-            command = command + "pushd " + dst_path + "/" + os.path.dirname(os.path.abspath(local_path)) + "\n"
-            command = command + "ln -sf " + src_task.get_scratch_dir() + "/" + local_path.replace("\\", "") + " .\n"
-            command = command + "popd\n\n"
+            cmd = "ls $file $dst"
+            if StagerMover(self.stager_mover) == StagerMover.PARALLEL:
+                cmd = "ls {} $dst"
+            command = command + self.generate_command(src, dst, cmd, self.stager_mover.value)
                       
         # Check if the copy have to be used...
         elif data_mover == DataMover.COPY:
             # Add the copy command
             command = command + "# Add the copy command\n"
-            command = command + "pushd " + dst_path + "/" + os.path.dirname(os.path.abspath(local_path)) + "\n"
-            command = command + "cp -r " + src_task.get_scratch_dir() + "/" + local_path.replace("\\", "") + " .\n"
-            command = command + "popd\n\n"
+            cmd = "cp $file $dst"
+            if StagerMover(self.stager_mover) == StagerMover.PARALLEL:
+                cmd = "cp {} $dst"
+            command = command + self.generate_command(src, dst, cmd, self.stager_mover.value)
 
         # Check if the secure copy have to be used...
         elif data_mover == DataMover.SCP:
@@ -427,9 +453,14 @@ class Stager(object):
                 key = dst_task.get_public_key()
                 src_task.add_public_key(key)
 
-                command = command + "scp -o \"StrictHostKeyChecking no\" -i " + dst_task.working_dir + \
+                cmd = "scp -o \"StrictHostKeyChecking no\" -i " + dst_task.working_dir + \
                           "/.dagon/ssh_key -r " + src_task.get_user() + "@" + src_task.get_ip() + ":" + \
-                          src_task.get_scratch_dir() + "/" + local_path + " " + dst_path + "/" + local_path + "\n\n"
+                          + "$file $dst \n\n"
+                if StagerMover(self.stager_mover) == StagerMover.PARALLEL:
+                    cmd = "scp -o \"StrictHostKeyChecking no\" -i " + dst_task.working_dir + \
+                          "/.dagon/ssh_key -r " + src_task.get_user() + "@" + src_task.get_ip() + ":" + \
+                          + "{} $dst \n\n"
+                command = command + self.generate_command(src, dst, cmd, self.stager_mover.value)
                 command += "\nif [ $? -ne 0 ]; then code=1; fi"
                 # command += "\n rm " + dst_task.working_dir + "/.dagon/ssh_key"
             else:  # if source is a local machine
@@ -443,10 +474,14 @@ class Stager(object):
                 if res['code']:
                     raise Exception("Couldn't create directory %s" % dst_path + "/" + os.path.dirname(local_path))
 
-                command_local = "scp -o \"StrictHostKeyChecking no\" -i " + src_task.working_dir + \
-                                "/.dagon/ssh_key -r " + src_task.get_scratch_dir() + "/" + local_path + " " + \
-                                dst_task.get_user() + "@" + dst_task.get_ip() + ":" + dst_path + \
-                                "/" + local_path + "\n\n"
+                cmd = "scp -o \"StrictHostKeyChecking no\" -i " + src_task.working_dir + \
+                                "/.dagon/ssh_key -r " + " $file " + \
+                                dst_task.get_user() + "@" + dst_task.get_ip() + ":$dst \n\n"
+                if StagerMover(self.stager_mover) == StagerMover.PARALLEL:
+                    cmd = "scp -o \"StrictHostKeyChecking no\" -i " + src_task.working_dir + \
+                                "/.dagon/ssh_key -r " + " {} " + \
+                                dst_task.get_user() + "@" + dst_task.get_ip() + ":$dst \n\n"
+                command_local = self.generate_command(src, dst, cmd, self.stager_mover.value)
                 res = Batch.execute_command(command_local)
 
                 if res['code']:
@@ -455,3 +490,36 @@ class Stager(object):
         command += "\nif [ $? -ne 0 ]; then code=1; fi"
 
         return command
+
+    def generate_command(self, src, dst, cmd, mode):
+        return """
+#! /bin/bash
+
+src={}
+dst={}
+mode={}
+jobs={}
+partition={}
+
+for file in $src
+do
+cmd="{}"
+case $mode in
+    1)
+    # Run in parallel using local queue
+    find $src -type f,l | parallel -j$jobs "$cmd"
+    break
+    ;;
+    2)
+    # Run in parallel using slurm
+    srun --partition=$partition --ntasks=1 --cpus-per-task=1 $cmd &
+    ;;
+    *)
+    # Run requentially
+    $cmd
+    ;;
+esac
+done
+
+wait
+        """.format(src, dst, mode, self.cfg["batch"]["threads"], self.cfg["sulrm"]["partition"], cmd)
