@@ -439,9 +439,9 @@ class Stager(object):
         elif data_mover == DataMover.COPY:
             # Add the copy command
             command = command + "# Add the copy command\n"
-            cmd = "cp $file $dst"
+            cmd = "cp -r $file $dst"
             if StagerMover(self.stager_mover) == StagerMover.PARALLEL:
-                cmd = "cp {} $dst"
+                cmd = "cp -r {} $dst"
             command = command + self.generate_command(src, dst, cmd, self.stager_mover.value)
 
         # Check if the secure copy have to be used...
@@ -453,11 +453,11 @@ class Stager(object):
                 key = dst_task.get_public_key()
                 src_task.add_public_key(key)
 
-                cmd = "scp -o \"StrictHostKeyChecking no\" -i " + dst_task.working_dir + \
+                cmd = "scp -r -o \"StrictHostKeyChecking no\" -i " + dst_task.working_dir + \
                           "/.dagon/ssh_key -r " + src_task.get_user() + "@" + src_task.get_ip() + ":" + \
                           + "$file $dst \n\n"
                 if StagerMover(self.stager_mover) == StagerMover.PARALLEL:
-                    cmd = "scp -o \"StrictHostKeyChecking no\" -i " + dst_task.working_dir + \
+                    cmd = "scp -r -o \"StrictHostKeyChecking no\" -i " + dst_task.working_dir + \
                           "/.dagon/ssh_key -r " + src_task.get_user() + "@" + src_task.get_ip() + ":" + \
                           + "{} $dst \n\n"
                 command = command + self.generate_command(src, dst, cmd, self.stager_mover.value)
@@ -474,11 +474,11 @@ class Stager(object):
                 if res['code']:
                     raise Exception("Couldn't create directory %s" % dst_path + "/" + os.path.dirname(local_path))
 
-                cmd = "scp -o \"StrictHostKeyChecking no\" -i " + src_task.working_dir + \
+                cmd = "scp -r -o \"StrictHostKeyChecking no\" -i " + src_task.working_dir + \
                                 "/.dagon/ssh_key -r " + " $file " + \
                                 dst_task.get_user() + "@" + dst_task.get_ip() + ":$dst \n\n"
                 if StagerMover(self.stager_mover) == StagerMover.PARALLEL:
-                    cmd = "scp -o \"StrictHostKeyChecking no\" -i " + src_task.working_dir + \
+                    cmd = "scp -r -o \"StrictHostKeyChecking no\" -i " + src_task.working_dir + \
                                 "/.dagon/ssh_key -r " + " {} " + \
                                 dst_task.get_user() + "@" + dst_task.get_ip() + ":$dst \n\n"
                 command_local = self.generate_command(src, dst, cmd, self.stager_mover.value)
