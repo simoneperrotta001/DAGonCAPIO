@@ -553,8 +553,7 @@ class Task(Thread):
                     for file in files:
                         filename, _ = path.splitext(path.basename(file))
                         taskParallelName = "{}_{}".format(self.name, filename)
-                        cmd = body.replace(dagon.Workflow.SCHEMA + arg, "")
-                        cmd += " workflow:///" + self.name + "/" + path.basename(file)
+                        cmd = body.replace(dagon.Workflow.SCHEMA + arg, " workflow:///" + self.name + "/" + path.basename(file))
 
                         if type(self) == dagon.batch.Batch:
                             parallel_task = DagonTask(taskType, taskParallelName, cmd, 
