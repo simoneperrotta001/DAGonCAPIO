@@ -1,6 +1,4 @@
 # DagOnStar (aka DagOn\*)
-
-
 DagOnStar (Direct acyclic graph On anything) is a lightweight Python library implementing
 a workflow engine able to execute parallel jobs represented by direct acyclic graphs on
 any combination of local machines, on-premise high-performance computing clusters,
@@ -12,9 +10,23 @@ applications.
 DagOnStar is in production at the [Center for Monitoring and Modeling Marine and Atmosphere](https:/meteo.uniparthenope.it)
 applications hosted at the University of Naples "Parthenope".
 
-### Motivation
-Thanks to the advent of public, private, and hybrid clouds, the democratization of computational resources changed the rules in many science fields. For decades, one of the efforts of computer scientists and computer engineers was the development of tools able to simplify access to high-end computational resources by computational scientists. However, nowadays, any science field can be considered "computational" as the availability of powerful but easy-to-manage workflow engines is crucial.
-### Cite DAGonStar
+# Motivation
+Thanks to the advent of public, private, and hybrid clouds, the democratization of
+computational resources changed the rules in many science fields.
+For decades, one of the efforts of computer scientists and computer engineers was the
+development of tools able to simplify access to high-end computational resources by
+computational scientists. However, nowadays, any science field can be considered
+"computational" as the availability of powerful but easy-to-manage workflow
+engines is crucial.
+
+# Acknowledgments
+The following initiatives support waComM++ development:
+* Research agreement MytilAI (CUP I65F21000040002, http://meteo.uniparthenope.it/mytiluse/) - Supporting operational pollutant transport and diffusion for AI-based farmed mussels contamination prediction.
+* EuroHPC H2020 project ADMIRE (956748-ADMIRE-H2020-JTI-EuroHPC-2019-1, https://www.admire-eurohpc.eu) - WP7: Environmental application. Using malleability to improve balance between the overall performance and the computational resource allocation. 
+
+# Cite DAGonStar
+
+## Workflow engine
 
 * Sánchez-Gallegos, Dante Domizzi, Diana Di Luccio, Sokol Kosta, J. L. Gonzalez-Compean, and Raffaele Montella.
   "An efficient pattern-based approach for workflow supporting large-scale science: The DagOnStar experience."
@@ -36,7 +48,35 @@ Thanks to the advent of public, private, and hybrid clouds, the democratization 
   In 2018 IEEE/ACM Workflows in Support of Large-Scale Science (WORKS), pp. 64-73. IEEE, 2018.
   [link](https://ieeexplore.ieee.org/abstract/document/8638376)
 
-#### Installation 
+## Applications
+* Mellone, Gennaro, Ciro Giuseppe De Vita, Enrico Zambianchi, David Expósito Singh,
+  Diana Di Luccio, and Raffaele Montella.
+  "Democratizing the computational environmental marine data science: using the high-performance cloud-native computing for inert transport and diffusion lagrangian modelling."
+  In 2022 IEEE International Workshop on Metrology for the Sea; Learning to Measure Sea Health Parameters (MetroSea), pp. 267-272. IEEE, 2022.
+  [link](https://ieeexplore.ieee.org/abstract/document/9950862)
+
+* De Vita, Ciro Giuseppe, Gennaro Mellone, Aniello Florio,
+  Catherine Alessandra Torres Charles, Diana Di Luccio,
+  Marco Lapegna, Guido Benassai, Giorgio Budillon, and Raffaele Montella.
+  "Parallel and hierarchically-distributed Shoreline Alert Model (SAM)." 
+  In 2023 31st Euromicro International Conference on Parallel, Distributed and Network-Based Processing (PDP), pp. 109-113. IEEE, 2023.
+  [link](https://ieeexplore.ieee.org/abstract/document/10136945)
+
+* Montella, Raffaele, Diana Di Luccio, Ciro Giuseppe De Vita, Gennaro Mellone,
+  Marco Lapegna, Gloria Ortega, Livia Marcellino, Enrico Zambianchi, and Giulio Giunta.
+  "A highly scalable high-performance Lagrangian transport and diffusion model for marine pollutants assessment."
+  In 2023 31st Euromicro International Conference on Parallel, Distributed and Network-Based Processing (PDP), pp. 17-26. IEEE, 2023.
+  [link](https://ieeexplore.ieee.org/abstract/document/10137219)
+
+## Surveys
+
+* Aldinucci, Marco, Giovanni Agosta, Antonio Andreini, Claudio A. Ardagna,
+  Andrea Bartolini, Alessandro Cilardo, Biagio Cosenza et al.
+  "The Italian research on HPC key technologies across EuroHPC."
+  In Proceedings of the 18th ACM international conference on computing frontiers, pp. 178-184. 2021.
+  [link](https://dl.acm.org/doi/abs/10.1145/3457388.3458508)
+
+# Installation 
 
 ```bash
 git clone https://github.com/DagOnStar/dagonstar.git  
@@ -47,7 +87,7 @@ pip install -r requirements.txt
 export PYTHONPATH=$PWD:$PYTHONPATH  
 ```
 
-#### Demo
+# Demo
 
 Copy the configuration file in the examples directory.
 
@@ -58,7 +98,7 @@ cd examples
 
 Edit the ini file matching your system configuration.
 
-#### Task oriented workflow.
+## Task oriented workflow.
 
 The workflow is defined as tasks and their explicit dependencies.
 
@@ -66,7 +106,7 @@ The workflow is defined as tasks and their explicit dependencies.
 python taskflow-demo.py
 ```
 
-#### Data oriented workflow.
+## Data oriented workflow.
 
 The workflow is defined by data dependencies (task dependencies are automatically resolved)
 
@@ -75,7 +115,7 @@ python dataflow-demo.py
 ```
 
 
-#### Batch Task Flow
+## Batch Task Flow
 ```python
     # Create the orchestration workflow
       workflow=Workflow("Taskflow-Demo",config)
@@ -98,7 +138,7 @@ python dataflow-demo.py
       workflow.run()
 ```
 
-#### Batch Data Flow
+## Batch Data Flow
 ```python
     from dagon import Workflow
     from dagon import batch
