@@ -9,12 +9,6 @@ from dagon.task import DagonTask, TaskType
 
 # Check if this is the main
 if __name__ == '__main__':
-
-    config = {
-        "scratch_dir_base": "/tmp/test6",
-        "remove_dir": False
-    }
-
     # Create the orchestration workflow
     workflow = Workflow("DataFlow-Demo-Server")
 

@@ -1,30 +1,29 @@
 from dagon import Workflow
-from dagon.batch import Slurm
+from dagon.task import DagonTask, TaskType
 import json
 import sys
-import datetime
 import os.path
 import time
 
 # Check if this is the main
 if __name__ == '__main__':
-
     # Create the orchestration workflow
-    workflow = Workflow("DataFlow-Demo")
+    workflow = Workflow("DataFlow-Demo-Slurm-Remote")
 
     # Set the dry
     workflow.set_dry(False)
 
     # The task a
-    taskA = Slurm("A", "mkdir output;hostname > output/f1.txt", "hicpu", 1, ip="193.205.230.5", ssh_username="diluccio")
+    taskA = DagonTask(TaskType.SLURM, "A", "mkdir output;hostname > output/f1.txt", partition="", ntasks=1, memory=8192, ip="", ssh_username="")
+
     # The task b
-    taskB = Slurm("B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", "hicpu", 1, ip="193.205.230.5", ssh_username="diluccio")
+    taskB = DagonTask(TaskType.SLURM,"B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", partition="", ntasks=1, memory=8192, ip="", ssh_username="")
 
     # The task c
-    taskC = Slurm("C", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", "hicpu", 1, ip="193.205.230.5", ssh_username="diluccio")
+    taskC = DagonTask(TaskType.SLURM,"C", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", partition="", ntasks=1, memory=8192, ssh_username="")
 
     # The task d
-    taskD = Slurm("D", "cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt", "hicpu", 1, ip="193.205.230.5", ssh_username="diluccio")
+    taskD = DagonTask(TaskType.SLURM,"D", "cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt", partition="", ntasks=1, memory=8192, ssh_username="")
 
     # add tasks to the workflow
     workflow.add_task(taskA)
@@ -43,7 +42,7 @@ if __name__ == '__main__':
     workflow.run()
 
     # Check if it is a dry run
-    """if workflow.get_dry() is False:
+    if workflow.get_dry() is False:
         # set the result filename
         result_filename = taskD.get_scratch_dir() + "/f3.txt"
         while not os.path.exists(result_filename):
@@ -52,6 +51,5 @@ if __name__ == '__main__':
         # get the results
         with open(result_filename, "r") as infile:
             result = infile.readlines()
-            print result
-    """
+            print(result)
 

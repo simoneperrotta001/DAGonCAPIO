@@ -1,36 +1,28 @@
 from dagon import Workflow
-from dagon import batch
+from dagon.task import DagonTask, TaskType
 import json
-import sys
-import datetime
 import os.path
 import time
 
 # Check if this is the main
 if __name__ == '__main__':
-
-  config={
-    "scratch_dir_base":"/tmp/test6/",
-    "remove_dir":False
-  }
-
   # Create the orchestration workflow
-  workflow=Workflow("DataFlow-Demo")
+  workflow=Workflow("DataFlow-Demo-Slurm")
 
   # Set the dry
   workflow.set_dry(False)
   
   # The task a
-  taskA=batch.Slurm("A","mkdir output;hostname > output/f1.txt","hicpu",1)
+  taskA = DagonTask(TaskType.SLURM, "A", "mkdir output; hostname > output/f1.txt", partition="", ntasks=1, memory=8192)
   
   # The task b
-  taskB=batch.Slurm("B","echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt","testing",1)
+  taskB = DagonTask(TaskType.SLURM, "B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", partition="", ntasks=1, memory=8192)
   
   # The task c
-  taskC=batch.Slurm("C","echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt","testing",1)
+  taskC = DagonTask(TaskType.SLURM, "C", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", partition="", ntasks=1, memory=8192)
   
   # The task d
-  taskD=batch.Slurm("D","cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt","testing",1)
+  taskD = DagonTask(TaskType.SLURM, "D", "cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt", partition="", ntasks=1, memory=8192)
 
   # add tasks to the workflow
   workflow.add_task(taskA)
@@ -40,9 +32,9 @@ if __name__ == '__main__':
 
   workflow.make_dependencies()
 
-  jsonWorkflow=workflow.as_json()
+  jsonWorkflow = workflow.as_json()
   with open('dataflow-demo-slurm.json', 'w') as outfile:
-    stringWorkflow=json.dumps(jsonWorkflow,sort_keys=True, indent=2)
+    stringWorkflow = json.dumps(jsonWorkflow,sort_keys=True, indent=2)
     outfile.write(stringWorkflow)
  
   # run the workflow
@@ -58,6 +50,4 @@ if __name__ == '__main__':
     # get the results
     with open(result_filename, "r") as infile:
       result = infile.readlines()
-      print result
-
-
+      print(result)

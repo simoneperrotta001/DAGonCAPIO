@@ -1,21 +1,14 @@
 import json
 from dagon import Workflow
-from dagon import batch
-from dagon import docker_task as dt
+from dagon.task import DagonTask, TaskType
+
 if __name__ == '__main__':
+  workflow = Workflow("Taskflow-Demo")
 
-  config={
-    "scratch_dir_base":"/tmp/test",
-    "remove_dir":False
-  }
-
-  # Create the orchestration workflow
-  workflow=Workflow("Taskflow-Demo",config)
-
-  taskA=dt.Docker("Tokio","/bin/hostname >tokio.out", "ubuntu:latest")
-  taskB=dt.Docker("Berlin","/bin/date", "ubuntu:latest")
-  taskC=dt.Docker("Nairobi","/usr/bin/uptime", "ubuntu:latest")
-  taskD=dt.Docker("Mosco","cat workflow://Tokio/tokio.out", "ubuntu:latest")
+  taskA = DagonTask(TaskType.DOCKER, "Tokio", "/bin/hostname >tokio.out", image="ubuntu:latest")
+  taskB = DagonTask(TaskType.DOCKER, "Berlin","/bin/date", image="ubuntu:latest")
+  taskC = DagonTask(TaskType.DOCKER, "Nairobi","/usr/bin/uptime", image="ubuntu:latest")
+  taskD = DagonTask(TaskType.DOCKER, "Mosco","cat workflow://Tokio/tokio.out", image="ubuntu:latest")
 
   workflow.add_task(taskA)
   workflow.add_task(taskB)

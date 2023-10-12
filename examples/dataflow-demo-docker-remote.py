@@ -1,31 +1,26 @@
 import json
 import os.path
 import time
+
 from dagon import Workflow
-from dagon.docker_task import DockerTask
-from dagon import Status
+from dagon.task import DagonTask, TaskType
 
 # Check if this is the main
 if __name__ == '__main__':
-
     # Create the orchestration workflow
-    workflow = Workflow("DataFlow-Demo-Docker-remote-docker-2")
+    workflow = Workflow("DataFlow-Demo-Docker-remote-docker")
 
     # The task a
-    taskA = DockerTask("A", "mkdir output;hostname > output/f1.txt", image="ubuntu",
-                       ip="", ssh_username="")
+    taskA = DagonTask(TaskType.DOCKER, "A", "mkdir output;hostname > output/f1.txt", image="ubuntu", ip="", ssh_username="")
 
     # The task b
-    taskB = DockerTask("B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt",
-                       "ubuntu", ip="", ssh_username="")
+    taskB = DagonTask(TaskType.DOCKER, "B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", image="ubuntu", ip="", ssh_username="")
 
     # The task c
-    taskC = DockerTask("C", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt",
-                       "ubuntu", ip="", ssh_username="")
+    taskC = DagonTask(TaskType.DOCKER, "C", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", image="ubuntu", ip="", ssh_username="")
 
     # The task d
-    taskD = DockerTask("D", "cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt",
-                       "ubuntu", ip="", ssh_username="")
+    taskD = DagonTask(TaskType.DOCKER, "D", "cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt", image="ubuntu", ip="", ssh_username="")
 
     # add tasks to the workflow
     workflow.add_task(taskA)
@@ -43,7 +38,7 @@ if __name__ == '__main__':
     # run the workflow
     workflow.run()
 
-    """if workflow.get_dry() is False and taskD.status is not Status.FAILED:
+    if workflow.get_dry() is False:
         # set the result filename
         result_filename = taskD.get_scratch_dir() + "/f3.txt"
         while not os.path.exists(result_filename):
@@ -52,4 +47,4 @@ if __name__ == '__main__':
         # get the results
         with open(result_filename, "r") as infile:
             result = infile.readlines()
-            print result"""
+            print(result)
