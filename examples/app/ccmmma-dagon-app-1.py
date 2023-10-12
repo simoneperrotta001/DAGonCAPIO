@@ -25,7 +25,7 @@ if __name__ == '__main__':
     # Hours of simulation (168h -> 7days)
     hours = 168
 
-    # By default perform a dry run (do not run the actual computation)
+    # By default, perform a dry run (do not run the actual computation)
     dry = True
 
     # Check if the number of command line arguments is correct
@@ -44,7 +44,7 @@ if __name__ == '__main__':
         dry = False
     else:
         # Perform a dry run with default parameters
-        print "Defaults: " + str(wrf_model) + " " + str(i_date) + " " + str(hours) + " " + str(dry)
+        print ("Defaults: " + str(wrf_model) + " " + str(i_date) + " " + str(hours) + " " + str(dry))
 
     # The application root
     prometeo_root = "/home/ccmmma/prometeo/"
