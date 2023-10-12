@@ -14,6 +14,7 @@ ip = localhost
 [batch]
 scratch_dir_base=/tmp/
 remove_dir=False
+threads=1
 
 [sulrm]
 partition=
