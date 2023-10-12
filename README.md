@@ -117,58 +117,51 @@ python dataflow-demo.py
 
 ## Batch Task Flow
 ```python
+    from dagon import Workflow
+    from dagon.task import TaskType, DagonTask
+
     # Create the orchestration workflow
-      workflow=Workflow("Taskflow-Demo",config)
+    workflow = Workflow("Taskflow-Demo")
+  
+    taskA = DagonTask(TaskType.BATCH, "Tokio", "/bin/hostname >tokio.out")
+    taskB = DagonTask(TaskType.BATCH, "Berlin", "/bin/date")
+    taskC = DagonTask(TaskType.BATCH, "Nairobi", "/usr/bin/uptime")
+    taskD = DagonTask(TaskType.BATCH, "Mosco", "cat workflow://Tokio/tokio.out")
+
+    workflow.add_task(taskA)
+    workflow.add_task(taskB)
+    workflow.add_task(taskC)
+    workflow.add_task(taskD)
+  
+    taskB.add_dependency_to(taskA)
+    taskC.add_dependency_to(taskA)
+    taskD.add_dependency_to(taskB)
+    taskD.add_dependency_to(taskC)
     
-      taskA=batch.Batch("Tokio","/bin/hostname >tokio.out")
-      taskB=batch.Batch("Berlin","/bin/date")
-      taskC=batch.Batch("Nairobi","/usr/bin/uptime")
-      taskD=batch.Batch("Mosco","cat workflow://Tokio/tokio.out")
-    
-      workflow.add_task(taskA)
-      workflow.add_task(taskB)
-      workflow.add_task(taskC)
-      workflow.add_task(taskD)
-    
-      taskB.add_dependency_to(taskA)
-      taskC.add_dependency_to(taskA)
-      taskD.add_dependency_to(taskB)
-      taskD.add_dependency_to(taskC)
-      
-      workflow.run()
+    workflow.run()
 ```
 
 ## Batch Data Flow
 ```python
     from dagon import Workflow
-    from dagon import batch
-    import json
-    import sys
-    import datetime
-    import os.path
+    from dagon.task import DagonTask, TaskType
     
     # Check if this is the main
-    if __name__ == '__main__':
-    
-      config={
-        "scratch_dir_base":"/tmp/test6",
-        "remove_dir":False
-      }
-    
+    if __name__ == '__main__':    
       # Create the orchestration workflow
-      workflow=Workflow("DataFlow-Demo",config)
+      workflow=Workflow("DataFlow-Demo")
       
       # The task a
-      taskA=batch.Batch("Tokio","mkdir output;ls > output/f1.txt")
-      
+      taskA = DagonTask(TaskType.BATCH, "A", "mkdir output; hostname > output/f1.txt")
+
       # The task b
-      taskB=batch.Batch("Berlin","echo $RANDOM > f2.txt; cat workflow:///Tokio/output/f1.txt >> f2.txt")
-      
+      taskB = DagonTask(TaskType.BATCH, "B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt")
+
       # The task c
-      taskC=batch.Batch("Nairobi","echo $RANDOM > f2.txt; cat workflow:///Tokio/output/f1.txt >> f2.txt")
-      
+      taskC = DagonTask(TaskType.BATCH, "C", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt")
+
       # The task d
-      taskD=batch.Batch("Mosco","cat workflow:///Berlin/f2.txt workflow:///Nairobi/f2.txt > f3.txt")
+      taskD = DagonTask(TaskType.BATCH, "D", "cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt")
       
       # add tasks to the workflow
       workflow.add_task(taskA)
@@ -177,12 +170,7 @@ python dataflow-demo.py
       workflow.add_task(taskD)
     
       workflow.make_dependencies()
-    
-      jsonWorkflow=workflow.asJson()
-      with open('dataflow-demo.json', 'w') as outfile:
-        stringWorkflow=json.dumps(jsonWorkflow,sort_keys=True, indent=2)
-        outfile.write(stringWorkflow)
-     
+
       # run the workflow
       workflow.run()
 ```
