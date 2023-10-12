@@ -1,5 +1,40 @@
-# dagonstar
-DAGon\* is a simple Python based workflow engine able to run job on everything from the local machine to distributed virtual HPC clusters hosted in private and public clouds.
+# DagOnStar (aka DagOn\*)
+
+
+DagOnStar (Direct acyclic graph On anything) is a lightweight Python library implementing
+a workflow engine able to execute parallel jobs represented by direct acyclic graphs on
+any combination of local machines, on-premise high-performance computing clusters,
+containers, and cloud-based virtual infrastructures.
+
+DagOnStar is used as the primary workflow engine to run real-world production-level
+applications.
+
+DagOnStar is in production at the [Center for Monitoring and Modeling Marine and Atmosphere](https:/meteo.uniparthenope.it)
+applications hosted at the University of Naples "Parthenope".
+
+### Motivation
+Thanks to the advent of public, private, and hybrid clouds, the democratization of computational resources changed the rules in many science fields. For decades, one of the efforts of computer scientists and computer engineers was the development of tools able to simplify access to high-end computational resources by computational scientists. However, nowadays, any science field can be considered "computational" as the availability of powerful but easy-to-manage workflow engines is crucial.
+### Cite DAGonStar
+
+* Sánchez-Gallegos, Dante Domizzi, Diana Di Luccio, Sokol Kosta, J. L. Gonzalez-Compean, and Raffaele Montella.
+  "An efficient pattern-based approach for workflow supporting large-scale science: The DagOnStar experience."
+  Future Generation Computer Systems 122 (2021): 187-203.
+  [link](https://www.sciencedirect.com/science/article/pii/S0167739X21000984)
+
+* Sánchez-Gallegos, Dante D., Diana Di Luccio, José Luis Gonzalez-Compean, and Raffaele Montella.
+  "Internet of things orchestration using dagon workflow engine."
+  In 2019 IEEE 5th world forum on internet of things (WF-IoT), pp. 95-100. IEEE, 2019.
+  [link](https://ieeexplore.ieee.org/abstract/document/8767199)
+
+* Sánchez-Gallegos, Dante D., Diana Di Luccio, J. L. Gonzalez-Compean, and Raffaele Montella.
+  "A microservice-based building block approach for scientific workflow engines: Processing large data volumes with dagonstar."
+  In 2019 15th International Conference on Signal-Image Technology & Internet-Based Systems (SITIS), pp. 368-375. IEEE, 2019.
+  [link](https://ieeexplore.ieee.org/abstract/document/9067951)
+
+* Montella, Raffaele, Diana Di Luccio, and Sokol Kosta.
+  "Dagon: Executing direct acyclic graphs as parallel jobs on anything."
+  In 2018 IEEE/ACM Workflows in Support of Large-Scale Science (WORKS), pp. 64-73. IEEE, 2018.
+  [link](https://ieeexplore.ieee.org/abstract/document/8638376)
 
 #### Installation 
 
@@ -111,4 +146,3 @@ python dataflow-demo.py
       # run the workflow
       workflow.run()
 ```
-
