@@ -384,7 +384,7 @@ class Task(Thread):
 
             # The task name is the first element
             task_name = elements[1]
-
+            
             # Set the default workflow name if needed
             if workflow_name is None or workflow_name == "":
                 workflow_name = self.workflow.name
@@ -410,6 +410,9 @@ class Task(Thread):
                 task.increment_reference_count()
 
             if task is None:  # if is None means that task is from another WF maybe in the dagon service
+                #self.workflow.logger.debug("Adding transversal point")
+                #self.workflow.logger.debug(workflow_name)
+                #self.workflow.logger.debug(task)
                 if self.workflow.is_api_available:
                     workflow_id = self.workflow.api.get_workflow_by_name(workflow_name)
                     transversal_task = self.workflow.api.get_task(workflow_id, task_name)[
@@ -419,6 +422,9 @@ class Task(Thread):
                                                  transversal_workflow=workflow_id,
                                                  working_dir=transversal_task['working_dir'])
                     self.add_transversal_point(transversal_task)
+                else:
+                    raise ConnectionError("Dagon service is not available")
+
             # Go to the next element
             pos = pos2
 

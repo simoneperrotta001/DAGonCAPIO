@@ -33,6 +33,8 @@ The following initiatives support waComM++ development:
   Future Generation Computer Systems 122 (2021): 187-203.
   [link](https://www.sciencedirect.com/science/article/pii/S0167739X21000984)
 
+ * Barron-Lugo, J.A., Gonzalez-Compean, J. L., Carretero, J., Lopez-Arevalo, I., & Montella, R. (2021). A novel transversal processing model to build environmental big data services in the cloud. Environmental Modelling & Software, 144, 105173. [link](https://www.sciencedirect.com/science/article/abs/pii/S1364815221002152)
+
 * Sánchez-Gallegos, Dante D., Diana Di Luccio, José Luis Gonzalez-Compean, and Raffaele Montella.
   "Internet of things orchestration using dagon workflow engine."
   In 2019 IEEE 5th world forum on internet of things (WF-IoT), pp. 95-100. IEEE, 2019.
@@ -173,4 +175,50 @@ python dataflow-demo.py
 
       # run the workflow
       workflow.run()
+```
+## Meta workflow
+```python
+    from dagon import Workflow
+    from dagon.dag_tps import DAG_TPS
+    from dagon.task import DagonTask, TaskType
+    
+    workflow = Workflow("DataFlow-Demo-Server")
+    workflow.set_dry(False)    # Set the dry
+    # The task a
+    taskA = DagonTask(TaskType.BATCH, "A", "mkdir output;echo 'A1,A2,A3' > output/f1.csv")
+    # The task b
+    taskB = DagonTask(TaskType.BATCH, "B", "echo 'B1,B2,B3' > f2.csv; cat workflow:///A/output/f1.csv >> f2.csv")
+    # The task c
+    taskC = DagonTask(TaskType.BATCH, "C", "echo 'C1,C2,C3' > f2.txt; cat workflow:///A/output/f1.csv >> f2.csv")
+    # The task d
+    taskD = DagonTask(TaskType.BATCH, "D", "cat workflow:///B/f2.csv >> f3.csv; cat workflow:///C/f2.csv >> f3.csv")
+
+    #second workflow
+    workflow2 = Workflow("DataFlow-transversal")
+    workflow2.set_dry(False)    # Set the dry
+    # The task E
+    taskE = DagonTask(TaskType.BATCH, "E", "mkdir output;echo 'E1,E2,E3' > output/f1.csv")
+    # The task f
+    taskF = DagonTask(TaskType.BATCH, "F", "echo 'F1,F2,F3' > f2.csv; cat workflow://DataFlow-Demo-Server/A/output/f1.csv >> f2.csv; cat workflow:///E/output/f1.csv >> f2.csv")
+    # The task g
+    taskG = DagonTask(TaskType.BATCH, "G", "cat workflow:///F/f2.csv >> f3.csv; cat workflow://DataFlow-Demo-Server/C/f2.csv >> f3.csv")
+
+    # add tasks to the workflow 1
+    workflow.add_task(taskA)
+    workflow.add_task(taskB)
+    workflow.add_task(taskC)
+    workflow.add_task(taskD)
+
+    # add tasks to the workflow 2
+    workflow2.add_task(taskE)
+    workflow2.add_task(taskF)
+    workflow2.add_task(taskG)
+
+    #list of the workflows
+    metaworkflow=DAG_TPS("NewDAG")
+    metaworkflow.add_workflow(workflow)
+    metaworkflow.add_workflow(workflow2)
+    metaworkflow.make_dependencies()
+
+    metaworkflow.run()
 ```
