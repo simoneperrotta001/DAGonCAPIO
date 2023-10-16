@@ -19,7 +19,7 @@ class API:
         :raises ConnectionError: when it's not possible to connect to the URL provided
         """
         try:
-            requests.head(self.base_url)
+            requests.head(self.base_url+"/check")
         except ConnectionError as e:
             raise ConnectionError("It is not possible connect to the URL %s" % self.base_url)
         except MissingSchema:

@@ -5,15 +5,19 @@ import os
 import threading
 
 
+"""
+Cycle detection
+author: J.Armando Barron-lugo
+date: 14/10/2023
+description: 
+
+    Build of a metaworkflow composed of 3 different workflows with a cycle in their dependencies. 
+
+"""
+
 from dagon import Workflow
 from dagon.dag_tps import DAG_TPS
 from dagon.task import DagonTask, TaskType
-
-import logging
-
-logging.debug('This message should go to the log file')
-logging.info('So should this')
-logging.warning('And this, too')
 
 # Check if this is the main
 if __name__ == '__main__':
@@ -25,19 +29,14 @@ if __name__ == '__main__':
 
     # Create the orchestration workflow
     workflow = Workflow("WF-1")
-
     # Set the dry
     workflow.set_dry(False)
-
     # The task a
     taskA = DagonTask(TaskType.BATCH, "A", "$SC:5 ;mkdir output;hostname > output/f1.txt; cat workflow://WF-3/H/output/f1.txt >> output/f1.txt")
-
     # The task b
     taskB = DagonTask(TaskType.BATCH, "B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt")
-
     # The task c
     taskC = DagonTask(TaskType.BATCH, "C", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt")
-
     # The task d
     taskD = DagonTask(TaskType.BATCH, "D", "cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt")
 
@@ -46,10 +45,8 @@ if __name__ == '__main__':
     workflow2.set_dry(False)
     # The task E
     taskE = DagonTask(TaskType.BATCH, "E", "mkdir output;hostname > output/f1.txt")
-
     # The task f
     taskF = DagonTask(TaskType.BATCH, "F", "echo $RANDOM > f2.txt; cat workflow://WF-1/A/output/f1.txt >> f2.txt; cat workflow:///E/output/f1.txt >> f2.txt")
-
     # The task g
     taskG = DagonTask(TaskType.BATCH, "G", "cat workflow:///F/f2.txt >> f3.txt; cat workflow://WF-1/C/f2.txt >> f3.txt")
 
@@ -58,10 +55,8 @@ if __name__ == '__main__':
     workflow3.set_dry(False)
     # The task h
     taskH = DagonTask(TaskType.BATCH, "H", "mkdir output;hostname > output/f1.txt; cat workflow://WF-2/G/f3.txt >> output/f1.txt")
-
     # The task i
     taskI = DagonTask(TaskType.BATCH, "I", "echo $RANDOM > f2.txt; cat workflow:///H/output/f1.txt >> f2.txt")
-
     # The task j
     taskJ = DagonTask(TaskType.BATCH, "J", "echo $RANDOM > f3.txt; cat workflow:///I/f2.txt >> f3.txt")
 
@@ -93,7 +88,7 @@ if __name__ == '__main__':
     metaworkflow.make_dependencies()
 
     jsonWorkflow = metaworkflow.as_json(json_format="wf") 
-    with open('./jsons/NewDAG-with-cycles.json', 'w') as outfile:
+    with open('.metaworkflow-with-cycles.json', 'w') as outfile:
         stringWorkflow = json.dumps(jsonWorkflow, sort_keys=True, indent=2)
         outfile.write(stringWorkflow)
 
@@ -101,14 +96,3 @@ if __name__ == '__main__':
     metaworkflow.run()
 
     
-
-    # if workflow.get_dry() is False:
-    #     # set the result filename
-    #     result_filename = taskD.get_scratch_dir() + "/f3.txt"
-    #     while not os.path.exists(result_filename):
-    #         time.sleep(1)
-
-    #     # get the results
-    #     with open(result_filename, "r") as infile:
-    #         result = infile.readlines()
-    #         print result

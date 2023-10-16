@@ -4,16 +4,20 @@ import time
 import os
 import threading
 
+"""
+Transversality example
+author: J.Armando Barron-lugo
+date: 14/10/2023
+description: 
 
+    Build of a metaworkflow composed of 2 different workflows: DataFlow-Demo-Server and DataFlow-traversal.
+    DataFlow traversal depends on DataFlow-Demo-Server tasks A and C.
+
+
+"""
 from dagon import Workflow
 from dagon.dag_tps import DAG_TPS
 from dagon.task import DagonTask, TaskType
-
-import logging
-
-logging.debug('This message should go to the log file')
-logging.info('So should this')
-logging.warning('And this, too')
 
 # Check if this is the main
 if __name__ == '__main__':
@@ -25,33 +29,25 @@ if __name__ == '__main__':
 
     # Create the orchestration workflow
     workflow = Workflow("DataFlow-Demo-Server")
-
-    # Set the dry
-    workflow.set_dry(False)
-
+    workflow.set_dry(False)    # Set the dry
     # The task a
-    taskA = DagonTask(TaskType.BATCH, "A", "mkdir output;cat /tmp/pruebas/conHeaders.csv > output/f1.csv")
-
+    taskA = DagonTask(TaskType.BATCH, "A", "mkdir output;echo 'A1,A2,A3' > output/f1.csv")
     # The task b
-    taskB = DagonTask(TaskType.BATCH, "B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.csv >> f2.txt")
-
+    taskB = DagonTask(TaskType.BATCH, "B", "echo 'B1,B2,B3' > f2.csv; cat workflow:///A/output/f1.csv >> f2.csv")
     # The task c
-    taskC = DagonTask(TaskType.BATCH, "C", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.csv >> f2.txt")
-
+    taskC = DagonTask(TaskType.BATCH, "C", "echo 'C1,C2,C3' > f2.txt; cat workflow:///A/output/f1.csv >> f2.csv")
     # The task d
-    taskD = DagonTask(TaskType.BATCH, "D", "cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt")
+    taskD = DagonTask(TaskType.BATCH, "D", "cat workflow:///B/f2.csv >> f3.csv; cat workflow:///C/f2.csv >> f3.csv")
 
 #second workflow
     workflow2 = Workflow("DataFlow-transversal")
-    workflow2.set_dry(False)
+    workflow2.set_dry(False)    # Set the dry
     # The task E
-    taskE = DagonTask(TaskType.BATCH, "E", "mkdir output;cat /tmp/pruebas/merra.csv > output/f1.csv")
-
+    taskE = DagonTask(TaskType.BATCH, "E", "mkdir output;echo 'E1,E2,E3' > output/f1.csv")
     # The task f
-    taskF = DagonTask(TaskType.BATCH, "F", "echo $RANDOM > f2.txt; cat workflow://DataFlow-Demo-Server/A/output/f1.csv >> f2.txt; cat workflow:///E/output/f1.csv >> f2.txt")
-
+    taskF = DagonTask(TaskType.BATCH, "F", "echo 'F1,F2,F3' > f2.csv; cat workflow://DataFlow-Demo-Server/A/output/f1.csv >> f2.csv; cat workflow:///E/output/f1.csv >> f2.csv")
     # The task g
-    taskG = DagonTask(TaskType.BATCH, "G", "cat workflow:///F/f2.txt >> f3.txt; cat workflow://DataFlow-Demo-Server/C/f2.txt >> f3.txt")
+    taskG = DagonTask(TaskType.BATCH, "G", "cat workflow:///F/f2.csv >> f3.csv; cat workflow://DataFlow-Demo-Server/C/f2.csv >> f3.csv")
 
     # add tasks to the workflow 1
     workflow.add_task(taskA)
@@ -65,29 +61,17 @@ if __name__ == '__main__':
     workflow2.add_task(taskG)
 
 #list of the workflows
-    #WF =[workflow,workflow2]
     metaworkflow=DAG_TPS("NewDAG")
     metaworkflow.add_workflow(workflow)
     metaworkflow.add_workflow(workflow2)
     metaworkflow.make_dependencies()
 
-    # run the workflow
-    metaworkflow.run()
+
 
     jsonWorkflow = metaworkflow.as_json(json_format="mw") 
-    with open('./jsons/MW-demo2.json', 'w') as outfile:
+    with open('.MW-demo2.json', 'w') as outfile:
         stringWorkflow = json.dumps(jsonWorkflow, sort_keys=True, indent=2)
         outfile.write(stringWorkflow)
 
-    tpp1 = metaworkflow.Create_TPP("A", "E" , "Codigo-Codigo,Fecha-Fecha", Bpath="output/", Apath="output/")
-    tpp2= metaworkflow.Create_TPP("A", "E" , "Codigo-Codigo,Fecha-Fecha", Bpath="output/", Apath="output/", name = "prueba2")
-    tpp3 = metaworkflow.Create_TPP("D", "G" , "Codigo-Codigo,Fecha-Fecha", name = "prueba1", Bpath="f3.txt", Apath="f3.txt")
-
-    metaworkflow.prepare_tps()
-    
-    #TPS describe example
-    a = metaworkflow.TPSapi.Describe(tpp1)
-    b = metaworkflow.TPSapi.Describe(tpp2)
-
-    logging.info(a)
-    logging.info(b)
+    # run the workflow
+    metaworkflow.run()

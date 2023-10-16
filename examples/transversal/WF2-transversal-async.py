@@ -4,16 +4,22 @@ import time
 import os
 import threading
 
+"""
+Asynchronous dependency
+author: J.Armando Barron-lugo
+date: 14/10/2023
+description: 
+
+    Example of an asynchronous traversal dependency. This script describes a generic workflow in Dagon but with a dependency to wf1-transversal-demo in 
+    WF1-traversal-async.py. 
+
+    Once tasks A and C of the wf1-transversal-demo workflow are completed, the wf2-transversal-demo workflow will continue its execution.
+    This example requires DagOnService to work.
+"""
 
 from dagon import Workflow
 from dagon.dag_tps import DAG_TPS
 from dagon.task import DagonTask, TaskType
-
-import logging
-
-logging.debug('This message should go to the log file')
-logging.info('So should this')
-logging.warning('And this, too')
 
 # Check if this is the main
 if __name__ == '__main__':
@@ -40,26 +46,11 @@ if __name__ == '__main__':
     workflow2.add_task(taskE)
     workflow2.add_task(taskF)
     workflow2.add_task(taskG)
-
     workflow2.make_dependencies()
 
     jsonWorkflow = workflow2.as_json() 
-    with open('./jsons/wf2-transversal-demo.json', 'w') as outfile:
+    with open('wf2-transversal-demo.json', 'w') as outfile:
         stringWorkflow = json.dumps(jsonWorkflow, sort_keys=True, indent=2)
         outfile.write(stringWorkflow)
-
     # run the workflow
     workflow2.run()
-
-    
-
-    # if workflow.get_dry() is False:
-    #     # set the result filename
-    #     result_filename = taskD.get_scratch_dir() + "/f3.txt"
-    #     while not os.path.exists(result_filename):
-    #         time.sleep(1)
-
-    #     # get the results
-    #     with open(result_filename, "r") as infile:
-    #         result = infile.readlines()
-    #         print result
