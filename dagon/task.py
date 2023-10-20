@@ -107,7 +107,7 @@ class Task(Thread):
 
     """
 
-    def __init__(self, name, command, working_dir=None, transversal_workflow=None):
+    def __init__(self, name, command, working_dir=None, transversal_workflow=None, globusendpoint=None):
         """
         :param name: name of the task
         :type name: str
@@ -117,6 +117,9 @@ class Task(Thread):
 
         :param working_dir: path to the directory where the task is be executed
         :type working_dir: str
+
+        :param endpoint: UUID of the Globus Endpoint to store the data.
+        :type endpoint: str
 
         """
         Thread.__init__(self)
@@ -138,6 +141,15 @@ class Task(Thread):
         self.data_mover = None
         self.stager_mover = None
         self.mode = "sequential"
+        self.globusendpoint = globusendpoint
+        #print("endpoint: ", endpoint)
+        #print("endpoint: ", self.endpoint)
+
+    def get_endpoint(self):
+        return self.globusendpoint
+    
+    def set_endpoint(self, endpoint):
+        self.globusendpoint = globusendpoint
 
     def set_mode(self, mode):
         self.mode = mode
@@ -439,7 +451,7 @@ class Task(Thread):
         :return: command preprocessed
         :rtype: str
         """
-
+        #print(self.workflow.cfg["globus"])
         stager = dagon.Stager(self.data_mover, self.stager_mover, self.workflow.cfg)
 
         # Initialize the script
@@ -665,7 +677,7 @@ class Task(Thread):
         :param path: Path to the working directory
         :type path: str
         """
-        makedirs(path)
+        makedirs(path,exist_ok=True)
 
     def create_working_dir(self):
         """
@@ -771,7 +783,7 @@ class Task(Thread):
             start_time = time()
             self.result = self.on_execute(launcher_script, "launcher.sh")
             self.workflow.logger.debug("%s Completed in %s seconds ---" % (self.name, (time() - start_time)))
-
+            #print(self.result)
             # Check if the execution failed
             if self.result['code']:
                 raise Exception('Executable raised a execption ' + self.result['message'])

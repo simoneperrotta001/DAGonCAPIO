@@ -11,7 +11,7 @@ class Batch(Task):
     **Executes a Batch task**
     """
 
-    def __init__(self, name, command, working_dir=None, endpoint=None, transversal_workflow=None):
+    def __init__(self, name, command, working_dir=None, globusendpoint=None, transversal_workflow=None):
         """
         :param name: task name
         :type name: str
@@ -22,10 +22,10 @@ class Batch(Task):
         :param working_dir: path to the task's working directory
         :type working_dir: str
 
-        :param endpoint: Globus endpoint ID
-        :type endpoint: str
+        :param globusendpoint: Globus endpoint ID
+        :type globusendpoint: str
         """
-        Task.__init__(self, name, command, working_dir,transversal_workflow = transversal_workflow)
+        Task.__init__(self, name, command, working_dir,transversal_workflow = transversal_workflow, globusendpoint=globusendpoint)
 
     def __new__(cls, *args, **kwargs):
         """Create an Batch task local or remote
@@ -127,7 +127,7 @@ class RemoteBatch(RemoteTask, Batch):
     **Execute a Batch task on a remote machine**
     """
 
-    def __init__(self, name, command, ssh_username=None, keypath=None, ip=None, working_dir=None, endpoint=None):
+    def __init__(self, name, command, ssh_username=None, keypath=None, ip=None, working_dir=None, globusendpoint=None):
         """
         :param name: name of the task
         :type name: str
@@ -147,11 +147,11 @@ class RemoteBatch(RemoteTask, Batch):
         :param working_dir: path of the working directory on the remote machine
         :type working_dir: str
 
-        :param endpoint: Globus endpoint ID
-        :type endpoint: str
+        :param globusendpoint: Globus endpoint ID
+        :type globusendpoint: str
         """
         RemoteTask.__init__(self, name, ssh_username, keypath, command, ip=ip, working_dir=working_dir,
-                            endpoint=endpoint)
+                            globusendpoint=globusendpoint)
 
     def on_execute(self, launcher_script, script_name):
         """
@@ -183,7 +183,7 @@ class Slurm(Batch):
     :vartype ntask: int
     """
 
-    def __init__(self, name, command, partition=None, ntasks=None, memory=None, working_dir=None, endpoint=None):
+    def __init__(self, name, command, partition=None, ntasks=None, memory=None, working_dir=None, globusendpoint=None):
 
         """
         :param name: name of the task
@@ -204,11 +204,11 @@ class Slurm(Batch):
         :param working_dir: path to the task's working directory
         :type working_dir: str
 
-        :param endpoint: Globus endpoint ID
-        :type endpoint: str
+        :param globusendpoint: Globus endpoint ID
+        :type globusendpoint: str
         """
 
-        Batch.__init__(self, name, command, working_dir, endpoint=endpoint)
+        Batch.__init__(self, name, command, working_dir, globusendpoint=globusendpoint)
         self.partition = partition
         self.ntasks = ntasks
         self.memory = memory
