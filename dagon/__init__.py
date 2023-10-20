@@ -404,22 +404,33 @@ class Stager(object):
         else:  # best effort (SCP)
             data_mover = self.data_mover
 
+        #print(src_task.get_scratch_dir())
+        #print(local_path)
+        #print(dst_path)
         src = src_task.get_scratch_dir() + "/" + local_path
-        dst = dst_path + "/" + os.path.dirname(os.path.abspath(local_path))
+
+        #get filename from path 
+        intermediate_filename = os.path.basename(local_path)
+
+        dst = dst_path + "/" + os.path.dirname(os.path.abspath(local_path)) + "/" + intermediate_filename
+        #dst = "output.txt"
+        #print(src)
+        #print(dst)
 
         # Check if the symbolic link have to be used...
         if data_mover == DataMover.GRIDFTP:
             # data could be copy using globus sdk
             ep1 = src_task.get_endpoint()
             ep2 = dst_task.get_endpoint()
-            gm = GlobusManager(ep1, ep2)
+            #print(ep1,ep2)
+            gm = GlobusManager(ep1, ep2, self.cfg["globus"]["clientid"], self.cfg["globus"]["intermadiate_endpoint"])
 
             # generate tar with data
-            tar_path = src + "/data.tar"
-            command_tar = "tar -czvf %s %s --exclude=*.tar" % (tar_path, src_task.get_scratch_dir())
-            result = src_task.execute_command(command_tar)
+            #tar_path = src + "/data.tar"
+            #command_tar = "tar -czvf %s %s --exclude=*.tar" % (tar_path, src_task.get_scratch_dir())
+            #result = src_task.execute_command(command_tar)
 
-            gm.copy_data(tar_path, dst + "/" + "data.tar.gz")
+            gm.copy_data(src, dst, intermediate_filename)# + "/" + "data.tar.gz")
 
         elif data_mover == DataMover.SKYCDS:
             skycds = SKYCDS()

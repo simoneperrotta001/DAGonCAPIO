@@ -18,7 +18,7 @@ class DockerTask(Batch):
 
     """
 
-    def __init__(self, name, command, image=None, container_id=None, working_dir=None, endpoint=None, remove=True, volume=None,transversal_workflow=None):
+    def __init__(self, name, command, image=None, container_id=None, working_dir=None, globusendpoint=None, remove=True, volume=None,transversal_workflow=None):
 
         """
         :param name: task name
@@ -33,20 +33,19 @@ class DockerTask(Batch):
         :param image: container image
         :type image: str
 
-        :param endpoint: Globus endpoint ID
-        :type endpoint: str
+        :param globusendpoint: Globus endpoint ID
+        :type globusendpoint: str
 
         :param remove: if it's True the container is removed after the task ends its execution
         :type remove: bool
         """
 
-        Task.__init__(self, name, command, working_dir=working_dir,transversal_workflow=transversal_workflow)
+        Task.__init__(self, name, command, working_dir=working_dir,transversal_workflow=transversal_workflow, globusendpoint=globusendpoint)
         self.command = command
         self.container_id = container_id
         self.container = None
         self.remove = remove
         self.image = image
-        self.endpoint = endpoint
         self.volume = volume
         self.docker_client = DockerClient()
 
@@ -155,7 +154,7 @@ class DockerRemoteTask(RemoteTask, DockerTask):
     """
 
     def __init__(self, name, command, image=None, container_id=None, ip=None, ssh_username=None, keypath=None,
-                 working_dir=None, remove=True, endpoint=None):
+                 working_dir=None, remove=True, globusendpoint=None):
         """
         :param name: task name
         :type name: str
@@ -169,8 +168,8 @@ class DockerRemoteTask(RemoteTask, DockerTask):
         :param image: container image
         :type image: str
 
-        :param endpoint: Globus endpoint ID
-        :type endpoint: str
+        :param globusendpoint: Globus endpoint ID
+        :type globusendpoint: str
 
         :param remove: if it's True the container is removed after the task ends its execution
         :type remove: bool
@@ -186,9 +185,9 @@ class DockerRemoteTask(RemoteTask, DockerTask):
         """
 
         DockerTask.__init__(self, name, command, container_id=container_id, working_dir=working_dir, image=image,
-                            remove=remove, endpoint=endpoint)
+                            remove=remove, globusendpoint=globusendpoint)
         RemoteTask.__init__(self, name=name, ssh_username=ssh_username, keypath=keypath, command=command, ip=ip,
-                            working_dir=working_dir)
+                            working_dir=working_dir, globusendpoint=globusendpoint)
         self.docker_client = DockerRemoteClient(self.ssh_connection)
 
     def on_execute(self, launcher_script, script_name):
