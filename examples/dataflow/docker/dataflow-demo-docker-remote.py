@@ -8,7 +8,7 @@ from dagon.task import DagonTask, TaskType
 # Check if this is the main
 if __name__ == '__main__':
     # Create the orchestration workflow
-    workflow = Workflow("DataFlow-Demo-Docker-remote-docker")
+    workflow = Workflow("DataFlow-Demo-Docker-Remote")
 
     # The task a
     taskA = DagonTask(TaskType.DOCKER, "A", "mkdir output;hostname > output/f1.txt", image="ubuntu", ip="", ssh_username="")
