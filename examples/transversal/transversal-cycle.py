@@ -29,34 +29,47 @@ if __name__ == '__main__':
 
     # Create the orchestration workflow
     workflow = Workflow("WF-1")
+
     # Set the dry
     workflow.set_dry(False)
+
     # The task a
     taskA = DagonTask(TaskType.BATCH, "A", "$SC:5 ;mkdir output;hostname > output/f1.txt; cat workflow://WF-3/H/output/f1.txt >> output/f1.txt")
+
     # The task b
     taskB = DagonTask(TaskType.BATCH, "B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt")
+
     # The task c
     taskC = DagonTask(TaskType.BATCH, "C", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt")
+
     # The task d
     taskD = DagonTask(TaskType.BATCH, "D", "cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt")
 
-#second workflow
+    #second workflow
     workflow2 = Workflow("WF-2")
+
     workflow2.set_dry(False)
+
     # The task E
     taskE = DagonTask(TaskType.BATCH, "E", "mkdir output;hostname > output/f1.txt")
+
     # The task f
     taskF = DagonTask(TaskType.BATCH, "F", "echo $RANDOM > f2.txt; cat workflow://WF-1/A/output/f1.txt >> f2.txt; cat workflow:///E/output/f1.txt >> f2.txt")
+
     # The task g
     taskG = DagonTask(TaskType.BATCH, "G", "cat workflow:///F/f2.txt >> f3.txt; cat workflow://WF-1/C/f2.txt >> f3.txt")
 
-#third workflow
+    #third workflow
     workflow3 = Workflow("WF-3")
+
     workflow3.set_dry(False)
+
     # The task h
     taskH = DagonTask(TaskType.BATCH, "H", "mkdir output;hostname > output/f1.txt; cat workflow://WF-2/G/f3.txt >> output/f1.txt")
+
     # The task i
     taskI = DagonTask(TaskType.BATCH, "I", "echo $RANDOM > f2.txt; cat workflow:///H/output/f1.txt >> f2.txt")
+
     # The task j
     taskJ = DagonTask(TaskType.BATCH, "J", "echo $RANDOM > f3.txt; cat workflow:///I/f2.txt >> f3.txt")
 
@@ -77,10 +90,10 @@ if __name__ == '__main__':
     workflow3.add_task(taskJ)
 
 
-#list of the workflows
+    #list of the workflows
     #WF =[workflow,workflow2,workflow3]
 
-    metaworkflow=DAG_TPS("NewDAG-with-cycles")
+    metaworkflow=DAG_TPS("Transversal-Cycle-Demo")
     metaworkflow.add_workflow(workflow)
     metaworkflow.add_workflow(workflow2)
     metaworkflow.add_workflow(workflow3)

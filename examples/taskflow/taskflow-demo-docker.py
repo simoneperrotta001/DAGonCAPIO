@@ -3,7 +3,7 @@ from dagon import Workflow
 from dagon.task import DagonTask, TaskType
 
 if __name__ == '__main__':
-  workflow = Workflow("Taskflow-Demo")
+  workflow = Workflow("Taskflow-Demo-Docker")
 
   taskA = DagonTask(TaskType.DOCKER, "Tokio", "/bin/hostname >tokio.out", image="ubuntu:latest")
   taskB = DagonTask(TaskType.DOCKER, "Berlin","/bin/date", image="ubuntu:latest")
