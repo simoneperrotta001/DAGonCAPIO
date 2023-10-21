@@ -48,7 +48,7 @@ intermadiate_endpoint = ddb59aef-6d04-11e5-ba46-22000b92c6ec
 
 In this file, also replace the ```scratch_dir_base``` with any directory in your home partition. For example, ```/home/USER/DagOnStar```.
 
-Now, open the file ```localexampleglobus.py```, and replace the ```globusendpoint``` variable of ```taskA``` and ```taskB```.
+Now, open the file ```dataflow-demo-globus.py```, and replace the ```globusendpoint``` variable of ```taskA``` and ```taskB```.
 
 ## Execution of the demo
 
@@ -67,10 +67,10 @@ Now navigate to the directory of the demo.
 cd examples/dataflow/globus
 ```
 
-Execute the file ```localexampleglobus.py``` as follows:
+Execute the file ```dataflow-demo-globus.py``` as follows:
 
 ```bash 
-python localexampleglobus.py
+python dataflow-demo-globus.py
 ```
 
 During the execution, you will requested to log in the Globus services. Click on the URL provided by the application, log in Globus, and paste the token on the console of th application. Remember, that if you are using Globus Personal Connect you must start it on your endpoint.
