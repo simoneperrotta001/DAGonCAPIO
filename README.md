@@ -21,9 +21,18 @@ engines is crucial.
 
 # Acknowledgments
 The following initiatives support DAGonStar development:
-* Research contract "Mytilus farming System with High-Performance Computing and Artificial Intelligence" (MytilEx, CUP I63C23000180002, funded by the Campania Region, Veterinary sector) - DAGonStar orchestrates the production workflow to deliver daily 168 weather, marine, pollutants, and farmed mussels contamination forecasts and predictions. [PWA](http://meteo.uniparthenope.it/mytilex/)
-* EuroHPC H2020 project 
-Adaptative Multi-tier Intelligent data manager for Exascale (ADMIRE, 956748-ADMIRE-H2020-JTI-EuroHPC-2019-1, funded by the European Commission) - WP7: DAGonStar orchestrates the Environmental Application delivering on-demand weather, marine, and pollutants simulations and forecasts on the Campania Region (Italy). [link](https://www.admire-eurohpc.eu)
+
+* Research contract "Mytilus farming System with High-Performance Computing and Artificial Intelligence"
+  (MytilEx, CUP I63C23000180002, funded by the Campania Region, Veterinary sector) -
+  DAGonStar orchestrates the production workflow to deliver daily 168 weather, marine, pollutants,
+  and farmed mussels contamination forecasts and predictions. [PWA](http://meteo.uniparthenope.it/mytilex/)
+
+
+* EuroHPC H2020 project "Adaptative Multi-tier Intelligent data manager for Exascale"
+  (ADMIRE, 956748-ADMIRE-H2020-JTI-EuroHPC-2019-1, funded by the European Commission) - 
+  WP7: DAGonStar orchestrates the Environmental Application delivering on-demand weather, marine,
+  and pollutants simulations and forecasts on the Campania Region (Italy).
+  [link](https://www.admire-eurohpc.eu)
 
 # Cite DAGonStar
 
@@ -34,17 +43,24 @@ Adaptative Multi-tier Intelligent data manager for Exascale (ADMIRE, 956748-ADMI
   Future Generation Computer Systems 122 (2021): 187-203.
   [link](https://www.sciencedirect.com/science/article/pii/S0167739X21000984)
 
- * Barron-Lugo, J.A., Gonzalez-Compean, J. L., Carretero, J., Lopez-Arevalo, I., & Montella, R. (2021). A novel transversal processing model to build environmental big data services in the cloud. Environmental Modelling & Software, 144, 105173. [link](https://www.sciencedirect.com/science/article/abs/pii/S1364815221002152)
+
+* Barron-Lugo, J.A., Gonzalez-Compean, J. L., Carretero, J., Lopez-Arevalo, I., & Montella, R. (2021).
+  A novel transversal processing model to build environmental big data services in the cloud. 
+  Environmental Modelling & Software, 144, 105173.
+  [link](https://www.sciencedirect.com/science/article/abs/pii/S1364815221002152)
+
 
 * Sánchez-Gallegos, Dante D., Diana Di Luccio, José Luis Gonzalez-Compean, and Raffaele Montella.
   "Internet of things orchestration using dagon workflow engine."
   In 2019 IEEE 5th world forum on internet of things (WF-IoT), pp. 95-100. IEEE, 2019.
   [link](https://ieeexplore.ieee.org/abstract/document/8767199)
 
+
 * Sánchez-Gallegos, Dante D., Diana Di Luccio, J. L. Gonzalez-Compean, and Raffaele Montella.
   "A microservice-based building block approach for scientific workflow engines: Processing large data volumes with dagonstar."
   In 2019 15th International Conference on Signal-Image Technology & Internet-Based Systems (SITIS), pp. 368-375. IEEE, 2019.
   [link](https://ieeexplore.ieee.org/abstract/document/9067951)
+
 
 * Montella, Raffaele, Diana Di Luccio, and Sokol Kosta.
   "Dagon: Executing direct acyclic graphs as parallel jobs on anything."
@@ -58,6 +74,7 @@ Adaptative Multi-tier Intelligent data manager for Exascale (ADMIRE, 956748-ADMI
   In 2022 IEEE International Workshop on Metrology for the Sea; Learning to Measure Sea Health Parameters (MetroSea), pp. 267-272. IEEE, 2022.
   [link](https://ieeexplore.ieee.org/abstract/document/9950862)
 
+
 * De Vita, Ciro Giuseppe, Gennaro Mellone, Aniello Florio,
   Catherine Alessandra Torres Charles, Diana Di Luccio,
   Marco Lapegna, Guido Benassai, Giorgio Budillon, and Raffaele Montella.
@@ -65,11 +82,13 @@ Adaptative Multi-tier Intelligent data manager for Exascale (ADMIRE, 956748-ADMI
   In 2023 31st Euromicro International Conference on Parallel, Distributed and Network-Based Processing (PDP), pp. 109-113. IEEE, 2023.
   [link](https://ieeexplore.ieee.org/abstract/document/10136945)
 
+
 * Montella, Raffaele, Diana Di Luccio, Ciro Giuseppe De Vita, Gennaro Mellone,
   Marco Lapegna, Gloria Ortega, Livia Marcellino, Enrico Zambianchi, and Giulio Giunta.
   "A highly scalable high-performance Lagrangian transport and diffusion model for marine pollutants assessment."
   In 2023 31st Euromicro International Conference on Parallel, Distributed and Network-Based Processing (PDP), pp. 17-26. IEEE, 2023.
   [link](https://ieeexplore.ieee.org/abstract/document/10137219)
+
 
 ## Surveys
 
@@ -89,6 +108,18 @@ virtualenv venv
 pip install -r requirements.txt  
 export PYTHONPATH=$PWD:$PYTHONPATH  
 ```
+
+## Troubleshooting 
+
+* On some MacOS installations, pycrypto fails to automatically install. 
+  Usually this is due to *gmp* library missing in the default include and library path.
+  Before launching the requirements install, find the location of the missing library.
+  Then export the CFLAGS as in the example below (The actual path could be different):
+
+```bash
+export "CFLAGS=-I/usr/local/Cellar/gmp/6.2.1_1/include -L/usr/local/Cellar/gmp/6.2.1_1/lib"
+```
+
 
 # Demo
 
