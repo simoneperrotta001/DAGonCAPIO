@@ -12,17 +12,18 @@ applications hosted at the University of Naples "Parthenope".
 
 # Motivation
 Thanks to the advent of public, private, and hybrid clouds, the democratization of
-computational resources changed the rules in many science fields.
+Computational resources changed the rules in many science fields.
 For decades, one of the efforts of computer scientists and computer engineers was the
 development of tools able to simplify access to high-end computational resources by
 computational scientists. However, nowadays, any science field can be considered
-"computational" as the availability of powerful but easy-to-manage workflow
+"computational" if the availability of powerful but easy-to-manage workflow
 engines is crucial.
 
 # Acknowledgments
-The following initiatives support waComM++ development:
-* Research agreement MytilAI (CUP I65F21000040002, http://meteo.uniparthenope.it/mytiluse/) - Supporting operational pollutant transport and diffusion for AI-based farmed mussels contamination prediction.
-* EuroHPC H2020 project ADMIRE (956748-ADMIRE-H2020-JTI-EuroHPC-2019-1, https://www.admire-eurohpc.eu) - WP7: Environmental application. Using malleability to improve balance between the overall performance and the computational resource allocation. 
+The following initiatives support DAGonStar development:
+* Research contract "Mytilus farming System with High-Performance Computing and Artificial Intelligence" (MytilEx, CUP I63C23000180002, funded by the Campania Region, Veterinary sector) - DAGonStar orchestrates the production workflow to deliver daily 168 weather, marine, pollutants, and farmed mussels contamination forecasts and predictions. [PWA](http://meteo.uniparthenope.it/mytilex/)
+* EuroHPC H2020 project 
+Adaptative Multi-tier Intelligent data manager for Exascale (ADMIRE, 956748-ADMIRE-H2020-JTI-EuroHPC-2019-1, funded by the European Commission) - WP7: DAGonStar orchestrates the Environmental Application delivering on-demand weather, marine, and pollutants simulations and forecasts on the Campania Region (Italy). [link](https://www.admire-eurohpc.eu)
 
 # Cite DAGonStar
 
