@@ -55,10 +55,10 @@ if __name__ == '__main__':
     taskE = DagonTask(TaskType.BATCH, "E", "mkdir output;echo 'E1,E2,E3' > output/f1.csv")
 
     # The task f
-    taskF = DagonTask(TaskType.BATCH, "F", "echo 'F1,F2,F3' > f2.csv; cat workflow://DataFlow-Demo-Server/A/output/f1.csv >> f2.csv; cat workflow:///E/output/f1.csv >> f2.csv")
+    taskF = DagonTask(TaskType.BATCH, "F", "echo 'F1,F2,F3' > f2.csv; cat workflow://Transversal-Demo/A/output/f1.csv >> f2.csv; cat workflow:///E/output/f1.csv >> f2.csv")
 
     # The task g
-    taskG = DagonTask(TaskType.BATCH, "G", "cat workflow:///F/f2.csv >> f3.csv; cat workflow://DataFlow-Demo-Server/C/f2.csv >> f3.csv")
+    taskG = DagonTask(TaskType.BATCH, "G", "cat workflow:///F/f2.csv >> f3.csv; cat workflow://Transversal-Demo/C/f2.csv >> f3.csv")
 
     # Add tasks to the workflow 1
     workflow.add_task(taskA)

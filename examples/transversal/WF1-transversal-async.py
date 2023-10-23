@@ -37,13 +37,13 @@ if __name__ == '__main__':
     taskA = DagonTask(TaskType.BATCH, "A", "mkdir output;hostname > output/f1.txt")
 
     # The task b
-    taskB = DagonTask(TaskType.BATCH, "B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt;sleep 10")
+    taskB = DagonTask(TaskType.BATCH, "B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt;sleep 30")
 
     # The task c
-    taskC = DagonTask(TaskType.BATCH, "C", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt;sleep 10")
+    taskC = DagonTask(TaskType.BATCH, "C", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt;sleep 30")
 
     # The task d
-    taskD = DagonTask(TaskType.BATCH, "D", "cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt;sleep 10")
+    taskD = DagonTask(TaskType.BATCH, "D", "cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt;sleep 30")
 
     # add tasks to the workflow 1
     workflow.add_task(taskA)
