@@ -463,7 +463,6 @@ class Stager(object):
                 # copy my public key
                 key = dst_task.get_public_key()
                 src_task.add_public_key(key)
-                print(dst_task.working_dir,src_task.get_user(),src_task.get_ip())
                 cmd = "scp -r -o LogLevel=ERROR -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i " + dst_task.working_dir + \
                           "/.dagon/ssh_key -r " + src_task.get_user() + "@" + src_task.get_ip() + ":" + \
                            "$file $dst \n\n"

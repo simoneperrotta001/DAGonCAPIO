@@ -217,9 +217,7 @@ class CloudTask(RemoteTask):
                                               flavour=self.instance_flavour, provider=self.provider,
                                               name=self.instance_name)
         self.ip = self.node.public_ips[0]
-        print(self.ip)
         self.ssh_connection = SSHManager(self.ssh_username, self.ip, self.keypath)
-        print(self.ssh_connection)
         super(CloudTask, self).execute()
 
     def decrement_reference_count(self):

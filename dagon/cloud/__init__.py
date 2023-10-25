@@ -47,9 +47,8 @@ class CloudManager(object):
         manager = globals()[str(provider).upper()]
         node = manager.createInstance(conn, name, flavour, keyparams) if flavour is not None \
             else CloudManager.get_existing_instance(conn, id=instance_id, name=name)
-        print(node)
+        
         node = CloudManager.wait_until_running(conn, node)
-        print(node)
         return node
 
     @staticmethod
@@ -70,7 +69,6 @@ class CloudManager(object):
         while node.state is not NodeState.RUNNING:
             try:
                 node = CloudManager.get_existing_instance(conn, uuid=node.uuid)
-                print(node)
             except Exception:
                 pass
             time.sleep(1)
@@ -319,7 +317,6 @@ class EC2(object):
         if image is None or size is None:
             raise Exception('Size or image doesn\'t exists')
         if keyparams['option'] == KeyOptions.CREATE:
-            print(keyparams)
             key = KeyPair.createPairKey(conn, keyparams['key_path'], keyparams['cloud_args'])
         elif keyparams['option'] == KeyOptions.GET:
             key = KeyPair.getExistingPairKey(conn, keyparams['cloud_args']['name'])

@@ -62,6 +62,8 @@ taskA = DagonTask(TaskType.CLOUD, "A", "mkdir output;echo I am A > output/f1.txt
 
 ## Execution of the demo
 
+This example is configured to run on Amazon EC2.
+
 Open the root directory of DagOnStar in a terminal, and run the following commands to prepare it.
 
 ```bash 
@@ -77,6 +79,9 @@ Now navigate to the directory of the demo.
 cd examples/dataflow/cloud
 ```
 
+> [!NOTE]  
+> If you don't have any SSH key configured, you can create a new unconmenting the line 19 and commenting the line 20 of the script.
+
 Execute the file ```dataflow-demo-cloud.py``` as follows:
 
 ```bash 
@@ -86,4 +91,29 @@ python dataflow-demo-cloud.py
 During the execution of the script, two instances will be created on EC2. Note that these instances will be created using the default security group. You must configure it to enable access through SSH, which is the protocol used by DagOnStar to execute remote tasks. 
 
 > [!WARNING]  
-> We are working on a bug preventing DagOnStar to terminate instances. Please, remember to manually stop or terminate your instances after retrieve your data.
+> We are working on a bug preventing DagOnStar to stop instances. Please, remember to manually stop or terminate your instances after retrieve your data.
+
+> [!WARNING]  
+> Data are not automatically downloaded to DagOnStart main host. Pleases, remember to retrieve your data after when the execution of the workflow is completed.
+
+When the execution of the workflow is completed, you must see an output on the terminal as follows:
+
+```console
+(venv) domizzi@domizzi:~/Documents/GitHub/dagonstar-globusdemo/examples/dataflow/cloud$ python dataflow-demo-cloud.py 
+2023-10-25 20:53:02,737 root         DEBUG    Running workflow: DataFlow-Demo-Cloud
+2023-10-25 20:53:02,737 root         DEBUG    A: Status.WAITING
+2023-10-25 20:53:02,737 root         DEBUG    A: Status.RUNNING
+2023-10-25 20:53:02,737 root         DEBUG    A: Executing...
+2023-10-25 20:53:02,738 root         DEBUG    B: Status.WAITING
+2023-10-25 20:53:48,660 root         DEBUG    A: Scratch directory: /tmp//1698260025898-A
+2023-10-25 20:53:51,998 root         DEBUG    A Completed in 0.8933219909667969 seconds ---
+2023-10-25 20:53:54,001 root         DEBUG    A: Status.FINISHED
+2023-10-25 20:53:54,001 root         DEBUG    B: Status.RUNNING
+2023-10-25 20:53:54,001 root         DEBUG    B: Executing...
+2023-10-25 20:54:48,492 root         DEBUG    B: Scratch directory: /tmp//1698260087488-B
+2023-10-25 20:54:54,144 root         DEBUG    B Completed in 2.123697519302368 seconds ---
+2023-10-25 20:54:54,412 root         DEBUG    Removed instance 34.201.91.120
+2023-10-25 20:54:56,413 root         DEBUG    B: Status.FINISHED
+2023-10-25 20:54:56,414 root         INFO     Workflow 'DataFlow-Demo-Cloud' completed in 113.6767635345459 seconds ---
+(venv) domizzi@domizzi:~/Documents/GitHub/dagonstar-globusdemo/examples/dataflow/cloud$ 
+```

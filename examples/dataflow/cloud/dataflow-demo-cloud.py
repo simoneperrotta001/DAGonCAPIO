@@ -13,10 +13,12 @@ if __name__ == '__main__':
 
     # EC2 instance configuration
     ec2_flavour = {"image": "ami-0fc5d935ebf8bc3bc", "size": "t1.micro"}
+    
 
     # The ssh key to access the EC2 instances
+    #ssh_key_ec2_taskA = {"option": cm.KeyOptions.CREATE, "key_path": "dagon_services.pem", "cloud_args": {"name": "dagon_services_key"}} #uncomment to create a new key
     ssh_key_ec2_taskA = {"option": cm.KeyOptions.GET, "key_path": "dagon_services.pem", "cloud_args": {"name": "dagon_services"}}
-    ssh_key_ec2_taskB = {"option": cm.KeyOptions.GET, "key_path": "dagon_services.pem", "cloud_args": {"name": "dagon_services"}}
+    ssh_key_ec2_taskB = {"option": cm.KeyOptions.GET, "key_path": "dagon_services.pem", "cloud_args": {"name": "dagon_services_key"}}
 
     # Create the orchestration workflow
     workflow = Workflow("DataFlow-Demo-Cloud")
