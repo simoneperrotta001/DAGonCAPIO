@@ -217,8 +217,23 @@ class CloudTask(RemoteTask):
                                               flavour=self.instance_flavour, provider=self.provider,
                                               name=self.instance_name)
         self.ip = self.node.public_ips[0]
+        print(self.ip)
         self.ssh_connection = SSHManager(self.ssh_username, self.ip, self.keypath)
+        print(self.ssh_connection)
         super(CloudTask, self).execute()
+
+    def decrement_reference_count(self):
+        """
+        Decremet the reference count. When the number of references is equals to zero, the garbage collector is called
+        """
+        self.reference_count = self.reference_count - 1
+
+        # Check if the scratch directory must be removed
+        if self.reference_count == 0 and self.stop_instance is True:
+            # Call garbage collector (remove scratch directory, container, cloud instace, etc)
+            self.ssh_connection.execute_command("shutdown -h now")
+            # Perform some logging
+            self.workflow.logger.debug("Removed instance %s", self.ip)
 
     def on_garbage(self):
         """
@@ -229,5 +244,6 @@ class CloudTask(RemoteTask):
 
         """
         RemoteTask.on_garbage(self)
-        if self.stop_instance:
-            self.ssh_connection.execute_command("shutdown -h now")
+        #if self.stop_instance:
+        #    print("hola")
+        #    self.ssh_connection.execute_command("shutdown -h now")
