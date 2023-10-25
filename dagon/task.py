@@ -343,7 +343,7 @@ class Task(Thread):
         # Check if the scratch directory must be removed
         if self.reference_count == 0 and self.remove_scratch_dir is True:
             # Call garbage collector (remove scratch directory, container, cloud instace, etc)
-            # self.on_garbage()
+            self.on_garbage()
             # Perform some logging
             self.workflow.logger.debug("Removed %s", self.working_dir)
 

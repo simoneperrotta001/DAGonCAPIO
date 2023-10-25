@@ -106,3 +106,7 @@ venv.bak/
 # mypy
 .mypy_cache/
 /app_conagua/acquisition/acquisition/nbproject/private/
+
+
+#SSH keys
+*.pem

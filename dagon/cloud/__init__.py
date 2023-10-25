@@ -45,8 +45,9 @@ class CloudManager(object):
         else:
             conn = driver(**conf)
         manager = globals()[str(provider).upper()]
-        node = manager.create_instance(conn, name, flavour, keyparams) if flavour is not None \
+        node = manager.createInstance(conn, name, flavour, keyparams) if flavour is not None \
             else CloudManager.get_existing_instance(conn, id=instance_id, name=name)
+        
         node = CloudManager.wait_until_running(conn, node)
         return node
 

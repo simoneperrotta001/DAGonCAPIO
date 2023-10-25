@@ -464,14 +464,13 @@ class Stager(object):
                 # copy my public key
                 key = dst_task.get_public_key()
                 src_task.add_public_key(key)
-
-                cmd = "scp -r -o \"StrictHostKeyChecking no\" -i " + dst_task.working_dir + \
+                cmd = "scp -r -o LogLevel=ERROR -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i " + dst_task.working_dir + \
                           "/.dagon/ssh_key -r " + src_task.get_user() + "@" + src_task.get_ip() + ":" + \
-                          + "$file $dst \n\n"
+                           "$file $dst \n\n"
                 if StagerMover(self.stager_mover) == StagerMover.PARALLEL:
-                    cmd = "scp -r -o \"StrictHostKeyChecking no\" -i " + dst_task.working_dir + \
+                    cmd = "scp -r -o LogLevel=ERROR -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i " + dst_task.working_dir + \
                           "/.dagon/ssh_key -r " + src_task.get_user() + "@" + src_task.get_ip() + ":" + \
-                          + "{} $dst \n\n"
+                           "{} $dst \n\n"
                 command = command + self.generate_command(src, dst, cmd, self.stager_mover.value)
                 command += "\nif [ $? -ne 0 ]; then code=1; fi"
                 # command += "\n rm " + dst_task.working_dir + "/.dagon/ssh_key"
@@ -486,11 +485,11 @@ class Stager(object):
                 if res['code']:
                     raise Exception("Couldn't create directory %s" % dst_path + "/" + os.path.dirname(local_path))
 
-                cmd = "scp -r -o \"StrictHostKeyChecking no\" -i " + src_task.working_dir + \
+                cmd = "scp -r -o LogLevel=ERROR -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i " + src_task.working_dir + \
                                 "/.dagon/ssh_key -r " + " $file " + \
                                 dst_task.get_user() + "@" + dst_task.get_ip() + ":$dst \n\n"
                 if StagerMover(self.stager_mover) == StagerMover.PARALLEL:
-                    cmd = "scp -r -o \"StrictHostKeyChecking no\" -i " + src_task.working_dir + \
+                    cmd = "scp -r -o LogLevel=ERROR -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i " + src_task.working_dir + \
                                 "/.dagon/ssh_key -r " + " {} " + \
                                 dst_task.get_user() + "@" + dst_task.get_ip() + ":$dst \n\n"
                 command_local = self.generate_command(src, dst, cmd, self.stager_mover.value)

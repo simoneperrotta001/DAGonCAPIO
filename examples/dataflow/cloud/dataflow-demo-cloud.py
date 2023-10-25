@@ -12,38 +12,22 @@ from dagon.task import DagonTask, TaskType
 if __name__ == '__main__':
 
     # EC2 instance configuration
-    ec2_flavour = {"image": "ami-0bbe6b35405ecebdb",
-                   "size": "t1.micro"
-                   }
-    # ssh_key_ec2 = {"option": cm.KeyOptions.CREATE, "key_path": "test-key.pem", "cloud_args": {"name": "test-key2"}}
-    ssh_key_ec2 = {"option": cm.KeyOptions.GET, "key_path": "dagon_services.pem"}
+    ec2_flavour = {"image": "ami-0fc5d935ebf8bc3bc", "size": "t1.micro"}
+    
 
-    # Digital ocean configuration
-    keysDO = cm.KeyPair.generate_RSA()
-    ssh_key_do = {
-        "option": cm.KeyOptions.CREATE,
-        "key_path": "dagonDOkey.pem",
-        "cloudargs": {
-            "name": "new_key",
-            "public_key": keysDO[1],
-            "private_key": keysDO[0]
-        }
-    }
-    do_flavour = {
-        "image": "39769319",
-        "size": "1gb",
-        "location": "nyc1"
-    }
+    # The ssh key to access the EC2 instances
+    #ssh_key_ec2_taskA = {"option": cm.KeyOptions.CREATE, "key_path": "dagon_services.pem", "cloud_args": {"name": "dagon_services_key"}} #uncomment to create a new key
+    ssh_key_ec2_taskA = {"option": cm.KeyOptions.GET, "key_path": "dagon_services.pem", "cloud_args": {"name": "dagon_services"}}
+    ssh_key_ec2_taskB = {"option": cm.KeyOptions.GET, "key_path": "dagon_services.pem", "cloud_args": {"name": "dagon_services_key"}}
 
+    # Create the orchestration workflow
     workflow = Workflow("DataFlow-Demo-Cloud")
 
     # The task a
-    taskA = DagonTask(TaskType.CLOUD, "A", "mkdir output;echo I am A > output/f1.txt", Provider.EC2, "ubuntu", ssh_key_ec2,
-                      instance_id="i-0792e2eeb013b0b2b", endpoint="880105d0-f2eb-11e8-8cc0-0a1d4c5c824a")
+    taskA = DagonTask(TaskType.CLOUD, "A", "mkdir output;echo I am A > output/f1.txt", Provider.EC2, "ubuntu", ssh_key_ec2_taskA, instance_flavour=ec2_flavour, instance_name="dagonTaskA", stop_instance=True)
 
     # The task b (cloud)
-    taskB = DagonTask(TaskType.CLOUD, "B", "echo $RANDOM > f2.txt; ls workflow:///A/output/f1.txt >> f2.txt", Provider.EC2,
-                      "ubuntu", ssh_key_ec2, instance_id="i-0136ac7985609c759", endpoint="4ef4630c-f2f2-11e8-8cc0-0a1d4c5c824a")
+    taskB = DagonTask(TaskType.CLOUD, "B", "echo $RANDOM > f2.txt; ls workflow:///A/output/f1.txt >> f2.txt", Provider.EC2, "ubuntu", ssh_key_ec2_taskB, instance_flavour=ec2_flavour, instance_name="dagonTaskB", stop_instance=True)
 
     # add tasks to the workflow
     workflow.add_task(taskA)
