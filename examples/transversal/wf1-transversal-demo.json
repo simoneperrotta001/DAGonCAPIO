@@ -1,6 +1,6 @@
 {
   "host": "localhost",
-  "id": "5e3afbd8fc66a7000ce426b0",
+  "id": "6536e29150576963751fae4b",
   "name": "wf1-transversal-demo",
   "tasks": {
     "A": {
@@ -16,7 +16,7 @@
       "working_dir": null
     },
     "B": {
-      "command": "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt;sleep 10",
+      "command": "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt;sleep 30",
       "name": "B",
       "nexts": [
         "D"
@@ -29,7 +29,7 @@
       "working_dir": null
     },
     "C": {
-      "command": "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt;sleep 10",
+      "command": "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt;sleep 30",
       "name": "C",
       "nexts": [
         "D"
@@ -42,7 +42,7 @@
       "working_dir": null
     },
     "D": {
-      "command": "cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt;sleep 10",
+      "command": "cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt;sleep 30",
       "name": "D",
       "nexts": [],
       "prevs": [

@@ -5,15 +5,19 @@ import os
 import threading
 
 
+"""
+Cycle detection
+author: J.Armando Barron-lugo
+date: 14/10/2023
+description: 
+
+    Build of a metaworkflow composed of 3 different workflows with a cycle in their dependencies. 
+
+"""
+
 from dagon import Workflow
 from dagon.dag_tps import DAG_TPS
 from dagon.task import DagonTask, TaskType
-
-import logging
-
-logging.debug('This message should go to the log file')
-logging.info('So should this')
-logging.warning('And this, too')
 
 # Check if this is the main
 if __name__ == '__main__':
@@ -41,9 +45,11 @@ if __name__ == '__main__':
     # The task d
     taskD = DagonTask(TaskType.BATCH, "D", "cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt")
 
-#second workflow
+    #second workflow
     workflow2 = Workflow("WF-2")
+
     workflow2.set_dry(False)
+
     # The task E
     taskE = DagonTask(TaskType.BATCH, "E", "mkdir output;hostname > output/f1.txt")
 
@@ -53,9 +59,11 @@ if __name__ == '__main__':
     # The task g
     taskG = DagonTask(TaskType.BATCH, "G", "cat workflow:///F/f2.txt >> f3.txt; cat workflow://WF-1/C/f2.txt >> f3.txt")
 
-#third workflow
+    #third workflow
     workflow3 = Workflow("WF-3")
+
     workflow3.set_dry(False)
+
     # The task h
     taskH = DagonTask(TaskType.BATCH, "H", "mkdir output;hostname > output/f1.txt; cat workflow://WF-2/G/f3.txt >> output/f1.txt")
 
@@ -82,10 +90,10 @@ if __name__ == '__main__':
     workflow3.add_task(taskJ)
 
 
-#list of the workflows
+    #list of the workflows
     #WF =[workflow,workflow2,workflow3]
 
-    metaworkflow=DAG_TPS("NewDAG-with-cycles")
+    metaworkflow=DAG_TPS("Transversal-Cycle-Demo")
     metaworkflow.add_workflow(workflow)
     metaworkflow.add_workflow(workflow2)
     metaworkflow.add_workflow(workflow3)
@@ -93,7 +101,7 @@ if __name__ == '__main__':
     metaworkflow.make_dependencies()
 
     jsonWorkflow = metaworkflow.as_json(json_format="wf") 
-    with open('./jsons/NewDAG-with-cycles.json', 'w') as outfile:
+    with open('.metaworkflow-with-cycles.json', 'w') as outfile:
         stringWorkflow = json.dumps(jsonWorkflow, sort_keys=True, indent=2)
         outfile.write(stringWorkflow)
 
@@ -101,14 +109,3 @@ if __name__ == '__main__':
     metaworkflow.run()
 
     
-
-    # if workflow.get_dry() is False:
-    #     # set the result filename
-    #     result_filename = taskD.get_scratch_dir() + "/f3.txt"
-    #     while not os.path.exists(result_filename):
-    #         time.sleep(1)
-
-    #     # get the results
-    #     with open(result_filename, "r") as infile:
-    #         result = infile.readlines()
-    #         print result

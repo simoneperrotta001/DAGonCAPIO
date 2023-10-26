@@ -111,6 +111,7 @@ class Workflow(object):
         # to regist in the dagon service
         if self.cfg['dagon_service']['use'] == "True":
             try:
+                #self.logger.debug("verifing dagon service")
                 self.api = API(self.cfg['dagon_service']['route'])
                 self.is_api_available = True
             except KeyError:
@@ -224,7 +225,7 @@ class Workflow(object):
             task.set_semaphore(self.sem)
             task.set_dag_tps(self.dag_tps)
             task.pre_run()
-        # self.Validate_WF()
+        self.Validate_WF()
 
     # Return a json representation of the workflow
     def as_json(self):

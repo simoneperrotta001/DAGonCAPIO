@@ -4,7 +4,6 @@ import os
 from logging.config import fileConfig
 import threading
 import copy 
-from dagon.TPS_api import API as TPSapi
 from requests.exceptions import ConnectionError
 from dagon.config import read_config
 
@@ -38,19 +37,6 @@ class DAG_TPS(object):
         self.running = False
 
 
-        self.TPP=dict() #list of transversal processing points
-        self.tpp_counter = 0
-        self.is_tpsapi_available = False
-
-        try:
-            self.TPSapi = TPSapi(self.cfg['transversal_service']['route'],self.name)
-            self.is_tpsapi_available = True
-            self.logger.debug("TPS API is alive")
-
-        except KeyError:
-            self.logger.error("No transversal service URL in config file")
-        except ConnectionError as e:
-            self.logger.error(e)
 
 
 
@@ -115,7 +101,7 @@ class DAG_TPS(object):
             #check the dependencies for each workflow
             wf.make_dependencies()
             #add the workflow's tasks to the DAGtps
-        #self.Validate_WF()
+        self.Validate_WF()
             
 
     # Return a json representation of the workflow
@@ -180,8 +166,8 @@ class DAG_TPS(object):
                         if task in self.T_tasks_needed or task.nexts in self.T_tasks_needed: needed=True #are you or your decendents needed?
                         if prev in self.T_tasks_needy: needy=True #who you need is also needed?
                         if needy and needed:
-                            logging.warning('A cycle have been found')
-                            raise Exception("A cycle have been found from %s to %s" % (prev.name, task.name))
+                            logging.error('A cycle has been found')
+                            raise Exception("A cycle has been found from %s(%s) to %s(%s)" % (prev.name, prev.workflow.name,task.name,task.workflow.name))
                         else:
                             self.T_tasks_needy.append(task) #add the task and decendets to the needys array
                             for t in task.nexts:
@@ -189,98 +175,7 @@ class DAG_TPS(object):
                 temp = task.remove_from_workflow() #the command is changed, deleating the workflow reference
                 self.tasks.append(temp)
 
-    def Create_TPP_Double(self, DSA, DSB, keygroups, Apath= None, Bpath= None , name=None ):
-        """
-        Create 2 csv in base of 2 task working dir and a keygroup list
 
-        :param DSA,DSB: name of a declared task
-        :type DSA: string}
-
-        :param keygroups: list of the keys (name of columns) of linking each task (datasources) in the form ('DSA_att1-DSB_att1,DSA_att2-DSB_att2' )
-        :type keygroups: string
-
-        :param DSApath,DSBpath: adittional path to add to heach task if is necesary. e.g. /output/
-        :type DSA: string}
-
-        Return the tpp_name
-
-        Raise an Exception when the task doen't exist or the keygroups are not correct
-        """
-        if Apath is None: Apath = DSA
-        else: Apath = DSA + ":/" + Apath
-        if Bpath is None: Bpath = DSB
-        else: Bpath = DSB + ":/" + Bpath
-
-        if name is not None:
-            tpp_name = name
-        else:
-            tppid= str(self.tpp_counter)
-            tpp_name = "TP_"+tppid
-            self.tpp_counter+=1
-
-        tpp = { "NAME": tpp_name, "TYPE": "Double", "TPP_DS": { 
-                DSA: {
-                    "TYPE": "ID",
-                    "ID": Apath,
-                    "WF_name": self.find_workflow_task(DSA)
-                },
-                DSB: {
-                    "TYPE": "ID",
-                    "ID": Bpath,
-                    "WF_name": self.find_workflow_task(DSB)
-
-                }
-            },"KEYGROUP": keygroups }
-
-        self.TPP[tpp_name] = tpp
-        return tpp_name
-
-    def Create_TPP_Single(self, DS, path= None, name=None ):
-        """
-        Create a csv in base of a task working dir
-
-        :param DS: name of a declared task
-        :type DS: string
-
-        :param path: adittional path to add to each task if is necesary. e.g. /output/
-        :type DS: string
-
-        Return the tpp_name
-        """
-        if path is None: path = DS
-        else: path = DS + ":/" + path
-
-        if name is not None:
-            tpp_name = name
-        else:
-            tppid= str(self.tpp_counter)
-            tpp_name = "TP_"+tppid
-            self.tpp_counter+=1
-
-        tpp = { "NAME": tpp_name, "TYPE": "Single", "TPP_DS": { 
-                DS: {
-                    "TYPE": "ID",
-                    "ID": path,
-                    "WF_name": self.find_workflow_task(DS)
-                }
-            },"KEYGROUP": "None" }
-
-        self.TPP[tpp_name] = tpp
-        return tpp_name
-
-
-
-    def prepare_tps(self):
-        """
-        Initialize the TPS manager with the TPS created
-
-        :raises Exception: when there is an error with the call
-        """
-        tppset_name= "DagonTPP_%s" % self.name
-        TPPset =  {tppset_name: self.TPP } 
-        if self.is_tpsapi_available == True:
-            dag = self.as_json()
-            if self.running ==False:
-                self.TPSapi.LoadDAGtps("dagon",TPPset,tppset_name, mode="online") #load DAGtps and tpp points to service
-            else:
-                self.TPSapi.LoadDAGtps(dag,TPPset,tppset_name) #load DAGtps and tpp points to service
+"""
+TPPs were depercated. Were used for analytics but are not useful anymore
+"""

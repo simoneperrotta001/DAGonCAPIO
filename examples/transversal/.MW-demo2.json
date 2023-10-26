@@ -1,0 +1,93 @@
+{
+  "id": 0,
+  "name": "Transversal-Demo",
+  "tasks": {
+    "A": {
+      "command": "mkdir output;echo 'A1,A2,A3' > output/f1.csv",
+      "name": "A",
+      "nexts": [
+        "B",
+        "C"
+      ],
+      "prevs": [],
+      "status": "READY",
+      "type": "batch",
+      "working_dir": null
+    },
+    "B": {
+      "command": "echo 'B1,B2,B3' > f2.csv; cat workflow:///A/output/f1.csv >> f2.csv",
+      "name": "B",
+      "nexts": [
+        "D"
+      ],
+      "prevs": [
+        "A"
+      ],
+      "status": "READY",
+      "type": "batch",
+      "working_dir": null
+    },
+    "C": {
+      "command": "echo 'C1,C2,C3' > f2.txt; cat workflow:///A/output/f1.csv >> f2.csv",
+      "name": "C",
+      "nexts": [
+        "D"
+      ],
+      "prevs": [
+        "A"
+      ],
+      "status": "READY",
+      "type": "batch",
+      "working_dir": null
+    },
+    "D": {
+      "command": "cat workflow:///B/f2.csv >> f3.csv; cat workflow:///C/f2.csv >> f3.csv",
+      "name": "D",
+      "nexts": [],
+      "prevs": [
+        "B",
+        "C"
+      ],
+      "status": "READY",
+      "type": "batch",
+      "working_dir": null
+    },
+    "E": {
+      "command": "mkdir output;echo 'E1,E2,E3' > output/f1.csv",
+      "name": "E",
+      "nexts": [
+        "F"
+      ],
+      "prevs": [],
+      "status": "READY",
+      "type": "batch",
+      "working_dir": null
+    },
+    "F": {
+      "command": "echo 'F1,F2,F3' > f2.csv; cat workflow://Transversal-Demo/A/output/f1.csv >> f2.csv; cat workflow:///E/output/f1.csv >> f2.csv",
+      "name": "F",
+      "nexts": [
+        "G"
+      ],
+      "prevs": [
+        "A",
+        "E"
+      ],
+      "status": "READY",
+      "type": "batch",
+      "working_dir": null
+    },
+    "G": {
+      "command": "cat workflow:///F/f2.csv >> f3.csv; cat workflow://Transversal-Demo/C/f2.csv >> f3.csv",
+      "name": "G",
+      "nexts": [],
+      "prevs": [
+        "F",
+        "C"
+      ],
+      "status": "READY",
+      "type": "batch",
+      "working_dir": null
+    }
+  }
+}

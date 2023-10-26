@@ -10,7 +10,7 @@ from dagon.task import DagonTask, TaskType
 # Check if this is the main
 if __name__ == '__main__':
     # Create the orchestration workflow
-    workflow = Workflow("DataFlow-Demo-Server")
+    workflow = Workflow("DataFlow-Demo")
 
     # Set the dry
     workflow.set_dry(False)
