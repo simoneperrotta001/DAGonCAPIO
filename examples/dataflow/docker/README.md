@@ -94,7 +94,7 @@ python dataflow-demo-docker.py
 
 During the execution of the workflows, the containers of the tasks will be created. When the execution of the workflow is completed, you must see an output on the terminal as follows:
 
-
+```console
 (venv) domizzi@domizzi:~/Documents/GitHub/dagonstar-globusdemo/examples/dataflow/docker$ python3 dataflow-demo-docker.py
 2023-10-26 13:31:09,155 root DEBUG Running workflow: DataFlow-Demo-Docker
 2023-10-26 13:31:09,155 root DEBUG A: Status.WAITING
