@@ -5,6 +5,8 @@ from dagon.dockercontainer import DockerClient
 from dagon.dockercontainer import DockerRemoteClient
 from dagon.task import Task
 
+import docker
+
 
 class DockerTask(Batch):
     """
@@ -87,6 +89,29 @@ class DockerTask(Batch):
             self.container = Container(self.container_id.rstrip(), self.docker_client)
         return super(DockerTask, self).pre_process_command(command)
 
+    def pull_image(self, image):
+        """
+        Pull a Docker image from Docker Hub
+
+        :param image: Image name
+        :type image: str
+
+        :return: pull result
+        :rtype: dict()
+        """
+
+        client = docker.from_env()  # Connect to the Docker daemon
+
+        try:
+            client.images.pull(image)  # Pull the Docker image
+            self.workflow.logger.info("%s: Successfully pulled %s", self.name, image)
+        except docker.errors.ImageNotFound:
+            self.workflow.logger.error("%s: Image %s not found", self.name, image)
+        except docker.errors.APIError as e:
+            print(f"An error occurred: {e}")
+
+        #return self.docker_client.pull_image(image)
+
     # Create a Docker container
     def create_container(self):
         """
@@ -98,11 +123,14 @@ class DockerTask(Batch):
         :raises Exception: a problem occurred while container creation
         """
 
+        self.pull_image(self.image) #pull image
+
+
         command = DockerClient.form_string_cont_creation(image=self.image,
                                                          volume=self.volume,
                                                          dagon_volume={"host": self.workflow.get_scratch_dir_base(),
                                                                  "container": self.workflow.get_scratch_dir_base()})
-
+       
         result = self.docker_client.exec_command(command)
         if result['code']:
             raise Exception(self.result["message"].rstrip())
