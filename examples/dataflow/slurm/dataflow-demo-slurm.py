@@ -14,8 +14,8 @@ if __name__ == '__main__':
     workflow.set_dry(False)
 
     # The task a
-    taskA = DagonTask(TaskType.SLURM, "A", "mkdir output; hostname > output/f1.txt", partition="", ntasks=1,
-                      memory=8192)
+    taskA = DagonTask(TaskType.SLURM, "A", "mkdir output; hostname > output/f1.txt", 
+                      partition="", ntasks=1, memory=8192)
 
     # The task b
     taskB = DagonTask(TaskType.SLURM, "B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt",
