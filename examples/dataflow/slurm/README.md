@@ -8,7 +8,7 @@ DagOnStar supports the deployment of tasks through SLURM (an open-source cluster
 
 ### Demo 1 - Local SLURM
 
-The file ```dataflow-demo-slurm.py``` runs a workflow composed of four tasks using SLURM as job scheduling system.
+The file ```dataflow-demo-slurm.py``` runs a workflow composed of four tasks using SLURM as job scheduling system. For each task specify the SLURM partition where execute the tasks.
 
 #### Steps
 
@@ -69,7 +69,7 @@ When the execution of the workflow is completed, you must see an output on the t
 
 ### Demo 2 - Remote SLURM
 
-The file ```dataflow-demo-slurm-remote.py``` runs a workflow composed of four tasks on a remote machine using SLURM as job scheduling system.
+The file ```dataflow-demo-slurm-remote.py``` runs a workflow composed of four tasks on a remote machine using SLURM as job scheduling system. For each task specify the ip and username of remote machine and SLURM partition where execute the tasks.
 
 #### Preconfigurations
 

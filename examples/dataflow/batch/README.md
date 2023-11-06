@@ -65,7 +65,7 @@ When the execution of the workflow is completed, you must see an output on the t
 
 ### Demo 2 - Remote Batch
 
-The file ```dataflow-demo-remote.py``` runs a workflow composed of four tasks on a remote machine.
+The file ```dataflow-demo-remote.py``` runs a workflow composed of four tasks on a remote machine. For each task specify the ip and username of remote machine.
 
 #### Preconfigurations
 
