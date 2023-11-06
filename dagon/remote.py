@@ -23,7 +23,7 @@ class RemoteTask(Task):
     :vartype ssh_connection: :class:`dagon.communDataFlow-Demication.ssh.SSHManager`
     """
 
-    def __init__(self, name, ssh_username, keypath, command, ip=None, working_dir=None, endpoint=None,transversal_workflow=None):
+    def __init__(self, name, ssh_username, keypath, command, ip=None, working_dir=None, endpoint=None,transversal_workflow=None,globusendpoint=None):
         """
 
         :param name: Name of the task
