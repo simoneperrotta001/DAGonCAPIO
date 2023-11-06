@@ -257,7 +257,6 @@ class Slurm(Batch):
         # command = "sbatch " + partition_text + " " + ntasks_text + " --job-name=" + self.name + " --chdir=" + self.working_dir + " --output=" + self.working_dir + "/.dagon/stdout.txt --wait " + self.working_dir+"/.dagon/launcher.sh"
         command = "sbatch " + partition_text + " " + ntasks_text + " " + memory_text + " -J " + self.name + " -D " \
                   + self.working_dir + " -W " + self.working_dir + "/.dagon/" + script_name
-        print(command)
         return command
 
     def on_execute(self, script, script_name):
