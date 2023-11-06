@@ -1,7 +1,7 @@
 {
   "host": "localhost",
   "id": 0,
-  "name": "DataFlow-Demo-Docker",
+  "name": "DataFlow-Demo-Docker-Remote",
   "tasks": {
     "A": {
       "command": "mkdir output;hostname > output/f1.txt",
@@ -12,7 +12,7 @@
       ],
       "prevs": [],
       "status": "READY",
-      "type": "dockertask",
+      "type": "dockerremotetask",
       "working_dir": null
     },
     "B": {
@@ -25,7 +25,7 @@
         "A"
       ],
       "status": "READY",
-      "type": "dockertask",
+      "type": "dockerremotetask",
       "working_dir": null
     },
     "C": {
@@ -38,7 +38,7 @@
         "A"
       ],
       "status": "READY",
-      "type": "dockertask",
+      "type": "dockerremotetask",
       "working_dir": null
     },
     "D": {
@@ -50,7 +50,7 @@
         "C"
       ],
       "status": "READY",
-      "type": "dockertask",
+      "type": "dockerremotetask",
       "working_dir": null
     }
   }
