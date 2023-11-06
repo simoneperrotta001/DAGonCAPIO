@@ -385,6 +385,7 @@ class Stager(object):
         dst_task_info = dst_task.get_info()
         src_task_info = src_task.get_info()
 
+
         # check transference protocols and remote machine info if is available
         if dst_task_info is not None and src_task_info is not None:
             if dst_task_info['ip'] == src_task_info['ip']:
@@ -411,6 +412,7 @@ class Stager(object):
 
         dst = dst_path + "/" + os.path.dirname(os.path.abspath(local_path)) + "/" + intermediate_filename
         #dst = "output.txt"
+
 
         # Check if the symbolic link have to be used...
         if data_mover == DataMover.GRIDFTP:

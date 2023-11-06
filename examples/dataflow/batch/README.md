@@ -35,6 +35,10 @@ DagOnStar relies on SSH to coordinate tasks executed on remove machines. This SS
     +----[SHA256]-----+
     ```
 
+    > [!WARNING]
+    > Please, create your keys without a passphrase. Now, DagOnStar doesn't support the management of ciphered keys.
+
+
 2. Now, you have to copy your public key to the remote machine.
 
     ```bash
@@ -69,6 +73,9 @@ DagOnStar relies on SSH to coordinate tasks executed on remove machines. This SS
     ```bash
     cd examples/dataflow/batch
     ```
+
+    > [!WARNING]
+    > By now, the stager only supports the movement of data between remote machines or from a remote machine to a local machine. We are working on enable the stage in of data from a remote machine to a local machine.
 
 4. Execute the file ```dataflow-demo-remote.py``` as follows:
 

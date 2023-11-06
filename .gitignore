@@ -113,3 +113,4 @@ venv.bak/
 examples/dataflow/batch/dataflow-demo.json
 examples/dataflow/batch/pruebasdagon
 examples/dataflow/batch/pruebasdagon.pub
+examples/dataflow/batch/dataflow-demo-remote-test.py
