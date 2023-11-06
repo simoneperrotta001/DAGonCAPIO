@@ -23,7 +23,7 @@ class RemoteTask(Task):
     :vartype ssh_connection: :class:`dagon.communDataFlow-Demication.ssh.SSHManager`
     """
 
-    def __init__(self, name, ssh_username, keypath, command, ip=None, working_dir=None, endpoint=None,transversal_workflow=None):
+    def __init__(self, name, ssh_username, keypath, command, ip=None, working_dir=None, globusendpoint=None,transversal_workflow=None):
         """
 
         :param name: Name of the task
@@ -48,7 +48,7 @@ class RemoteTask(Task):
         :type endpoint: str
 
         """
-        Task.__init__(self, name, command, working_dir=working_dir, transversal_workflow=transversal_workflow)
+        Task.__init__(self, name, command, working_dir=working_dir, transversal_workflow=transversal_workflow, globusendpoint=globusendpoint)
         self.transfer = None
         self.ip = ip
         self.keypath = abspath(keypath) if keypath is not None else keypath

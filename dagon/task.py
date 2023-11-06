@@ -148,7 +148,7 @@ class Task(Thread):
     def get_endpoint(self):
         return self.globusendpoint
     
-    def set_endpoint(self, endpoint):
+    def set_endpoint(self, globusendpoint):
         self.globusendpoint = globusendpoint
 
     def set_mode(self, mode):

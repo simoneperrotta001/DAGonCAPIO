@@ -16,16 +16,16 @@ if __name__ == '__main__':
     workflow.set_dry(False)
 
     # The task a
-    taskA = DagonTask(TaskType.BATCH, "A", "mkdir output;hostname > output/f1.txt", ip="", ssh_username="")
+    taskA = DagonTask(TaskType.BATCH, "A", "mkdir output;hostname > output/f1.txt", ip="193.205.230.76", ssh_username="hpsc-simulator")
 
     # The task b
-    taskB = DagonTask(TaskType.BATCH, "B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", ip="", ssh_username="")
+    taskB = DagonTask(TaskType.BATCH, "B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", ip="193.205.230.76", ssh_username="hpsc-simulator")
 
     # The task c
-    taskC = DagonTask(TaskType.BATCH, "C", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", ip="", ssh_username="")
+    taskC = DagonTask(TaskType.BATCH, "C", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", ip="193.205.230.76", ssh_username="hpsc-simulator")
 
     # The task d
-    taskD = DagonTask(TaskType.BATCH, "D", "cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt", ip="", ssh_username="")
+    taskD = DagonTask(TaskType.BATCH, "D", "cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt", ip="193.205.230.76", ssh_username="hpsc-simulator")
 
     # add tasks to the workflow
     workflow.add_task(taskA)
@@ -36,20 +36,9 @@ if __name__ == '__main__':
     workflow.make_dependencies()
 
     jsonWorkflow = workflow.as_json()
-    with open('dataflow-demo.json', 'w') as outfile:
+    with open('dataflow-demo-remote.json', 'w') as outfile:
         stringWorkflow = json.dumps(jsonWorkflow, sort_keys=True, indent=2)
         outfile.write(stringWorkflow)
 
     # run the workflow
     workflow.run()
-
-    if workflow.get_dry() is False:
-        # set the result filename
-        result_filename = taskD.get_scratch_dir() + "/f3.txt"
-        while not os.path.exists(result_filename):
-            time.sleep(1)
-
-        # get the results
-        with open(result_filename, "r") as infile:
-            result = infile.readlines()
-            print(result)
