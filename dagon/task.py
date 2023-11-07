@@ -988,6 +988,7 @@ fi
 if [ "$private_ip" == "" ]
 then
   # The machine is a cluster frontend (or a single machine)
+  machine_type="cluster-frontend"
   private_ip=`ip -o route get to 8.8.8.8 | sed -n 's/.*src \([0-9.]\+\).*/\\1/p'`
 fi
 
