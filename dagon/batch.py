@@ -292,7 +292,7 @@ class RemoteSlurm(RemoteTask, Slurm):
     """
 
     def __init__(self, name, command, partition=None, ntasks=None, memory=None, working_dir=None, ssh_username=None, keypath=None,
-                 ip=None, endpoint=None):
+                 ip=None, globusendpoint=None):
         """
         :param name: name of the task
         :type name: str
@@ -309,8 +309,8 @@ class RemoteSlurm(RemoteTask, Slurm):
         :param working_dir: path to the task's working directory
         :type working_dir: str
 
-        :param endpoint: Globus endpoint ID
-        :type endpoint: str
+        :param globusendpoint: Globus endpoint ID
+        :type globusendpoint: str
 
         :param ssh_username: UNIX username on the remote
         :type endpoint: str
@@ -323,8 +323,8 @@ class RemoteSlurm(RemoteTask, Slurm):
 
         """
         Slurm.__init__(self, name, command, working_dir=working_dir, partition=partition, ntasks=ntasks, memory=memory,
-                       endpoint=endpoint)
-        RemoteTask.__init__(self, name, ssh_username, keypath, command, ip, working_dir, endpoint=None)
+                       globusendpoint=globusendpoint)
+        RemoteTask.__init__(self, name, ssh_username, keypath, command, ip, working_dir, globusendpoint=None)
 
     def on_execute(self, script, script_name):
         """
