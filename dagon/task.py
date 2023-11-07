@@ -193,7 +193,12 @@ class Task(Thread):
         :return: IP address
         :rtype: str
         """
-        return self.info["ip"] if self.ip == None else self.ip
+        from dagon.remote import CloudTask
+       
+        if isinstance(self, CloudTask):
+            return self.info["public_ip"]
+        else:
+            return self.info["ip"] if self.ip == None else self.ip
 
     def get_info(self):
         """
@@ -978,6 +983,13 @@ then
   private_ip=`ifconfig 2>/dev/null| grep "inet "| grep -v "127.0.0.1"| awk '{print $2}'|grep -v "192.168."|grep -v "172.16."|grep -v "10."|head -n 1`
 fi
 
+#net-tools is not installed, try with ip -o route
+
+if [ "$private_ip" == "" ]
+then
+  # The machine is a cluster frontend (or a single machine)
+  private_ip=`ip -o route get to 8.8.8.8 | sed -n 's/.*src \([0-9.]\+\).*/\\1/p'`
+fi
 
 # Check if the secure copy is available
 status_sshd=`systemctl status sshd 2>/dev/null | grep 'Active' | awk '{print $2}'`
