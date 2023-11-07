@@ -16,9 +16,9 @@ if __name__ == '__main__':
     
 
     # The ssh key to access the EC2 instances
-    #ssh_key_ec2_taskA = {"option": cm.KeyOptions.CREATE, "key_path": "dagon_services.pem", "cloud_args": {"name": "dagon_services_key"}} #uncomment to create a new key
-    ssh_key_ec2_taskA = {"option": cm.KeyOptions.GET, "key_path": "dagon_services.pem", "cloud_args": {"name": "dagon_services"}}
-    ssh_key_ec2_taskB = {"option": cm.KeyOptions.GET, "key_path": "dagon_services.pem", "cloud_args": {"name": "dagon_services_key"}}
+    ssh_key_ec2_taskA = {"option": cm.KeyOptions.CREATE, "key_path": "dagon_services.pem", "cloud_args": {"name": "dagon_services_key2"}} #uncomment to create a new key
+    #ssh_key_ec2_taskA = {"option": cm.KeyOptions.GET, "key_path": "dagon_services.pem", "cloud_args": {"name": "dagon_services_key2"}}
+    ssh_key_ec2_taskB = {"option": cm.KeyOptions.GET, "key_path": "dagon_services.pem", "cloud_args": {"name": "dagon_services_key2"}}
 
     # Create the orchestration workflow
     workflow = Workflow("DataFlow-Demo-Cloud")

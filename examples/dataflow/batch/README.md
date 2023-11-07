@@ -115,6 +115,11 @@ Now navigate to the directory of the demo.
 cd examples/dataflow/batch
 ```
 
+Edit the file ```dataflow-demo-remote.py``` with the right SSH configurations for each task.
+
+> [!WARNING]
+> By now, the stager only supports the movement of data between remote machines or from a remote machine to a local machine. We are working on enable the stage in of data from a remote machine to a local machine.
+
 Execute the file ```dataflow-demo-remote.py``` as follows:
 
 ```bash
@@ -156,3 +161,5 @@ When the execution of the workflow is completed, you must see an output on the t
 2023-11-06 11:17:55,519 root         INFO     Workflow 'DataFlow-Demo-Remote' completed in 16.883061170578003 seconds ---
 (venv) ciro@Ciro-De-Vita batch % 
 ```
+
+You can see the results of the execution on the remote machine by accessing to the scratch directory of your tasks. For example, ```/tmp//1699265869766-D```.
