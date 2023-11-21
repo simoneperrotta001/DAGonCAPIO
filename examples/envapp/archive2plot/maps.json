@@ -1,0 +1,387 @@
+{
+   "title": {
+      "it-IT": "http://meteo.uniparthenope.it\n%HZ%d%b%Y __name__ (__domain__/__product__)\n__title__",
+      "en-US": "http://meteo.uniparthenope.it\n%HZ%d%b%Y __name__ (__domain__/__product__)\n__title__"
+   },
+   "data_path": "",
+   "result_path": "",
+   "cache_path": "cache",
+   "shapefiles" : [
+      { "path": "shapefiles/europe", "color": "black" },
+      { "path": "shapefiles/Africa", "color": "black" }
+   ],
+   "colormaps": {
+      "wrf5.cldfrc": {
+         "clevs": [0, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
+         "ccols": [
+            [ 255, 255, 255,   0 ],
+            [ 220, 220, 220, 255 ],
+            [ 205, 205, 205, 255 ],
+            [ 190, 190, 190, 255 ],
+            [ 175, 175, 175, 255 ],
+            [ 165, 165, 165, 255 ],
+            [ 150, 150, 150, 255 ],
+            [ 140, 140, 140, 255 ],
+            [ 114, 114, 114, 255 ],
+            [  90,  90,  90, 255 ]
+         ]
+      },
+      "wrf5.rain.lamma": {
+         "clevs": [0, 0.4, 0.6, 1, 3, 5, 7, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 100, 125, 150, 175, 200, 250, 300, 350],
+         "ccols": [
+            [ 255, 255, 255,   0 ],
+            [ 159, 255, 255, 255 ],
+            [ 101, 255, 255, 255 ],
+            [  66, 195, 255, 255 ],
+            [  66, 155, 255, 255 ],
+            [  90, 100, 255, 255 ],
+            [  65,  74, 255, 255 ],
+            [  60, 187,  61, 255 ],
+            [ 164, 215,  31, 255 ],
+            [ 254, 230,   2, 255 ],
+            [ 255, 194,   0, 255 ],
+            [ 255, 125,   0, 255 ],
+            [ 255,   0,   1, 255 ],
+            [ 200,   3,   0, 255 ],
+            [ 212, 100, 195, 255 ],
+            [ 181,  25, 157, 255 ],
+            [ 132,   0, 148, 255 ],
+            [ 180, 180, 180, 255 ],
+            [ 140, 140, 140, 255 ],
+            [  90,  90,  90, 255 ],
+            [  50,  50,  50, 255 ],
+            [ 164, 120,  35, 255 ],
+            [ 128,  82,   1, 255 ],
+            [ 100,  50,   1, 255 ],
+            [  80,  35,   0, 255 ]
+         ]
+      },
+      "wrf5.snow": {
+         "clevs": [ 0, 0.5, 2.5, 5.5, 8.5, 11.5, 15.5 ],
+         "ccols": [
+            [ 255, 255, 255,   0 ],
+            [ 255, 204, 255, 255 ],
+            [ 255, 179, 255, 255 ],
+            [ 255, 153, 255, 255 ],
+            [ 255, 128, 255, 255 ],
+            [ 255, 102, 255, 255 ],
+            [  90,  90,  90, 255 ]
+         ]
+      },
+      "wrf5.wind.kt": {
+         "clevs": [ 0, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 30, 35, 40, 45, 50 ],
+         "ccols": [
+            [   0,   0,  51, 255 ],
+            [   1,  23, 186, 255 ],
+            [   1,  31, 243, 255 ],
+            [   5,  51, 252, 255 ],
+            [  25,  87, 255, 255 ],
+            [  59, 139, 244, 255 ],
+            [  79, 189, 248, 255 ],
+            [ 104, 245, 231, 255 ],
+            [ 119, 254, 198, 255 ],
+            [ 146, 251, 158, 255 ],
+            [ 168, 254, 125, 255 ],
+            [ 202, 254,  90, 255 ],
+            [ 237, 253,  77, 255 ],
+            [ 245, 208,  58, 255 ],
+            [ 239, 169,  57, 255 ],
+            [ 250, 115,  46, 255 ],
+            [ 231,  83,  38, 255 ],
+            [ 238,  48,  33, 255 ],
+            [ 187,  32,  24, 255 ],
+            [ 122,  22,  16, 255 ],
+            [ 100,  22,  16, 255 ]
+         ]
+      },
+      "wrf5.wind.kt.lamma": {
+         "clevs": [ 0, 1, 3, 6, 10, 16, 21, 27, 33, 40, 47, 55, 63],
+         "ccols": [
+            [ 255, 255, 255,   0 ],
+            [ 240, 255, 255, 255 ],
+            [ 168, 220, 231, 255 ],
+            [  81, 165, 244, 255 ],
+            [  13, 209, 120, 255 ],
+            [   3, 160,   0, 255 ],
+            [ 225,  21,   0, 255 ],
+            [ 165,   0,   0, 255 ],
+            [ 255,   0, 255, 255 ],
+            [ 255, 169, 255, 255 ],
+            [ 255, 149,   1, 255 ],
+            [ 249, 100,   2, 255 ],
+            [ 170, 171, 171, 255 ]
+         ]
+      },
+      "wrf5.t2c.lamma": {
+         "clevs": [-16, -14, -12, -10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44],
+         "ccols": [
+            [   2,   1, 126, 255 ],
+            [   0,   0, 192, 255 ],
+            [  21, 100, 209, 255 ],
+            [  37, 130, 240, 255 ],
+            [  80, 164, 244, 255 ],
+            [ 120, 185, 250, 255 ],
+            [ 150, 209, 250, 255 ],
+            [ 180, 240, 250, 255 ],
+            [ 230, 255, 229, 255 ],
+            [ 190, 250, 180, 255 ],
+            [   1, 206, 123, 255 ],
+            [   5, 170,   0, 255 ],
+            [ 123, 206,   0, 255 ],
+            [ 206, 231,   1, 255 ],
+            [ 255, 255,  39, 255 ],
+            [ 254, 206,   2, 255 ],
+            [ 255, 156,   2, 255 ],
+            [ 254, 100,   0, 255 ],
+            [ 255,   0,   1, 255 ],
+            [ 206,   2,   1, 255 ],
+            [ 160,   0,   1, 255 ],
+            [ 129,   1,   0, 255 ],
+            [ 105,   3,   1, 255 ],
+            [ 160, 120, 110, 255 ],
+            [ 120,  80,  69, 255 ],
+            [  90,  53,  42, 255 ],
+            [ 180, 181, 181, 255 ],
+            [ 129, 129, 129, 255 ],
+            [ 255, 130, 255, 255 ],
+            [ 255,   0, 255, 255 ],
+            [ 155,   2, 155, 255 ]
+         ]
+      },
+      "wrf5.clf": {
+         "clevs": [ 0, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
+         "ccols": [
+               [ 255, 255, 255, 0],
+               [ 220, 220, 220, 255],
+               [ 205, 205, 205, 255],
+               [ 190, 190, 190, 255],
+               [ 175, 175, 175, 255],
+               [ 165, 165, 165, 255],
+               [ 150, 150, 150, 255],
+               [ 140, 140, 140, 255],
+               [ 114, 114, 114, 255],
+               [  90,  90,  90, 255]
+         ]
+      }
+   },
+   "products":{
+      "wrf5": {
+         "config": {
+            "d01": [
+               { "ge":   0, "lt": 240, "values": { "skip":  2, "scale": 1, "hpa_tick": 1, "barb_length": 4 }},
+               { "ge": 240, "lt": 480, "values": { "skip":  6, "scale": 1, "hpa_tick": 1, "barb_length": 4  }},
+               { "ge": 480,            "values": { "skip": 18, "scale": 10, "hpa_tick": 2, "barb_length": 5  }}
+            ],
+            "d02": [
+               { "ge":   0, "lt":  60, "values": { "skip":  2, "scale": 1, "hpa_tick":  1, "barb_length": 3  }},
+               { "ge":  60, "lt": 240, "values": { "skip":  4, "scale": 1, "hpa_tick":  1, "barb_length": 3  }},
+               { "ge": 240, "lt": 480, "values": { "skip":  8, "scale": 1, "hpa_tick":  1, "barb_length": 4  }},
+               { "ge": 480,            "values": { "skip": 16, "scale": 10, "hpa_tick": 2, "barb_length": 4  }}
+            ],
+            "d03": [
+               { "ge":   0, "lt":  30, "values": { "skip":  1, "scale": 10, "hpa_tick": 1, "barb_length": 2  }},
+               { "ge":  30, "lt":  60, "values": { "skip":  2, "scale":  5, "hpa_tick": 1, "barb_length": 2  }},
+               { "ge":  60, "lt":  90, "values": { "skip":  3, "scale": 10, "hpa_tick": 1, "barb_length": 2  }},
+               { "ge":  90, "lt": 120, "values": { "skip":  4, "scale":  7, "hpa_tick": 1, "barb_length": 2  }},
+               { "ge": 120, "lt": 240, "values": { "skip":  8, "scale":  5, "hpa_tick": 1, "barb_length": 2  }},
+               { "ge": 240, "lt": 480, "values": { "skip": 10, "scale": 10, "hpa_tick": 1, "barb_length": 3  }},
+               { "ge": 480,            "values": { "skip": 12, "scale": 10, "hpa_tick": 1, "barb_length": 3  }}
+            ]
+         },
+         "type": "model",
+         "desc": {
+            "it-IT": "Meteo alta risoluzione 7 giorni",
+            "en-US": "High resolution weather forecast 7 days"
+         },
+         "timestep": 60,
+         "steps": 168,
+         "outputs": {
+            "gen": {
+               "title": { "en-US": "Sea level pressure, wind barbs, hourly precipitations and cloudness" },
+               "plot": {
+                  "layers": [
+                     {
+                        "text": { "en-US":"Total Cloud Cover [0-1]"},
+                        "type": "shaded",
+                        "colormap": "wrf5.cldfrc",
+                        "var1": "CLDFRA_TOTAL",
+                        "time": 0,
+                        "pad": "13%",
+                        "position": "left",
+                        "ticks_position": "left",
+                        "label_size": 5
+                     },
+                     {
+                        "text": { "en-US":"Total Precipitation [mm/1h]"},
+                        "type": "shaded",
+                        "colormap": "wrf5.rain.lamma",
+                        "var1": "DELTA_RAIN",
+                        "time": 0,
+                        "pad": "13%",
+                        "position": "right",
+                        "ticks_position": "right",
+                        "label_size": 5
+                     },
+                     {
+                        "text": { "en-US":"Total Accumulated Snow [cm/1h]"},
+                        "type": "shaded",
+                        "colormap": "wrf5.snow",
+                        "var1": "HOURLY_SWE",
+                        "time": 0,
+                        "pad": "13%",
+                        "position": "bottom",
+                        "label_size": 5
+                     },
+                     {
+                        "type": "contour",
+                        "var1": "SLP",
+                        "time": 0,
+                        "clev_min": 940,
+                        "clev_max": 1040,
+                        "colors": "green"
+                     },
+                     {
+                     "type": "barbs",
+                     "a": 1.94384,
+                     "var1": "U10M",
+                     "var2": "V10M",
+                     "time": 0
+                     }
+                  ]
+               }
+            },
+            "crh": {
+               "title": { "en-US": "Hourly cloudness and cumulated pecipitation" },
+               "plot": {
+                  "layers": [
+                     {
+                        "text": { "en-US":"Total Cloud Cover [0-1]"},
+                        "type": "shaded",
+                        "colormap": "wrf5.cldfrc",
+                        "var1": "CLDFRA_TOTAL",
+                        "time": 0,
+                        "pad": "13%",
+                        "position": "left",
+                        "ticks_position": "left",
+                        "label_size": 5
+                     },
+                     {
+                        "text": { "en-US":"Total Precipitation [mm/1h]"},
+                        "type": "shaded",
+                        "colormap": "wrf5.rain.lamma",
+                        "var1": "DELTA_RAIN",
+                        "time": 0,
+                        "pad": "13%",
+                        "position": "right",
+                        "ticks_position": "right",
+                        "label_size": 5
+                     },
+                     {
+                        "text": { "en-US":"Total Accumulated Snow [cm/1h]"},
+                        "type": "shaded",
+                        "colormap": "wrf5.snow",
+                        "var1": "HOURLY_SWE",
+                        "time": 0,
+                        "pad": "13%",
+                        "position": "bottom",
+                        "label_size": 5
+                     }
+                  ]
+               }
+            },
+            "crd": {
+               "title": { "en-US": "Daily cloudness and cumulated pecipitation" }
+            },
+            "tsp": { 
+               "title": {"en-US":"Temperature and Sea Level Pressure"}, 
+               "plot": {
+                  "layers": [
+                     {
+                        "text": { "en-US":"Temperature at 2m [°C]" },
+                        "type": "shaded",
+                        "colormap": "wrf5.t2c.lamma",
+                        "var1": "T2C",
+                        "time": 0,
+                        "pad": "13%",
+                        "position": "left",
+                        "ticks_position": "left",
+                        "label_size": 5
+                     },
+                     {
+                        "type": "contour",
+                        "var1": "SLP",
+                        "time": 0,
+                        "clev_min": 940,
+                        "clev_max": 1040,
+                        "colors": "green"
+                     }
+                  ]
+               }
+            },
+            "gp5": {
+               "title": { "en-US":"Geopotential Height at 500 HPa" }
+            },
+            "gp8": {
+               "title": {"en-US":"Geopotential Height at 850 HPa" }
+            },
+            "wn1": {
+               "title": { "en-US": "Wind speed at 10m"},
+               "plot": {
+                  "layers": [
+                     {
+                        "text": { "en-US":"Wind speed [kt]"},
+                        "type": "shaded",
+                        "a": 1.94384,
+                        "colormap": "wrf5.wind.kt",
+                        "var1": "U10M",
+                        "var2": "V10M",
+                        "time": 0,
+                        "pad": "13%",
+                        "position": "left",
+                        "ticks_position": "left",
+                        "label_size": 5
+                     },
+                     {
+                        "type": "versor",
+                        "a": 1.94384,
+                        "var1": "U10M",
+                        "var2": "V10M",
+                        "time": 0
+                     }
+                  ]
+               }
+            },
+            "wn4": {
+               "title": { "en-US": "Wind speed at 10m"},
+               "plot": {
+                  "layers": [
+                     {
+                        "text": { "en-US":"Wind speed [kt]"},
+                        "type": "shaded",
+                        "a": 1.94384,
+                        "colormap": "wrf5.wind.kt.lamma",
+                        "var1": "U10M",
+                        "var2": "V10M",
+                        "time": 0,
+                        "pad": "13%",
+                        "position": "left",
+                        "ticks_position": "left",
+                        "label_size": 5
+                     },
+                     {
+                        "type": "versor",
+                        "a": 1.94384,
+                        "var1": "U10M",
+                        "var2": "V10M",
+                        "time": 0
+                     }
+                  ]
+               }
+            },
+            "wn2": {
+               "title": { "en-US": "Wind speed variation" }
+            }
+         }
+      }   
+   }
+}
