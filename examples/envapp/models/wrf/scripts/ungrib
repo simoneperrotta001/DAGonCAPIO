@@ -1,0 +1,76 @@
+#! /bin/bash
+#
+#SBATCH --job-name=ungrib
+#SBATCH --output=ungrib_output.txt
+#SBATCH --partition=hicpu
+#SBATCH --ntasks=1
+#SBATCH --mem=40000
+#
+#=======================================================================
+#
+# ungrib
+#
+#=======================================================================
+
+########################################################################
+
+if [ "$PROMETEO_ROOT" == "" ]
+then
+  echo "PROMETEO_ROOT not defined!"
+  exit -1
+fi
+
+if [ "$WRF_ROOT" == "" ]
+then
+  echo "WRF_ROOT not defined!"
+  exit -1
+fi
+
+if [ "$WRF_VERSION" == "" ]
+then
+  echo "WRF_VERSION not defined!"
+  exit -1
+fi
+
+if [ "$WRF_COMPILER_VERSION" == "" ]
+then
+  echo "WRF_COMPILER_VERSION not defined!"
+  exit -1
+fi
+
+# Set the software environment
+export WRF=${WRF_VERSION}-${WRF_COMPILER_VERSION}
+echo "${HOSTNAME}: $0 $WRF_ROOT $WRF"
+echo "Sourcing $WRF_ROOT/ext/sourceme-$WRF_COMPILER_VERSION"
+. $WRF_ROOT/ext/sourceme-$WRF_COMPILER_VERSION
+########################################################################
+
+# meteo grib data
+jobId=$1
+DATADIR=$2
+wpsNamelist=$3
+
+THISDIR=`pwd`
+
+mkdir -p $THISDIR/data 2>/dev/null
+cp -r $DATADIR/*.grib2 $THISDIR/data/
+
+cp $wpsNamelist $THISDIR/namelist.wps
+
+# Soft link to executable and data
+ln -s $WRF_ROOT/$WRF/WPS/ungrib.exe
+ln -s $WRF_ROOT/$WRF/WPS/link_grib.csh
+ln -s $WRF_ROOT/$WRF/WPS/ungrib/Variable_Tables/Vtable.GFS_new Vtable
+
+
+##################################################################
+#
+#
+# Variables declaration
+#
+
+# Link grib files
+./link_grib.csh $THISDIR/data/
+
+# Execute ungrib
+time mpirun $THISDIR/ungrib.exe

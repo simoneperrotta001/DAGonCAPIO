@@ -1,0 +1,127 @@
+#! /bin/bash
+#
+#SBATCH --job-name=publishWrfOutput
+#SBATCH --output=publishWrfOutput_output.txt
+#SBATCH --error=publishWrfOutput_output.err
+#SBATCH --partition=hicpu
+#SBATCH --ntasks=1 --nodes=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=5000
+#
+#=======================================================================
+#
+# publishWrfOutput
+#
+#=======================================================================
+
+########################################################################
+
+if [ "$PROMETEO_ROOT" == "" ]
+then
+  echo "PROMETEO_ROOT not defined!"
+  exit -1
+fi
+
+if [ "$WRF_ROOT" == "" ]
+then
+  echo "WRF_ROOT not defined!"
+  exit -1
+fi
+
+if [ "$WRF_VERSION" == "" ]
+then
+  echo "WRF_VERSION not defined!"
+  exit -1
+fi
+
+if [ "$WRF_COMPILER_VERSION" == "" ]
+then
+  echo "WRF_COMPILER_VERSION not defined!"
+  exit -1
+fi
+
+# Set the software environment
+export WRF=${WRF_VERSION}-${WRF_COMPILER_VERSION}
+echo "${HOSTNAME}: $0 $WRF_ROOT $WRF"
+echo "Sourcing $WRF_ROOT/ext/sourceme-$WRF_COMPILER_VERSION"
+. $WRF_ROOT/ext/sourceme-$WRF_COMPILER_VERSION
+########################################################################
+
+if [ "$#" -ne 4 ]; then
+    echo "Usage: $0 iDate current_iDate wrf_model path_to_wrfout_ending_with_wrfout_"
+    exit
+fi
+
+export OMP_NUM_THREADS=4
+
+# The post processing tool home
+export WRFPOSTPRO_HOME=$PROMETEO_ROOT/opt/wrfpostpro-0.0.1
+
+# Publish base dir
+publish_base_dir=/storage/ccmmma/prometeo/data/opendap/
+
+# Recycle storage room after days
+recycle_days=15
+
+# Domain list
+domainList="d01 d02 d03"
+
+# Initialization date
+iDate=$1
+
+# Current initial date
+iDate1=$2
+
+# Wrf Model
+wrfModel=$3
+
+# Path to WRF output
+wrfOutput=$4
+
+# For each domain in the domain list
+for domainItem in $domainList
+do
+  publish_wrf_dir=$publish_base_dir/$wrfModel/$domainItem/
+  history_dir=$publish_wrf_dir/history
+  archive_dir=$publish_wrf_dir/archive
+
+  mkdir -p $history_dir 2>/dev/null
+  mkdir -p $archive_dir 2>/dev/null
+
+  wrfOutputDomain="${wrfOutput}${domainItem}*"
+
+  # Copy the outout to the history
+  echo "Copying output from $wrfOutputDomain to $history_dir"
+  outputs=`ls $wrfOutputDomain`
+  for output in $outputs
+  do
+    name=`basename $output`
+
+    YEAR=`expr substr $name 12 4`
+    MONTH=`expr substr $name 17 2`
+    DAY=`expr substr $name 20 2`
+    HOUR=`expr substr $name 23 2`
+
+    # Create local dirctories
+    mkdir -p $PWD/$domainItem/history/$YEAR/$MONTH/$DAY
+    mkdir -p $PWD/$domainItem/archive/$YEAR/$MONTH/$DAY
+
+    dst=${wrfModel}_${domainItem}_${YEAR}${MONTH}${DAY}Z${HOUR}00.nc
+    cp $output $PWD/$domainItem/history/$YEAR/$MONTH/$DAY/${dst}
+
+    echo "Post processing $dst..."
+    $WRFPOSTPRO_HOME/bin/postpro-${wrfModel} ${iDate} $PWD/$domainItem/history/${YEAR}/${MONTH}/${DAY}/${dst} $PWD/$domainItem/history $PWD/$domainItem/archive/${YEAR}/${MONTH}/${DAY}/${dst}
+
+    echo "$dst -> ${history_dir}/${YEAR}/${MONTH}/${DAY}/${dst}"
+    mkdir -p $history_dir/$YEAR/$MONTH/$DAY 2>/dev/null
+    cp $PWD/$domainItem/history/$YEAR/$MONTH/$DAY/${dst}  ${history_dir}/${YEAR}/${MONTH}/${DAY}/${dst}
+
+    echo "$dst -> ${archive_dir}/${YEAR}/${MONTH}/${DAY}/${dst}"
+    mkdir -p $archive_dir/$YEAR/$MONTH/$DAY 2>/dev/null
+    cp $PWD/$domainItem/archive/${YEAR}/${MONTH}/${DAY}/${dst} ${archive_dir}/${YEAR}/${MONTH}/${DAY}/${dst}
+  done
+done
+wait
+
+# Remove data after 'days'
+# ...

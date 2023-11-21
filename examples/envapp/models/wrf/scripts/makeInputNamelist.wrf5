@@ -1,0 +1,210 @@
+#! /bin/bash
+#
+#SBATCH --job-name=makeInputNamelist.wrf5
+#SBATCH --output=makeInputNamelist.wrf5_output.txt
+#SBATCH --partition=gpu
+#SBATCH --ntasks=1
+#
+#=======================================================================
+#
+# makeInputNamelist.wrf5
+#
+#=======================================================================
+
+# Set the software environment
+export PROMETEO_ROOT=$HOME/prometeo/
+export WRF_ROOT=$PROMETEO_ROOT/models/wrf/
+export WRF=${WRF_VERSION}-${WRF_COMPILER_VERSION}
+echo "${HOSTNAME}: $0 $WRF_ROOT $WRF"
+########################################################################
+
+if [ "$WRF_ROOT" == "" ]
+then
+  echo "WRF_ROOT not defined!"
+  exit 1
+fi
+if [ "$WRF" == "" ]
+then
+  echo "WRF not defined!"
+  exit 1
+fi
+
+echo "Sourcing $WRF_ROOT/ext/sourceme-$WRF_COMPILER_VERSION"
+. $WRF_ROOT/ext/sourceme-$WRF_COMPILER_VERSION
+########################################################################
+
+THISDIR=`pwd`
+  
+  IDATE=$1
+  FDATE=$2
+  MAX_DOM=$3
+  RESTART=$4
+  RESTART_INTERVAL=$5
+
+  # Starting simulation date
+  IYEAR=`expr substr $IDATE 1 4`
+  IMONTH=`expr substr $IDATE 5 2`
+  IDAY=`expr substr $IDATE 7 2`
+  IHOUR=`expr substr $IDATE 10 2`
+
+  # Ending simulation date
+  FYEAR=`expr substr $FDATE 1 4`
+  FMONTH=`expr substr $FDATE 5 2`
+  FDAY=`expr substr $FDATE 7 2`
+  FHOUR=`expr substr $FDATE 10 2`
+
+  # MPPhysics:
+  # New Thompson -> 8, ice,snow and graupel for high resolution
+  # WRF Single Moment 5 -> 4 allows for mixed-phase process
+  # Milbrandt-Yau -> 9 include separete categories for hail and graupel (WRF 3.2)
+  MPPHYSICS="8"
+
+  # BL_PBL_PHYSICS:
+  # Ysu -> 1 No-local-K Scheme
+  # MYJ -> 2 Eta Operation Scheme
+  BL_PBL_PHYSICS="1"
+
+  echo "Simulating from $IDATE to $FDATE..."
+
+  # Make the namelist.wps
+  cat > namelist.input << EOF2
+&time_control
+ run_days                            = 0,
+ run_hours                           = 0,
+ run_minutes                         = 0,
+ run_seconds                         = 0,
+ start_year                          = $IYEAR, $IYEAR, $IYEAR, $IYEAR,
+ start_month                         = $IMONTH,   $IMONTH,   $IMONTH, $IMONTH,
+ start_day                           = $IDAY,   $IDAY,   $IDAY, $IDAY,
+ start_hour                          = $IHOUR,  $IHOUR,   $IHOUR, $IHOUR,
+ start_minute                        = 00,   00,   00, 00,
+ start_second                        = 00,   00,   00, 00,
+ end_year                            = $FYEAR, $FYEAR, $FYEAR, $FYEAR,
+ end_month                           = $FMONTH,   $FMONTH,   $FMONTH, $FMONTH,
+ end_day                             = $FDAY,   $FDAY,   $FDAY, $FDAY,
+ end_hour                            = $FHOUR,   $FHOUR,   $FHOUR, $FHOUR
+ end_minute                          = 00,   00,   00, 00,
+ end_second                          = 00,   00,   00, 00,
+ interval_seconds                    = 10800
+ input_from_file                     = .true.,.true.,.true.,.true.,
+ history_interval                    = 60,  60, 60, 60,
+ frames_per_outfile                  = 1, 1, 1, 1,
+ restart                             = $RESTART,
+ restart_interval                    = $RESTART_INTERVAL,
+ io_form_history                     = 2
+ io_form_restart                     = 2
+ io_form_input                       = 2
+ io_form_boundary                    = 2
+ debug_level                         = 0
+ /
+
+&domains
+ time_step                           = 150,
+ time_step_fract_num                 = 0,
+ time_step_fract_den                 = 1,
+ max_dom                             = $MAX_DOM,
+ parent_id         =    1,      1,      2,
+ parent_grid_ratio =    1,      5,      5, 
+ i_parent_start           = 1,       120,        173, 
+ j_parent_start           = 1,       33,        112, 
+ e_we                     = 280,      361,      301,
+ e_sn                     = 209,      336,      306,
+ s_we                                = 1,1,1,
+ s_sn                                = 1,1,1,
+ s_vert                              = 1, 1, 1,
+ e_vert                              = 56,    56,    56, 
+ max_dz                              = 2000,
+ p_top_requested                     = 5000,
+ num_metgrid_levels                  = 34
+ num_metgrid_soil_levels             = 4,
+ dx                                  = 25000,5000,1000,
+ dy                                  = 25000,5000,1000,
+ grid_id                             = 1,2,3,4,
+ parent_time_step_ratio              = 1,5,6,5,
+ feedback                            = 1,
+ smooth_option                       = 0
+ /
+
+&physics
+ num_land_cat                        = 21
+ mp_physics                          = $MPPHYSICS,     $MPPHYSICS,     $MPPHYSICS, 4,
+ ra_lw_physics                       = 5,     5,     5, 5,
+ ra_sw_physics                       = 2,     2,     2, 2,
+ radt                                = 15,    15,    15,30,
+ sf_sfclay_physics                   = $BL_PBL_PHYSICS,     $BL_PBL_PHYSICS,     $BL_PBL_PHYSICS,1, 
+ sf_surface_physics                  = 2,     2,     2,1,
+ bl_pbl_physics                      = $BL_PBL_PHYSICS,     $BL_PBL_PHYSICS,     $BL_PBL_PHYSICS,1,
+ bldt                                = 0,     0,     0,0,
+ cu_physics                          = 2,     2,     0,0,
+ cudt                                = 5,     5,     5,5,
+ sst_update                          = 0,
+ isfflx                              = 1,
+ ifsnow                              = 1,
+ icloud                              = 1,
+ surface_input_source                = 1,
+ sf_urban_physics                    = 0,     0,     0,
+ num_soil_layers                     = 4,
+ maxiens                             = 1,
+ maxens                              = 3,
+ maxens2                             = 3,
+ maxens3                             = 16,
+ ensdim                              = 144,
+ /
+
+
+&fdda
+ /
+
+&dynamics
+ dyn_opt                             = 2,
+ rk_ord                              = 3,
+ w_damping                           = 0,
+ diff_opt                            = 1,     1,       1,
+ km_opt                              = 4,     4,       4,
+ damp_opt                            = 0,
+ diff_6th_opt                        = 0,      0,      0,  
+ diff_6th_factor                     = 0.12,   0.12,   0.12,
+ base_temp                           = 290.
+ zdamp                               = 5000.,  5000.,  5000., 5000.,
+ dampcoef                            = 0.2,   0.2,   0.2, 0.01,
+ khdif                               = 0,      0,      0, 0,
+ kvdif                               = 0,      0,      0, 0,
+ smdiv                               = 0.1,    0.1,    0.1, 0.1,
+ emdiv                               = 0.01,   0.01,   0.01, 0.01,
+ epssm                               = 0.1,    0.1,    0.1, 0.1,
+ non_hydrostatic                     = .true., .true., .true., .true.,
+ time_step_sound                     = 4,      4,      4, 4,
+ h_mom_adv_order                     = 5,      5,      5, 5,
+ v_mom_adv_order                     = 3,      3,      3, 3,
+ h_sca_adv_order                     = 3,      5,      5, 5,
+ v_sca_adv_order                     = 2,      3,      3, 3,
+ moist_adv_opt                       = 1,      1,      1,    
+ scalar_adv_opt                      = 1,      1,      1,
+ /
+
+&bdy_control
+ spec_bdy_width                      = 5,
+ spec_zone                           = 1,
+ relax_zone                          = 4,
+ specified                           = .true., .false.,.false.,.false.,
+ periodic_x                          = .false.,.false.,.false.,.false.,
+ symmetric_xs                        = .false.,.false.,.false.,.false.,
+ symmetric_xe                        = .false.,.false.,.false.,.false.,
+ open_xs                             = .false.,.false.,.false.,.false.,
+ open_xe                             = .false.,.false.,.false.,.false.,
+ periodic_y                          = .false.,.false.,.false.,.false.,
+ symmetric_ys                        = .false.,.false.,.false.,.false.,
+ symmetric_ye                        = .false.,.false.,.false.,.false.,
+ open_ys                             = .false.,.false.,.false.,.false.,
+ open_ye                             = .false.,.false.,.false.,.false.,
+ nested                              = .false., .true., .true.,.true.,
+ /
+
+&grib2
+ /
+
+ &namelist_quilt
+ nio_tasks_per_group = 0,
+ nio_groups = 1,
+ /
+EOF2

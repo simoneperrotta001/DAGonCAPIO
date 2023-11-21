@@ -1,0 +1,105 @@
+#! /bin/bash 
+#
+#SBATCH --job-name=wrf
+#SBATCH --output=wrf_output.txt
+#SBATCH --error=wrf_output.err
+#SBATCH --partition=hxcpu
+#SBATCH --ntasks=192
+#SBATCH --mem=128000
+#
+#=======================================================================
+#
+# wrf
+#
+#=======================================================================
+
+########################################################################
+
+if [ "$PROMETEO_ROOT" == "" ]
+then
+  echo "PROMETEO_ROOT not defined!"
+  exit -1
+fi
+
+if [ "$WRF_ROOT" == "" ]
+then
+  echo "WRF_ROOT not defined!"
+  exit -1
+fi
+
+if [ "$WRF_VERSION" == "" ]
+then
+  echo "WRF_VERSION not defined!"
+  exit -1
+fi
+
+if [ "$WRF_COMPILER_VERSION" == "" ]
+then
+  echo "WRF_COMPILER_VERSION not defined!"
+  exit -1
+fi
+
+# Set the software environment
+export WRF=${WRF_VERSION}-${WRF_COMPILER_VERSION}
+echo "${HOSTNAME}: $0 $WRF_ROOT $WRF"
+echo "Sourcing $WRF_ROOT/ext/sourceme-$WRF_COMPILER_VERSION"
+. $WRF_ROOT/ext/sourceme-$WRF_COMPILER_VERSION
+########################################################################
+
+jobId=$1
+THISDIR=`pwd`
+
+namelistInput=$2
+cp $namelistInput .
+
+wrfBdy=$3
+echo "Copying boundary conditions from :$wrfBdy"
+cp $wrfBdy .
+
+wrfInput=$4
+echo "Copying boundary conditions from :$wrfBdy"
+cp $wrfInput .
+
+
+if [ $# -eq 5 ]
+then
+  wrfRestart=$5
+  echo "Copying restart from :$wrfRestart"
+  cp $wrfRestart .
+fi
+
+# Soft link to executable and data
+ln -s $WRF_ROOT/$WRF/WRFV3/run/wrf.exe
+ln -s $WRF_ROOT/$WRF/WRFV3/run/real.exe
+ln -s $WRF_ROOT/$WRF/WRFV3/run/nup.exe
+ln -s $WRF_ROOT/$WRF/WRFV3/run/ndown.exe
+
+ln -s $WRF_ROOT/$WRF/WRFV3/run/BROADBAND_CLOUD_GODDARD.bin
+ln -s $WRF_ROOT/$WRF/WRFV3/run/CAM_ABS_DATA
+ln -s $WRF_ROOT/$WRF/WRFV3/run/CAM_AEROPT_DATA
+ln -s $WRF_ROOT/$WRF/WRFV3/run/ETAMPNEW_DATA
+ln -s $WRF_ROOT/$WRF/WRFV3/run/ETAMPNEW_DATA_DBL
+ln -s $WRF_ROOT/$WRF/WRFV3/run/GENPARM.TBL
+ln -s $WRF_ROOT/$WRF/WRFV3/run/grib2map.tbl
+ln -s $WRF_ROOT/$WRF/WRFV3/run/gribmap.txt
+ln -s $WRF_ROOT/$WRF/WRFV3/run/LANDUSE.TBL
+
+ln -s $WRF_ROOT/$WRF/WRFV3/run/ozone.formatted
+ln -s $WRF_ROOT/$WRF/WRFV3/run/ozone_lat.formatted
+ln -s $WRF_ROOT/$WRF/WRFV3/run/ozone_plev.formatted
+
+ln -s $WRF_ROOT/$WRF/WRFV3/run/RRTM_DATA
+ln -s $WRF_ROOT/$WRF/WRFV3/run/RRTM_DATA_DBL
+ln -s $WRF_ROOT/$WRF/WRFV3/run/SOILPARM.TBL
+
+ln -s $WRF_ROOT/$WRF/WRFV3/run/tr49t67
+ln -s $WRF_ROOT/$WRF/WRFV3/run/tr49t85
+ln -s $WRF_ROOT/$WRF/WRFV3/run/tr67t85
+
+ln -s $WRF_ROOT/$WRF/WRFV3/run/URBPARM.TBL
+ln -s $WRF_ROOT/$WRF/WRFV3/run/VEGPARM.TBL
+
+echo "WRF_DOMAINS: $WRF_DOMAINS"
+
+# Run
+time mpirun $THISDIR/wrf.exe

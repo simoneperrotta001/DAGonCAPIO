@@ -1,0 +1,61 @@
+#! /usr/bin/bash 
+#
+#SBATCH --job-name=geogrid
+#SBATCH --output=geogrid_output.txt
+#SBATCH --partition=hicpu
+#SBATCH --ntasks=20
+#SBATCH --mem=40000
+
+#=======================================================================
+#
+# geogrid
+#
+#=======================================================================
+
+
+########################################################################
+
+if [ "$PROMETEO_ROOT" == "" ]
+then
+  echo "PROMETEO_ROOT not defined!"
+  exit -1
+fi
+
+if [ "$WRF_ROOT" == "" ]
+then
+  echo "WRF_ROOT not defined!"
+  exit -1
+fi
+
+if [ "$WRF_VERSION" == "" ]
+then
+  echo "WRF_VERSION not defined!"
+  exit -1
+fi
+
+if [ "$WRF_COMPILER_VERSION" == "" ]
+then
+  echo "WRF_COMPILER_VERSION not defined!"
+  exit -1
+fi
+
+# Set the software environment
+export WRF=${WRF_VERSION}-${WRF_COMPILER_VERSION}
+echo "${HOSTNAME}: $0 $WRF_ROOT $WRF"
+echo "Sourcing $WRF_ROOT/ext/sourceme-$WRF_COMPILER_VERSION"
+. $WRF_ROOT/ext/sourceme-$WRF_COMPILER_VERSION
+########################################################################
+
+jobId=$1
+wpsNamelist=$2
+
+THISDIR=`pwd`
+cp $wpsNamelist $THISDIR/namelist.wps
+
+# Soft link to executable and data
+ln -sf $WRF_ROOT/$WRF/WPS/geogrid.exe
+#ln -sf $WRF_ROOT/data/geog geog
+ln -sf $WRF_ROOT/data/WPS_GEOG geog
+ln -sf $WRF_ROOT/$WRF/WPS/geogrid
+
+time mpirun $THISDIR/geogrid.exe
