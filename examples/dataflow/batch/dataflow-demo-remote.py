@@ -22,10 +22,10 @@ if __name__ == '__main__':
     taskB = DagonTask(TaskType.BATCH, "B", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", ip="", ssh_username="", keypath="")
 
     # The task c
-    taskC = DagonTask(TaskType.BATCH, "C", "echo $RANDOM > f2.txt; cat workflow:///A/output/f1.txt >> f2.txt", ip="", ssh_username="", keypath="")
+    taskC = DagonTask(TaskType.BATCH, "C", "echo $RANDOM > f3.txt; cat workflow:///A/output/f1.txt >> f3.txt", ip="", ssh_username="", keypath="")
 
     # The task d
-    taskD = DagonTask(TaskType.BATCH, "D", "cat workflow:///B/f2.txt >> f3.txt; cat workflow:///C/f2.txt >> f3.txt", ip="", ssh_username="", keypath="")
+    taskD = DagonTask(TaskType.BATCH, "D", "cat workflow:///B/f2.txt >> f4.txt; cat workflow:///C/f3.txt >> f4.txt", ip="", ssh_username="", keypath="")
 
     # add tasks to the workflow
     workflow.add_task(taskA)

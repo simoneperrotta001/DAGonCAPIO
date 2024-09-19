@@ -174,7 +174,7 @@ class GlobusManager:
         else:
             res = self.copy_file(ori, destiny, intermediate)
 
-        if res is not "OK":
+        if res != "OK":
             raise Exception(res)
 
 

@@ -72,14 +72,49 @@ class Batch(Task):
         #
         #     return {"code": code, "message": message, "output": result.stdout}
         p = Popen(command.split(" "), stdin=PIPE, stdout=PIPE, stderr=PIPE, close_fds=True, bufsize=-1, universal_newlines=True)
-        #print "commmand",command
-        out, err = p.communicate()
+        #print(command)
+        """out, err = p.communicate()
 
         code, message = 0, ""
         if len(err):
             code, message = 1, err
         return {"code": code, "message": message, "output": out}
-
+        
+        
+        AGGIUNGERE eventualmente una classe che eredita da thread che lancia il tutto per non renderlo bloccante:
+        
+        import subprocess
+        import threading
+        
+        class CommandExecutor(threading.Thread):
+            def __init__(self, command):
+                threading.Thread.__init__(self)
+                self.command = command
+                self.output = None
+                self.error = None
+        
+            def run(self):
+                try:
+                    process = subprocess.Popen(self.command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    self.output, self.error = process.communicate()
+                except Exception as e:
+                    self.error = str(e)
+        
+        # Esempio di utilizzo
+        command = "ls -l"  # Sostituisci con il tuo comando
+        executor = CommandExecutor(command)
+        executor.start()
+        
+        # Attendere il completamento dell'esecuzione del comando
+        executor.join()
+        
+        # Ottenere l'output e gli errori, se presenti
+        output = executor.output.decode("utf-8") if executor.output else None
+        error = executor.error.decode("utf-8") if executor.error else None
+        
+        print("Output:", output)
+        print("Error:", error)
+        """
 
     def on_execute(self, script, script_name):
         """
@@ -94,7 +129,8 @@ class Batch(Task):
         """
         # Invoke the base method
         super(Batch, self).on_execute(script, script_name)
-        return Batch.execute_command("bash " + self.working_dir + "/.dagon/" + script_name)
+        #print("sono entrato", script)
+        return Batch.execute_command("bash " + "/home/s.perrotta/dagonstar/examples/dataflow/batch/" + script_name)
 
     # returns public key
     def get_public_key(self):

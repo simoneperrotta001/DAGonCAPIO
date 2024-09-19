@@ -3,7 +3,9 @@ import glob
 from json import loads
 from threading import Thread
 from threading import Semaphore
-from os import makedirs, path, chmod
+import os
+import subprocess
+from os import makedirs, path, chmod, system
 from time import time, sleep
 from enum import Enum
 from dagon.ftp_publisher import FTP_API
@@ -66,7 +68,7 @@ class DagonTask(object):
         return class_(*args, **kwargs)
 
 
-class Task(Thread):
+class Task(Thread):#estende la classe thread
     """
     **Represents a task executed by DagOn**
 
@@ -134,7 +136,10 @@ class Task(Thread):
         self.workflow = None
         self.set_status(dagon.Status.READY)
         self.working_dir = working_dir
+        self.dependency_dir = []
         self.command = command
+        self.input_file = []
+        self.output_file = []
         self.info = None
         self.dag_tps = None
         self.transversal_workflow = transversal_workflow
@@ -241,6 +246,16 @@ class Task(Thread):
         millis = int(round(time() * 1000))
         return str(millis) + "-" + self.name
 
+    def set_dependency_dir(self, name_dir, i):
+        """
+        Set the working directories dependency for the task
+        """
+        # Controlla se l'indice è valido
+        while i >= len(self.dependency_dir):
+            self.dependency_dir.append(None)  # Aggiungi elementi vuoti fino a raggiungere l'indice
+        # indice valido
+        self.dependency_dir[i] = name_dir
+
     def as_json(self):
         """"
         Generates the JSON representation of the task
@@ -257,6 +272,47 @@ class Task(Thread):
             json_task['nexts'].append(t.name)
         for t in self.prevs:
             json_task['prevs'].append(t.name)
+        return json_task
+
+    def as_json_capio(self):
+        """
+        Generates the JSON representation of the task for CAPIO server
+
+        :return: JSON task representation
+        :rtype: dict(str, object)
+        """
+        json_task = {}
+
+        if len(self.nexts) >= 1 and len(self.prevs) == 0:
+            json_task = {
+                "name": self.name,
+                "output_stream": [str(self.working_dir) + "/*"],
+                "streaming": [{
+                    "name": str(self.working_dir) + "/*",
+                    "committed": "on_close",
+                    "mode": "no_update"
+                }]
+            }
+        elif len(self.nexts) == 0 and len(self.prevs) >= 1:
+            input_streams = [str(dir_name) + "/*" for dir_name in self.dependency_dir]
+            json_task = {
+                "name": self.name,
+                "input_stream": input_streams
+            }
+        else:
+            # Task con sia predecessori che successori
+            input_streams = [str(dir_name) + "/*" for dir_name in self.dependency_dir]
+            json_task = {
+                "name": self.name,
+                "input_stream": input_streams,
+                "output_stream": [str(self.working_dir) + "/*"],
+                "streaming": [{
+                    "name": str(self.working_dir) + "/*",
+                    "committed": "on_close",
+                    "mode": "no_update"
+                }]
+            }
+
         return json_task
 
     def set_workflow(self, workflow):
@@ -337,9 +393,9 @@ class Task(Thread):
         Call garbage collector, removing the scratch directory, containers and instances related to the
         task
         """
-        shutil.move(self.working_dir, self.working_dir + "-removed")
+        shutil.move(self.working_dir, self.working_dir + "-removed")#move the scratch directory into a new directory with the add of removed at the end of the name
 
-    # Decremet the reference count
+    # Decremet the reference count and remove scratch directory if the reference count is equal to 0
     def decrement_reference_count(self):
         """
         Decremet the reference count. When the number of references is equals to zero, the garbage collector is called
@@ -371,9 +427,84 @@ class Task(Thread):
         if self.dag_tps is not None:
             self.workflows = self.dag_tps.workflows
 
+        # se il mio ragionamento è corretto, per i task che non dipendono da nessuno, ma che comunque va preso il file su cui scrivono, questo va fatto qui, aspettare risposta alberto per controllare veridicità del mio pensiero
+        # aggiungere parte riguardo il file di output invece (quello dopo >>)
+        """while True:
+            pos1 = self.command.find(">", pos)
+            if pos1 != -1:
+                pos = self.command.find(".txt", pos1)
+                if pos != -1:
+                    pos1 = self.command.find(" ", pos1)
+                    if pos1 != -1:
+                        # sfasamento dovuto al .txt, poichè il find restituisce la posizione del .
+                        arg = self.command[pos1:pos + 3]
+                        elements = arg.split("/")
+                        i = 0
+                        while True:
+                            if i < len(elements):
+                                file_name = elements[i]
+                                find_txt = file_name.find(".txt")
+                                if find_txt != -1:
+                                    if file_name not in self.output_file:
+                                        self.output_file.append(file_name)
+                                    break
+                                i += 1
+                            else:
+                                break
+            else:
+                break"""
+        """while True:
+            # Trova la posizione della redirezione dell'output '>'
+            pos1 = self.command.find(">", pos)
+            if pos1 != -1:
+                # Trova la posizione del primo carattere dopo la redirezione dell'output
+                pos2 = self.command.find(" ", pos1)
+                # Estrai il percorso del file di output
+                if pos2 != -1:
+                    file_path = self.command[pos1 + 1:pos2].strip()
+                else:
+                    # Se non ci sono spazi dopo '>', il percorso del file di output è fino alla fine della stringa
+                    file_path = self.command[pos1 + 1:].strip()
+
+                # Estrai il nome del file dalla parte del percorso dopo l'ultima barra "/"
+                file_name = file_path.split("/")[-1]
+
+                # Aggiungi il nome del file all'elenco degli output
+                if file_name not in self.output_file:
+                    self.output_file.append(file_name)
+
+                # Aggiorna la posizione per iniziare a cercare dallo spazio successivo
+                pos = pos2 + 1 if pos2 != -1 else len(self.command)
+            else:
+                break"""
+        while True:
+            pos1 = self.command.find(">", pos)
+            if pos1 != -1:
+                # Trova la posizione del secondo carattere '>' subito dopo il primo
+                pos2 = self.command.find(">", pos1 + 1, pos1 + 2)
+                # Se il secondo carattere '>>' non viene trovato, prendi la posizione del primo '>'
+                if pos2 == -1:
+                    pos2 = pos1
+                # Trova la posizione dello spazio dopo il secondo carattere '>>'
+                pos_space = self.command.find(" ", pos2)
+                if pos_space == pos2 + 1:
+                    pos2 = pos_space
+                pos3 = self.command.find(";", pos2)
+                if pos3 == -1:
+                    pos3 = len(self.command)
+                arg = self.command[pos2 + 1:pos3].strip()
+                file_parts = arg.split('/')
+                file_name = file_parts[-1]
+                if file_name not in self.output_file:
+                    self.output_file.append(file_name)
+                pos = pos3
+            else:
+                break
+
+        pos = 0
         # Forever unless no anymore dagon.Workflow.SCHEMA are present
         while True:
-            # Get the position of the next dagon.Workflow.SCHEMA
+            # Get the position of the next dagon.Workflow.SCHEMA (find torna la posizione nel comando della d)
             pos1 = self.command.find(dagon.Workflow.SCHEMA, pos)
 
             # Check if there is no dagon.Workflow.SCHEMA
@@ -384,11 +515,12 @@ class Task(Thread):
             # Find the first occurrent of a whitespace (or if no occurrence means the end of the string)
             pos2 = self.command.find(" ", pos1)
 
+            #se non ha trovato lo spazio (ovvero in pos2 c'è -1 poichè il find ha resituito -1) allora verrà settata la lunghezza a tutto il comando
             # Check if this is the last referenced argument
             if pos2 == -1:
                 pos2 = len(self.command)
 
-            # Extract the parameter string
+            # Extract the parameter string (prende il comando presente dalla d alla fine del comando a partire da dagon)
             arg = self.command[pos1:pos2]
 
             # Remove the dagon.Workflow.SCHEMA label
@@ -408,7 +540,6 @@ class Task(Thread):
                 workflow_name = self.workflow.name
 
             # Extract the reference task object
-
             if self.workflows is None:
                 task = self.workflow.find_task_by_name(workflow_name, task_name)
             else:
@@ -423,9 +554,23 @@ class Task(Thread):
                 if workflow_name == self.workflow.name:
                     self.add_dependency_to(task)
                 else:
+                    #aggiunge un punto di connessione tra più workflow
                     self.add_transversal_point(task)
                 # Add the reference from the task
                 task.increment_reference_count()
+                # Extract the name of the file on which this file depends
+                #pos_file1 = pos1
+                i = 2
+                while True:
+                    if i < len(elements):
+                        current_element = elements[i]
+                        find_txt = current_element.find(".txt")
+                        if find_txt != -1:
+                            self.input_file.append(current_element)#preso file di input
+                            break
+                        i += 1
+                    else:
+                        break
 
             if task is None:  # if is None means that task is from another WF maybe in the dagon service
                 #self.workflow.logger.debug("Adding transversal point")
@@ -550,7 +695,6 @@ class Task(Thread):
                     # if the host is the same in this computer, the task is in the same computer
                     if host_ip == self.workflow.ftpAtt['host']:
                         task_path = transversal_task['working_dir']  # the same workingdir
-                    else:
                         task_path = self.workflow.local_path + transversal_task[
                             'working_dir']  # if not, we add an extra path
                         ftp = FTP_API(host_ip)
@@ -671,7 +815,7 @@ class Task(Thread):
         :rtype: dict() with the execution output (str) and code (int)
         """
         # The launcher script name
-        script_name = self.working_dir + "/.dagon/" + script_name
+        script_name = "/home/s.perrotta/dagonstar/examples/dataflow/batch/" + script_name
         # Create a temporary launcher script
         file = open(script_name, "w")
         file.write(script)
@@ -689,6 +833,16 @@ class Task(Thread):
         """
         makedirs(path,exist_ok=True)
 
+    def mkdir_working_dir_capio(self):
+        """
+        Make the working directory with the CAPIO logic
+        """
+        script = "#! /bin/bash\n\n"
+
+        script += "CAPIO_LOG_LEVEL=-1 LD_PRELOAD=" + self.workflow.get_capio_libcapioposix_path() + "/libcapio_posix.so CAPIO_DIR=" + self.workflow.cfg['batch']['scratch_dir_base'] + " mkdir " + self.working_dir
+
+        self.on_execute(script, "create_dir" + self.name + ".sh")
+
     def create_working_dir(self):
         """
         Create the working directory
@@ -702,6 +856,27 @@ class Task(Thread):
 
         # Create scratch directory
         self.mkdir_working_dir(self.working_dir + "/.dagon")
+        self.workflow.logger.debug("%s: Scratch directory: %s", self.name, self.working_dir)
+        if self.workflow.is_api_available:  # change scratch directory on server
+            try:
+                self.workflow.api.update_task(self.workflow.workflow_id, self.name, "working_dir", self.working_dir)
+            except Exception as e:
+                self.workflow.logger.error("%s: Error updating scratch directory on server %s", self.name, e)
+
+    def create_working_dir_name_capio(self):
+        """
+        create the working directory name of the task in order to write it in the json configuration file for CAPIO
+        """
+        if self.working_dir is None:
+            # Set a scratch directory as working directory
+            self.working_dir = self.workflow.get_scratch_dir_base() + self.get_scratch_name() #cambiato, tolto il + "/" rispetto all'originale per prevenzione
+
+    def create_working_dir_capio(self):
+        """
+        Create the working directory with the CAPIO logic
+        """
+        # Create scratch directory
+        self.mkdir_working_dir_capio()
         self.workflow.logger.debug("%s: Scratch directory: %s", self.name, self.working_dir)
         if self.workflow.is_api_available:  # change scratch directory on server
             try:
